@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tareas · Aula Virtual IES Teis</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#f6f7f9; --fg:#1b1f24; --muted:#5b6570; --card:#fff; --line:#d9dee4;
+  --head:#24292f; --accent:#0b57d0; --link:#0b57d0;
+  --red:rgba(214,40,40,.13); --yellow:rgba(214,160,0,.16); --green:rgba(20,150,80,.13);
+  --redb:rgba(214,40,40,.45); --yellowb:rgba(214,160,0,.45); --greenb:rgba(20,150,80,.4);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#14171b; --fg:#e7ebf0; --muted:#9aa4b0; --card:#1b1f25; --line:#2c333c;
+    --head:#e7ebf0; --accent:#6ea8fe; --link:#7fb2ff;
+    --red:rgba(255,70,70,.16); --yellow:rgba(255,190,40,.14); --green:rgba(60,200,120,.14);
+    --redb:rgba(255,90,90,.5); --yellowb:rgba(255,190,40,.45); --greenb:rgba(60,200,120,.42);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
+.wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:24px;margin:0;color:var(--head)}
+.sub{color:var(--muted);font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:13px;height:13px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.sw.r{background:var(--red);border-color:var(--redb)}
+.sw.y{background:var(--yellow);border-color:var(--yellowb)}
+.sw.g{background:var(--green);border-color:var(--greenb)}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;display:flex;justify-content:space-between;align-items:center}
+h2 .n{font-weight:600;opacity:.8}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform .08s ease, box-shadow .08s ease}
+.card:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.card.soon{background:var(--red);border-color:var(--redb)}
+.card.mid{background:var(--yellow);border-color:var(--yellowb)}
+.card.ok{background:var(--green);border-color:var(--greenb)}
+.card .t{font-weight:600;font-size:15.5px}
+.card .d{color:var(--muted);font-size:13px;margin-top:3px}
+.card .cd{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;white-space:nowrap}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.cd.soon{color:#c62828}.cd.mid{color:#8a6400}.cd.ok{color:#0d7a45}
+@media (prefers-color-scheme: dark){ .cd.soon{color:#ff8a80}.cd.mid{color:#ffce55}.cd.ok{color:#5ad69a} }
+#bar{display:flex;gap:10px;align-items:center;margin:16px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+button{font:inherit;font-size:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:5px 12px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+#err{display:none;margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--red);border:1px solid var(--redb);font-size:14px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+.foot{margin-top:36px;color:var(--muted);font-size:12px;text-align:center}
+h2 .acts{display:flex;gap:6px;align-items:center}
+button.mini{font-size:12px;padding:2px 9px;border-radius:6px}
+button.mini.on{border-color:var(--accent);color:var(--accent)}
+#addform{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0}
+#addform.on{display:flex}
+#addform input[type=text]{flex:1 1 180px;min-width:150px;font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg)}
+#addform input[type=datetime-local]{font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg)}
+textarea.note{display:block;width:100%;min-height:64px;max-height:240px;resize:vertical;font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);margin:-4px 0 10px}
+textarea.note:focus{outline:none;border-color:var(--accent)}
+#gnotes{margin:14px 0 4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+#gnotes summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--head)}
+#gnotes textarea{margin-top:10px}
+.card.own{border-style:dashed}
+.card.mail{border-style:dotted}
+.card .t a{color:inherit;text-decoration:none}
+.card .t a:hover{text-decoration:underline}
+.own-tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
+.mail-tag{font-size:11px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
+button.del{font-size:13px;padding:1px 8px;color:var(--muted)}
+button.del:hover{border-color:#c62828;color:#c62828}
+#savest{font-size:12px;color:var(--muted)}
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+#gate form{width:100%;max-width:320px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;text-align:center}
+.gt{font-size:18px;font-weight:600;color:var(--head)}
+.gs{color:var(--muted);font-size:13px;margin:6px 0 16px}
+#pass{width:100%;font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg);margin-bottom:12px}
+#gate button{width:100%;padding:9px}
+#gate-msg{color:#c62828;font-size:13px;min-height:18px;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="gate">
+  <form id="gate-form" autocomplete="off">
+    <div class="gt">Tareas pendientes</div>
+    <div class="gs">Aula Virtual · IES de Teis</div>
+    <input id="pass" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button type="submit">Entrar</button>
+    <div id="gate-msg"></div>
+  </form>
+</div>
+<div class="wrap">
+  <header>
+    <h1>Tareas pendientes</h1>
+    <div class="sub">Aula Virtual · IES de Teis</div>
+  </header>
+  <div class="sub" id="updated">Cargando…</div>
+  <div id="bar">
+    <button id="refresh">Actualizar ahora</button>
+    <button id="addtoggle">+ Añadir tarea</button>
+    <span id="next"></span>
+    <span id="mailst"></span>
+    <span id="savest"></span>
+  </div>
+  <div id="err"></div>
+  <form id="addform" autocomplete="off">
+    <input id="af-subject" list="af-list" placeholder="Asignatura" maxlength="250" required>
+    <datalist id="af-list"></datalist>
+    <input id="af-title" type="text" placeholder="Título de la tarea" maxlength="200" required>
+    <input id="af-due" type="datetime-local">
+    <button type="submit">Guardar</button>
+    <button type="button" id="af-cancel">Cancelar</button>
+  </form>
+  <div class="legend">
+    <span><i class="sw r"></i> menos de 7 días</span>
+    <span><i class="sw y"></i> 7 a 12 días</span>
+    <span><i class="sw g"></i> más de 12 días</span>
+  </div>
+  <details id="gnotes">
+    <summary>Nota general</summary>
+    <textarea id="gtext" rows="4" placeholder="Escribe aquí tu nota global… se guarda automáticamente en la nube."></textarea>
+  </details>
+  <main id="list"></main>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas desaparecen de la lista.</div>
+</div>
+<script>
+var BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+var USERNAME = 'tareas';
+var SEED = [
+ {s:'BASES DE DATOS', t:'Ejercicio 7 BBDD', u:'mod/assign/view.php?id=197627', d:'2026-10-01T23:59:00'},
+ {s:'Tutoría 2ºDAW', t:'Módulos pendente', u:'mod/assign/view.php?id=197664', d:'2026-10-06T00:00:00'},
+ {s:'DWEC', t:'Cuestionario inicial', u:'mod/assign/view.php?id=185752', d:'2026-10-05T00:00:00'},
+ {s:'Despregamento de Aplicacións Web', t:'Exame práctico git', u:'course/view.php?id=2417', d:'2026-10-07T08:10:00'},
+ {s:'Despregamento de Aplicacións Web', t:'Práctica para entregar git', u:'mod/assign/view.php?id=194841', d:'2026-10-09T23:59:00'},
+ {s:'Empregabilidade', t:'CV EUROPASS', u:'mod/assign/view.php?id=164526', d:'2026-10-05T23:00:00'},
+ {s:'Empregabilidade', t:'CV modelo-deseño propio', u:'mod/assign/view.php?id=164521', d:'2026-10-10T00:00:00'},
+ {s:'Empregabilidade', t:'Nova seman 5–11 oct', u:'course/view.php?id=1973', d:'2026-10-11T20:00:00'},
+ {s:'Empregabilidade', t:'Nova seman 19–25 oct', u:'course/view.php?id=1973', d:'2026-10-25T20:00:00'},
+ {s:'Desenvolvemento web en contorno servidor', t:'Ejercicios tema 3', u:'course/view.php?id=1947', d:'2026-10-13T08:00:00'},
+ {s:'Desenvolvemento web en contorno servidor', t:'Ejercicios tema 4', u:'course/view.php?id=1947', d:'2025-10-20T23:59:00'},
+ {s:'Afondamento 2DAW (AWS)', t:'Práctica 2 S3 + Amplify', u:'course/view.php?id=2463', d:null},
+ {s:'ENGLISH 2º CS DAW', t:'Actividade 189224', u:'course/view.php?id=2367', d:'2025-10-24T23:00:00'},
+ {s:'ENGLISH 2º CS DAW', t:'Actividade 189226', u:'course/view.php?id=2367', d:'2025-11-09T16:15:00'},
+ {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
+];
+var TASKS = [], EMAILS = [], DATA = {tasks: [], notes: {}, global: '', skip: []}, NOTE_OPEN = {}, saveTimer = null, nextTimer = null;
+
+function dueMs(t){ return t.d ? new Date(t.d).getTime() : null; }
+function classify(ms){
+  if (ms === null) return 'ok';
+  var diff = ms - Date.now();
+  if (diff <= 0) return 'soon';
+  var days = diff / 86400000;
+  if (days < 7) return 'soon';
+  if (days <= 12) return 'mid';
+  return 'ok';
+}
+function fmtDue(ms){
+  if (ms === null) return 'Sin fecha límite';
+  var d = new Date(ms);
+  var s = d.toLocaleDateString('es-ES', {weekday:'short', day:'numeric', month:'short', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined});
+  return s + ' · ' + d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+}
+function fmtCountdown(ms){
+  if (ms === null) return '—';
+  var diff = ms - Date.now();
+  if (diff <= 0){
+    var od = Math.ceil(-diff / 86400000);
+    return od <= 1 ? 'vencida hoy' : 'vencida hace ' + od + ' d';
+  }
+  var d = Math.floor(diff / 86400000), h = Math.floor(diff / 3600000) % 24, m = Math.floor(diff / 60000) % 60;
+  if (d > 0) return d + ' d ' + h + ' h';
+  if (h > 0) return h + ' h ' + m + ' min';
+  return m + ' min';
+}
+function normKey(s){
+  var v = String(s == null ? '' : s).toLowerCase();
+  if (v.normalize) v = v.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return v;
+}
+function matchKey(s){
+  return normKey(s).replace(/\(?\b20?\d{2}-\d{2}\b\)?|20\d{2}|[^a-z]+/g, '');
+}
+var MAIL_ALIAS = [
+  [/bdatos|basesdedatos/, 'basesdedatos'],
+  [/dawipe|empregab/, 'empregab'],
+  [/tut2|tutoria/, 'tutoria'],
+  [/dwec|entornocliente/, 'entornocliente'],
+  [/dwcs|dwdc|contornoservidor|entornoservidor/, 'contornoservidor'],
+  [/dawdawo|despregamento/, 'despregamento'],
+  [/afond|aws/, 'afondamento'],
+  [/english|ingles/, 'english'],
+  [/seqtic/, 'seqtic']
+];
+function mapCourse(e, names){
+  var h = matchKey(e.hint || '');
+  if (h.length >= 6){
+    for (var i = 0; i < names.length; i++){
+      var n = matchKey(names[i]);
+      if (n.length >= 6 && (n.indexOf(h) === 0 || h.indexOf(n) === 0)) return names[i];
+    }
+  }
+  for (var a = 0; a < MAIL_ALIAS.length; a++){
+    if (MAIL_ALIAS[a][0].test(h)){
+      var tok = MAIL_ALIAS[a][1];
+      for (var j = 0; j < names.length; j++){
+        if (matchKey(names[j]).indexOf(tok) >= 0) return names[j];
+      }
+    }
+  }
+  var tk = matchKey(e.title || '');
+  if (tk.length >= 10){
+    for (var m2 = 0; m2 < names.length; m2++){
+      var nk = matchKey(names[m2]);
+      if (nk.length >= 10 && tk.indexOf(nk) >= 0) return names[m2];
+    }
+  }
+  var raw = normKey(e.title || '').slice(0, 14);
+  for (var k = 0; k < names.length; k++){
+    var rn = normKey(names[k]).replace(/\d+/g, '');
+    if (rn.length >= 8 && raw && raw.indexOf(rn.slice(0, 14)) === 0) return names[k];
+  }
+  return null;
+}
+function allTasks(){
+  var list = TASKS.concat(DATA.tasks.map(function(t){
+    return {s: t.s, t: t.t, d: t.d, u: null, own: 1, id: t.id};
+  }));
+  if (!EMAILS.length) return list;
+  var names = {};
+  list.forEach(function(t){ if (t.s) names[t.s] = 1; });
+  Object.keys(DATA.notes).forEach(function(k){ names[k] = 1; });
+  var nameList = Object.keys(names);
+  var skip = {};
+  (DATA.skip || []).forEach(function(id){ skip[id] = 1; });
+  var seen = {};
+  list.forEach(function(t){
+    var key = matchKey(t.t);
+    if (key) seen[(t.s || '') + '|' + key] = 1;
+  });
+  EMAILS.forEach(function(e){
+    if (!e || skip[e.id]) return;
+    var g = mapCourse(e, nameList);
+    if (!g) g = 'Correo · ' + (e.hint || 'instituto');
+    var key = matchKey(e.title);
+    if (key && seen[g + '|' + key]) return;
+    if (key) seen[g + '|' + key] = 1;
+    list.push({s: g, t: e.title, d: e.d, u: e.url, mail: 1, id: e.id, ts: e.ts ? Date.parse(e.ts) : 0});
+  });
+  return list;
+}
+function render(){
+  var list = document.getElementById('list');
+  var groups = {};
+  allTasks().forEach(function(t){
+    var k = t.s || 'Sin asignatura';
+    (groups[k] = groups[k] || []).push(t);
+  });
+  Object.keys(DATA.notes).forEach(function(k){
+    if (!groups[k]) groups[k] = [];
+  });
+  function minDue(items){
+    var m = null;
+    items.forEach(function(t){
+      var d = dueMs(t);
+      if (d === null) return;
+      if (m === null || d < m) m = d;
+    });
+    return m;
+  }
+  var keys = Object.keys(groups).sort(function(a, b){
+    var da = minDue(groups[a]), db = minDue(groups[b]);
+    if (da === null && db === null) return a.localeCompare(b);
+    if (da === null) return 1;
+    if (db === null) return -1;
+    return da - db;
+  });
+  if (!keys.length){
+    list.innerHTML = '<div class="empty">No hay tareas pendientes. ¡Todo entregado!</div>';
+    return;
+  }
+  var html = '';
+  keys.forEach(function(k){
+    var items = groups[k].slice().sort(function(a, b){
+      var da = dueMs(a), db = dueMs(b);
+      if (da === null && db === null){
+        var ta = a.ts || 0, tb = b.ts || 0;
+        if (ta || tb) return tb - ta;
+        return String(a.t).localeCompare(String(b.t));
+      }
+      if (da === null) return 1;
+      if (db === null) return -1;
+      return da - db;
+    });
+    var noteVal = DATA.notes[k] || '';
+    var noteOpen = NOTE_OPEN[k] || !!noteVal;
+    html += '<h2><span>' + esc(k) + '</span><span class="acts"><button class="mini' + (noteOpen ? ' on' : '') +
+      '" type="button" data-note="' + esc(k) + '">Nota</button><span class="n">' + items.length + '</span></span></h2>';
+    if (noteOpen){
+      html += '<textarea class="note" data-notefor="' + esc(k) + '" placeholder="Nota de ' + esc(k) + '…">' + esc(noteVal) + '</textarea>';
+    }
+    items.forEach(function(t){
+      var ms = dueMs(t), cls = classify(ms);
+      var cd = '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '">' + fmtCountdown(ms) + '</div>';
+      if (t.own){
+        html += '<div class="card own ' + cls + '"><div class="row"><div><div class="t">' + esc(t.t) +
+          '<span class="own-tag">propia</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
+          '<div style="display:flex;gap:8px;align-items:center">' + cd +
+          '<button class="del" type="button" data-del="' + esc(t.id) + '" title="Eliminar">✕</button></div></div></div>';
+      } else if (t.mail){
+        var ttitle = t.u ? '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' : esc(t.t);
+        html += '<div class="card mail ' + cls + '"><div class="row"><div><div class="t">' + ttitle +
+          '<span class="mail-tag">correo</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
+          '<div style="display:flex;gap:8px;align-items:center">' + cd +
+          '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">✕</button></div></div></div>';
+      } else {
+        html += '<a class="card ' + cls + '" href="' + esc(t.u) + '" target="_blank" rel="noopener">' +
+          '<div class="row"><div><div class="t">' + esc(t.t) + '</div><div class="d">' + fmtDue(ms) + '</div></div>' +
+          cd + '</div></a>';
+      }
+    });
+  });
+  var act = document.activeElement;
+  var keepNote = act && act.closest && act.closest('[data-notefor]') ? act.getAttribute('data-notefor') : null;
+  var keepSel = keepNote ? act.selectionStart : null;
+  list.innerHTML = html;
+  if (keepNote){
+    var areas = document.querySelectorAll('[data-notefor]');
+    for (var i = 0; i < areas.length; i++){
+      if (areas[i].getAttribute('data-notefor') === keepNote){
+        areas[i].focus();
+        try { areas[i].setSelectionRange(keepSel, keepSel); } catch (e) {}
+        break;
+      }
+    }
+  }
+  tick();
+}
+function findNoteArea(k){
+  var areas = document.querySelectorAll('[data-notefor]');
+  for (var i = 0; i < areas.length; i++){
+    if (areas[i].getAttribute('data-notefor') === k) return areas[i];
+  }
+  return null;
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function tick(){
+  document.querySelectorAll('.cd[data-ms]').forEach(function(el){
+    var raw = el.getAttribute('data-ms');
+    if (!raw){ el.textContent = '—'; return; }
+    var ms = Number(raw);
+    var cls = classify(ms);
+    el.textContent = fmtCountdown(ms);
+    el.className = 'cd ' + cls;
+    var card = el.closest('.card');
+    if (card){
+      var isOwn = card.classList.contains('own');
+      var isMail = card.classList.contains('mail');
+      card.className = 'card ' + cls + (isOwn ? ' own' : '') + (isMail ? ' mail' : '');
+    }
+  });
+}
+function stamp(msg){
+  var d = new Date();
+  document.getElementById('updated').textContent = (msg ? msg + ' · ' : 'Actualizado: ') +
+    d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}) + ' ' +
+    d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+}
+function showErr(m){
+  var e = document.getElementById('err');
+  if (!m){ e.style.display = 'none'; e.textContent = ''; return; }
+  e.style.display = 'block';
+  e.textContent = m;
+}
+function gateShow(msg){
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('gate-msg').textContent = msg || '';
+}
+function gateHide(){
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('gate-msg').textContent = '';
+}
+function getPass(){ return sessionStorage.getItem('av-pass') || ''; }
+function setPass(p){ sessionStorage.setItem('av-pass', p); }
+function clearPass(){ sessionStorage.removeItem('av-pass'); }
+function authHeader(){
+  return {'Authorization': 'Basic ' + btoa(USERNAME + ':' + getPass())};
+}
+function setSaveState(m){
+  document.getElementById('savest').textContent = m || '';
+}
+function scheduleSave(){
+  setSaveState('Guardando…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveData, 900);
+}
+function saveData(){
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if (!getPass()) return Promise.resolve();
+  return fetch('/api/data', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: Object.assign({'Content-Type': 'application/json'}, authHeader()),
+    body: JSON.stringify(DATA)
+  }).then(function(r){
+    if (r.status === 401) return Promise.reject(new Error('auth'));
+    if (!r.ok) return Promise.reject(new Error('HTTP ' + r.status));
+    setSaveState('Guardado ✓');
+    setTimeout(function(){ if (!saveTimer) setSaveState(''); }, 2500);
+  }).catch(function(err){
+    if (err.message === 'auth'){
+      clearPass();
+      gateShow('Contraseña incorrecta. Inténtalo de nuevo.');
+    } else {
+      setSaveState('No se pudo guardar (' + err.message + ')');
+    }
+  });
+}
+function loadData(){
+  if (!getPass()) return Promise.resolve(null);
+  return fetch('/api/data', {credentials: 'same-origin', headers: authHeader()})
+    .then(function(r){
+      if (r.status === 401) return Promise.reject(new Error('auth'));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(j){
+      if (j && typeof j === 'object' && !j.error){
+        DATA = {
+          tasks: Array.isArray(j.tasks) ? j.tasks : [],
+          notes: (j.notes && typeof j.notes === 'object') ? j.notes : {},
+          global: typeof j.global === 'string' ? j.global : '',
+          skip: Array.isArray(j.skip) ? j.skip : []
+        };
+        var g = document.getElementById('gtext');
+        if (g && document.activeElement !== g) g.value = DATA.global;
+      }
+      return j;
+    })
+    .catch(function(err){
+      if (err.message === 'auth') return Promise.reject(err);
+      return null;
+    });
+}
+function setMailStatus(err){
+  var el = document.getElementById('mailst');
+  if (!el) return;
+  if (err){ el.textContent = '· correo no disponible'; return; }
+  el.textContent = EMAILS.length ? '· ' + EMAILS.length + ' avisos de correo' : '';
+}
+function loadEmails(){
+  if (!getPass()){ EMAILS = []; setMailStatus(); return Promise.resolve(); }
+  return fetch('/api/emails', {credentials: 'same-origin', headers: authHeader()})
+    .then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(j){
+      EMAILS = (j && Array.isArray(j.annots)) ? j.annots : [];
+      setMailStatus();
+    })
+    .catch(function(){
+      EMAILS = [];
+      setMailStatus(true);
+    });
+}
+function load(){
+  if (!getPass()){ EMAILS = []; setMailStatus(); gateShow(''); document.getElementById('next').textContent = ''; return Promise.resolve(); }
+  document.getElementById('next').textContent = 'Consultando Moodle…';
+  return Promise.all([
+    fetch('/api/tasks', {credentials:'same-origin', headers: authHeader()}),
+    loadData(),
+    loadEmails()
+  ]).then(function(rs){
+    var r = rs[0];
+    if (r.status === 401) return Promise.reject(new Error('auth'));
+    if (!r.ok) return Promise.reject(new Error('HTTP ' + r.status));
+    return r.json();
+  })
+    .then(function(j){
+      if (!j || !Array.isArray(j.tasks)) throw new Error('Respuesta inesperada');
+      TASKS = j.tasks;
+      gateHide();
+      showErr('');
+      render();
+      stamp('Actualizado');
+      document.getElementById('next').textContent = 'Próxima consulta automática en 5 min';
+    })
+    .catch(function(err){
+      document.getElementById('next').textContent = '';
+      if (err.message === 'auth'){
+        clearPass();
+        EMAILS = [];
+        setMailStatus();
+        gateShow('Contraseña incorrecta. Inténtalo de nuevo.');
+      } else {
+        if (!TASKS.length){ TASKS = SEED; render(); stamp('Modo sin conexión (copia local)'); }
+        showErr('No se pudo consultar Moodle (' + err.message + '). Se muestra la última copia conocida.');
+      }
+    });
+}
+document.getElementById('refresh').addEventListener('click', load);
+document.getElementById('gate-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var v = document.getElementById('pass').value;
+  if (!v) return;
+  setPass(v);
+  document.getElementById('pass').value = '';
+  load();
+});
+
+function fillSubjects(){
+  var names = {};
+  allTasks().forEach(function(t){ if (t.s) names[t.s] = true; });
+  Object.keys(DATA.notes).forEach(function(k){ names[k] = true; });
+  document.getElementById('af-list').innerHTML =
+    Object.keys(names).sort().map(function(n){ return '<option value="' + esc(n) + '"></option>'; }).join('');
+}
+document.getElementById('addtoggle').addEventListener('click', function(){
+  var f = document.getElementById('addform');
+  var on = f.classList.toggle('on');
+  if (on){
+    fillSubjects();
+    document.getElementById('af-title').focus();
+  }
+});
+document.getElementById('af-cancel').addEventListener('click', function(){
+  document.getElementById('addform').classList.remove('on');
+});
+document.getElementById('addform').addEventListener('submit', function(e){
+  e.preventDefault();
+  var s = document.getElementById('af-subject').value.trim();
+  var t = document.getElementById('af-title').value.trim();
+  var d = document.getElementById('af-due').value;
+  if (!t) return;
+  DATA.tasks.push({id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), s: s, t: t, d: d || null});
+  document.getElementById('af-title').value = '';
+  document.getElementById('af-due').value = '';
+  document.getElementById('addform').classList.remove('on');
+  render();
+  scheduleSave();
+});
+
+document.getElementById('list').addEventListener('click', function(e){
+  var del = e.target.closest('[data-del]');
+  if (del){
+    var id = del.getAttribute('data-del');
+    if (!confirm('¿Eliminar esta tarea propia?')) return;
+    DATA.tasks = DATA.tasks.filter(function(t){ return t.id !== id; });
+    render();
+    scheduleSave();
+    return;
+  }
+  var dis = e.target.closest('[data-dismiss]');
+  if (dis){
+    var did = dis.getAttribute('data-dismiss');
+    if (!confirm('¿Ocultar este aviso del correo?')) return;
+    DATA.skip = DATA.skip || [];
+    if (DATA.skip.indexOf(did) < 0) DATA.skip.push(did);
+    render();
+    scheduleSave();
+    return;
+  }
+  var nb = e.target.closest('[data-note]');
+  if (nb){
+    var k = nb.getAttribute('data-note');
+    NOTE_OPEN[k] = !NOTE_OPEN[k];
+    render();
+    if (NOTE_OPEN[k]){
+      var ta = findNoteArea(k);
+      if (ta) ta.focus();
+    }
+  }
+});
+document.getElementById('list').addEventListener('input', function(e){
+  var ta = e.target.closest('[data-notefor]');
+  if (!ta) return;
+  var k = ta.getAttribute('data-notefor');
+  var v = ta.value;
+  if (v) DATA.notes[k] = v; else delete DATA.notes[k];
+  scheduleSave();
+});
+var gtext = document.getElementById('gtext');
+gtext.value = DATA.global;
+gtext.addEventListener('input', function(){
+  DATA.global = gtext.value;
+  scheduleSave();
+});
+window.addEventListener('beforeunload', function(){ if (saveTimer) saveData(); });
+window.addEventListener('load', function(){
+  document.getElementById('pass').focus();
+  load();
+  setInterval(load, 5 * 60 * 1000);
+  setInterval(tick, 30 * 1000);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) load(); });
+});
+</script>
+</body>
+</html>
