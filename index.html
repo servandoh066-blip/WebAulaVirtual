@@ -65,6 +65,33 @@ textarea.note:focus{outline:none;border-color:var(--accent)}
 #gnotes textarea{margin-top:10px}
 .card.own{border-style:dashed}
 .card.mail{border-style:dotted}
+.card.old{background:rgba(128,138,150,.13);border-color:rgba(128,138,150,.42)}
+.cd.old{color:#6b7480}
+@media (prefers-color-scheme: dark){ .cd.old{color:#9aa4b0} }
+.card.k-red{background:rgba(214,40,40,.13);border-color:rgba(214,40,40,.5)}.cd.k-red{color:#c62828}
+.card.k-orange{background:rgba(230,110,20,.14);border-color:rgba(230,110,20,.5)}.cd.k-orange{color:#b85400}
+.card.k-yellow{background:rgba(214,160,0,.16);border-color:rgba(214,160,0,.5)}.cd.k-yellow{color:#8a6400}
+.card.k-green{background:rgba(20,150,80,.13);border-color:rgba(20,150,80,.45)}.cd.k-green{color:#0d7a45}
+.card.k-blue{background:rgba(11,87,208,.13);border-color:rgba(11,87,208,.45)}.cd.k-blue{color:#0b57d0}
+.card.k-purple{background:rgba(128,60,200,.13);border-color:rgba(128,60,200,.45)}.cd.k-purple{color:#7a3ec8}
+.card.k-pink{background:rgba(210,50,140,.13);border-color:rgba(210,50,140,.45)}.cd.k-pink{color:#b52077}
+.card.k-gray{background:rgba(128,138,150,.16);border-color:rgba(128,138,150,.5)}.cd.k-gray{color:#66707c}
+@media (prefers-color-scheme: dark){
+  .cd.k-red{color:#ff8a80}.cd.k-orange{color:#ffb26b}.cd.k-yellow{color:#ffce55}.cd.k-green{color:#5ad69a}
+  .cd.k-blue{color:#7fb2ff}.cd.k-purple{color:#c39bf5}.cd.k-pink{color:#ff8ac2}.cd.k-gray{color:#9aa4b0}
+  .card.k-gray{background:rgba(150,160,172,.14)}
+}
+.prof{font-size:12px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
+.sw.n{background:rgba(128,138,150,.2);border-color:rgba(128,138,150,.5)}
+#panel{display:none;position:fixed;z-index:60;min-width:215px;max-width:280px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px}
+#panel .ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel .plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
+#panel button{display:block;width:100%;text-align:left;margin-bottom:4px}
+#panel-colors{display:flex;gap:7px;flex-wrap:wrap}
+#panel-colors i{width:21px;height:21px;border-radius:6px;cursor:pointer;border:1px solid var(--line);display:inline-block}
+#panel-colors i:hover{transform:scale(1.12)}
+#panel-colors i.on{outline:2px solid var(--accent);outline-offset:1px}
+.sw.auto{background:linear-gradient(135deg,var(--red) 33%,var(--yellow) 33%,var(--yellow) 66%,var(--green) 66%)}
 .card .t a{color:inherit;text-decoration:none}
 .card .t a:hover{text-decoration:underline}
 .own-tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
@@ -117,12 +144,35 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <span><i class="sw r"></i> menos de 7 días</span>
     <span><i class="sw y"></i> 7 a 12 días</span>
     <span><i class="sw g"></i> más de 12 días</span>
+    <span><i class="sw n"></i> vencida hace más de 30 días</span>
   </div>
   <details id="gnotes">
     <summary>Nota general</summary>
     <textarea id="gtext" rows="4" placeholder="Escribe aquí tu nota global… se guarda automáticamente en la nube."></textarea>
   </details>
   <main id="list"></main>
+  <div id="panel">
+    <div class="ptitle" id="panel-title"></div>
+    <div class="plab">Orden</div>
+    <button type="button" data-sort="date">📅 Fecha ↑ (por defecto)</button>
+    <button type="button" data-sort="date-desc">📅 Fecha ↓ (más lejanas arriba)</button>
+    <button type="button" data-sort="title">🔤 Título A-Z</button>
+    <button type="button" data-move="-1">⬆️ Subir esta tarea</button>
+    <button type="button" data-move="1">⬇️ Bajar esta tarea</button>
+    <button type="button" data-move="clear">↺ Quitar orden manual</button>
+    <div class="plab">Color</div>
+    <div id="panel-colors">
+      <i class="sw auto" data-color="" title="Automático (según urgencia)"></i>
+      <i class="sw k-red" data-color="k-red" title="Rojo"></i>
+      <i class="sw k-orange" data-color="k-orange" title="Naranja"></i>
+      <i class="sw k-yellow" data-color="k-yellow" title="Amarillo"></i>
+      <i class="sw k-green" data-color="k-green" title="Verde"></i>
+      <i class="sw k-blue" data-color="k-blue" title="Azul"></i>
+      <i class="sw k-purple" data-color="k-purple" title="Morado"></i>
+      <i class="sw k-pink" data-color="k-pink" title="Rosa"></i>
+      <i class="sw k-gray" data-color="k-gray" title="Gris"></i>
+    </div>
+  </div>
   <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas desaparecen de la lista.</div>
 </div>
 <script>
@@ -145,17 +195,23 @@ var SEED = [
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189226', u:'course/view.php?id=2367', d:'2025-11-09T16:15:00'},
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
 ];
-var TASKS = [], EMAILS = [], DATA = {tasks: [], notes: {}, global: '', skip: []}, NOTE_OPEN = {}, saveTimer = null, nextTimer = null;
+var TASKS = [], EMAILS = [], TEACHERS = {},
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}},
+  NOTE_OPEN = {}, saveTimer = null, nextTimer = null, PANEL_ID = null;
 
 function dueMs(t){ return t.d ? new Date(t.d).getTime() : null; }
 function classify(ms){
   if (ms === null) return 'ok';
   var diff = ms - Date.now();
-  if (diff <= 0) return 'soon';
+  if (diff <= 0) return (-diff > 30 * 86400000) ? 'old' : 'soon';
   var days = diff / 86400000;
   if (days < 7) return 'soon';
   if (days <= 12) return 'mid';
   return 'ok';
+}
+function taskClass(t){
+  var c = t.id && DATA.colors ? DATA.colors[t.id] : null;
+  return c || classify(dueMs(t));
 }
 function fmtDue(ms){
   if (ms === null) return 'Sin fecha límite';
@@ -224,10 +280,51 @@ function mapCourse(e, names){
   }
   return null;
 }
+function cmpDefault(a, b){
+  var da = dueMs(a), db = dueMs(b);
+  if (da === null && db === null){
+    var ta = a.ts || 0, tb = b.ts || 0;
+    if (ta || tb) return tb - ta;
+    return String(a.t).localeCompare(String(b.t));
+  }
+  if (da === null) return 1;
+  if (db === null) return -1;
+  return da - db;
+}
+function sortList(list){
+  var mode = DATA.sort || '';
+  var pos = DATA.pos || {};
+  var manual = list.some(function(t){ return t.id && typeof pos[t.id] === 'number'; });
+  if (manual){
+    list.sort(function(a, b){
+      var pa = (a.id && typeof pos[a.id] === 'number') ? pos[a.id] : Infinity;
+      var pb = (b.id && typeof pos[b.id] === 'number') ? pos[b.id] : Infinity;
+      if (pa !== pb) return pa - pb;
+      return cmpDefault(a, b);
+    });
+    return;
+  }
+  if (mode === 'title'){
+    list.sort(function(a, b){ return String(a.t).localeCompare(String(b.t), 'es'); });
+  } else if (mode === 'date-desc'){
+    list.sort(function(a, b){
+      var da = dueMs(a), db = dueMs(b);
+      if (da === null && db === null) return cmpDefault(a, b);
+      if (da === null) return 1;
+      if (db === null) return -1;
+      return db - da;
+    });
+  } else {
+    list.sort(cmpDefault);
+  }
+}
 function allTasks(){
-  var list = TASKS.concat(DATA.tasks.map(function(t){
-    return {s: t.s, t: t.t, d: t.d, u: null, own: 1, id: t.id};
-  }));
+  var hide = {};
+  (DATA.hide || []).forEach(function(id){ hide[id] = 1; });
+  var list = TASKS.filter(function(t){ return !(t.id && hide[t.id]); })
+    .concat(DATA.tasks.filter(function(t){ return !(t.id && hide[t.id]); }).map(function(t){
+      return {s: t.s, t: t.t, d: t.d, u: null, own: 1, id: t.id, p: t.p || ''};
+    }));
   if (!EMAILS.length) return list;
   var names = {};
   list.forEach(function(t){ if (t.s) names[t.s] = 1; });
@@ -283,42 +380,38 @@ function render(){
   }
   var html = '';
   keys.forEach(function(k){
-    var items = groups[k].slice().sort(function(a, b){
-      var da = dueMs(a), db = dueMs(b);
-      if (da === null && db === null){
-        var ta = a.ts || 0, tb = b.ts || 0;
-        if (ta || tb) return tb - ta;
-        return String(a.t).localeCompare(String(b.t));
-      }
-      if (da === null) return 1;
-      if (db === null) return -1;
-      return da - db;
-    });
+    var items = groups[k];
+    sortList(items);
     var noteVal = DATA.notes[k] || '';
     var noteOpen = NOTE_OPEN[k] || !!noteVal;
-    html += '<h2><span>' + esc(k) + '</span><span class="acts"><button class="mini' + (noteOpen ? ' on' : '') +
+    var prof = '';
+    items.some(function(t){ if (t.p){ prof = t.p; return true; } return false; });
+    html += '<h2><span>' + esc(k) + (prof ? ' <span class="prof">· ' + esc(prof) + '</span>' : '') +
+      '</span><span class="acts"><button class="mini' + (noteOpen ? ' on' : '') +
       '" type="button" data-note="' + esc(k) + '">Nota</button><span class="n">' + items.length + '</span></span></h2>';
     if (noteOpen){
       html += '<textarea class="note" data-notefor="' + esc(k) + '" placeholder="Nota de ' + esc(k) + '…">' + esc(noteVal) + '</textarea>';
     }
     items.forEach(function(t){
-      var ms = dueMs(t), cls = classify(ms);
-      var cd = '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '">' + fmtCountdown(ms) + '</div>';
+      var ms = dueMs(t), cls = taskClass(t);
+      var cd = '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '" data-id="' + esc(t.id || '') + '">' + fmtCountdown(ms) + '</div>';
+      var delown = t.id ? '<button class="del" type="button" data-del="' + esc(t.id) + '" title="Eliminar">✕</button>' : '';
+      var delhide = t.id ? '<button class="del" type="button" data-hide="' + esc(t.id) + '" title="Ocultar esta tarea (no se borra en Moodle)">✕</button>' : '';
       if (t.own){
-        html += '<div class="card own ' + cls + '"><div class="row"><div><div class="t">' + esc(t.t) +
-          '<span class="own-tag">propia</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
-          '<div style="display:flex;gap:8px;align-items:center">' + cd +
-          '<button class="del" type="button" data-del="' + esc(t.id) + '" title="Eliminar">✕</button></div></div></div>';
+        html += '<div class="card own ' + cls + '" data-id="' + esc(t.id || '') + '"><div class="row"><div><div class="t">' + esc(t.t) +
+          '<span class="own-tag">propia</span></div><div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
+          '<div style="display:flex;gap:8px;align-items:center">' + cd + delown + '</div></div></div>';
       } else if (t.mail){
         var ttitle = t.u ? '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' : esc(t.t);
-        html += '<div class="card mail ' + cls + '"><div class="row"><div><div class="t">' + ttitle +
+        html += '<div class="card mail ' + cls + '" data-id="' + esc(t.id || '') + '"><div class="row"><div><div class="t">' + ttitle +
           '<span class="mail-tag">correo</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
           '<div style="display:flex;gap:8px;align-items:center">' + cd +
           '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">✕</button></div></div></div>';
       } else {
-        html += '<a class="card ' + cls + '" href="' + esc(t.u) + '" target="_blank" rel="noopener">' +
-          '<div class="row"><div><div class="t">' + esc(t.t) + '</div><div class="d">' + fmtDue(ms) + '</div></div>' +
-          cd + '</div></a>';
+        html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '"><div class="row"><div><div class="t">' +
+          '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a></div>' +
+          '<div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
+          '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div></div>';
       }
     });
   });
@@ -353,9 +446,10 @@ function esc(s){
 function tick(){
   document.querySelectorAll('.cd[data-ms]').forEach(function(el){
     var raw = el.getAttribute('data-ms');
+    var id = el.getAttribute('data-id');
     if (!raw){ el.textContent = '—'; return; }
     var ms = Number(raw);
-    var cls = classify(ms);
+    var cls = id && DATA.colors && DATA.colors[id] ? DATA.colors[id] : classify(ms);
     el.textContent = fmtCountdown(ms);
     el.className = 'cd ' + cls;
     var card = el.closest('.card');
@@ -437,7 +531,11 @@ function loadData(){
           tasks: Array.isArray(j.tasks) ? j.tasks : [],
           notes: (j.notes && typeof j.notes === 'object') ? j.notes : {},
           global: typeof j.global === 'string' ? j.global : '',
-          skip: Array.isArray(j.skip) ? j.skip : []
+          skip: Array.isArray(j.skip) ? j.skip : [],
+          colors: (j.colors && typeof j.colors === 'object') ? j.colors : {},
+          hide: Array.isArray(j.hide) ? j.hide : [],
+          sort: typeof j.sort === 'string' ? j.sort : '',
+          pos: (j.pos && typeof j.pos === 'object') ? j.pos : {}
         };
         var g = document.getElementById('gtext');
         if (g && document.activeElement !== g) g.value = DATA.global;
@@ -487,6 +585,7 @@ function load(){
     .then(function(j){
       if (!j || !Array.isArray(j.tasks)) throw new Error('Respuesta inesperada');
       TASKS = j.tasks;
+      TEACHERS = (j.teachers && typeof j.teachers === 'object') ? j.teachers : {};
       gateHide();
       showErr('');
       render();
@@ -554,6 +653,21 @@ document.getElementById('list').addEventListener('click', function(e){
     var id = del.getAttribute('data-del');
     if (!confirm('¿Eliminar esta tarea propia?')) return;
     DATA.tasks = DATA.tasks.filter(function(t){ return t.id !== id; });
+    delete DATA.pos[id];
+    delete DATA.colors[id];
+    render();
+    scheduleSave();
+    return;
+  }
+  var hid = e.target.closest('[data-hide]');
+  if (hid){
+    var hidId = hid.getAttribute('data-hide');
+    if (!confirm('¿Ocultar esta tarea? (no se borra en Moodle, solo deja de mostrarse aquí)')) return;
+    DATA.hide = DATA.hide || [];
+    if (DATA.hide.indexOf(hidId) < 0) DATA.hide.push(hidId);
+    delete DATA.pos[hidId];
+    delete DATA.colors[hidId];
+    closePanel();
     render();
     scheduleSave();
     return;
@@ -579,6 +693,102 @@ document.getElementById('list').addEventListener('click', function(e){
     }
   }
 });
+/* ---------- panel de click derecho (orden + color) ---------- */
+function findTask(id){
+  var all = allTasks();
+  for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+  return null;
+}
+function closePanel(){
+  PANEL_ID = null;
+  document.getElementById('panel').style.display = 'none';
+}
+function openPanel(id, x, y){
+  var t = findTask(id);
+  if (!t) return;
+  PANEL_ID = id;
+  document.getElementById('panel-title').textContent = t.t;
+  var p = document.getElementById('panel');
+  p.style.display = 'block';
+  var w = p.offsetWidth, h = p.offsetHeight;
+  p.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 8)) + 'px';
+  p.style.top = Math.max(8, Math.min(y, window.innerHeight - h - 8)) + 'px';
+  var col = DATA.colors ? DATA.colors[id] : null;
+  document.querySelectorAll('#panel-colors i').forEach(function(el){
+    var v = el.getAttribute('data-color');
+    el.classList.toggle('on', v === (col || ''));
+  });
+  document.querySelectorAll('#panel [data-sort]').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-sort') === (DATA.sort || 'date'));
+  });
+}
+document.getElementById('list').addEventListener('contextmenu', function(e){
+  var card = e.target.closest('.card');
+  if (!card) return;
+  var id = card.getAttribute('data-id');
+  if (!id) return;
+  e.preventDefault();
+  openPanel(id, e.clientX, e.clientY);
+});
+document.addEventListener('click', function(e){
+  if (PANEL_ID && !e.target.closest('#panel')) closePanel();
+});
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') closePanel();
+});
+window.addEventListener('scroll', function(){ if (PANEL_ID) closePanel(); });
+document.getElementById('panel').addEventListener('click', function(e){
+  var sortBtn = e.target.closest('[data-sort]');
+  if (sortBtn){
+    DATA.sort = sortBtn.getAttribute('data-sort');
+    DATA.pos = {};
+    render();
+    scheduleSave();
+    if (PANEL_ID) openPanel(PANEL_ID, parseInt(document.getElementById('panel').style.left, 10), parseInt(document.getElementById('panel').style.top, 10));
+    return;
+  }
+  var moveBtn = e.target.closest('[data-move]');
+  if (moveBtn && PANEL_ID){
+    var mv = moveBtn.getAttribute('data-move');
+    if (mv === 'clear'){
+      DATA.pos = {};
+      render();
+      scheduleSave();
+      return;
+    }
+    moveWithinGroup(PANEL_ID, Number(mv));
+    render();
+    scheduleSave();
+    return;
+  }
+  var sw = e.target.closest('[data-color]');
+  if (sw && PANEL_ID){
+    var v = sw.getAttribute('data-color');
+    DATA.colors = DATA.colors || {};
+    if (v) DATA.colors[PANEL_ID] = v; else delete DATA.colors[PANEL_ID];
+    render();
+    scheduleSave();
+    openPanel(PANEL_ID, parseInt(document.getElementById('panel').style.left, 10), parseInt(document.getElementById('panel').style.top, 10));
+  }
+});
+function moveWithinGroup(id, dir){
+  var t = findTask(id);
+  if (!t) return;
+  var g = t.s || 'Sin asignatura';
+  var items = [];
+  allTasks().forEach(function(x){ if ((x.s || 'Sin asignatura') === g) items.push(x); });
+  sortList(items);
+  var idx = -1;
+  items.forEach(function(x, i){ if (x.id === id) idx = i; });
+  if (idx < 0) return;
+  var j = idx + dir;
+  if (j < 0 || j >= items.length) return;
+  DATA.pos = DATA.pos || {};
+  items.forEach(function(x, i){ if (x.id) DATA.pos[x.id] = i; });
+  var a = DATA.pos[items[idx].id], b = DATA.pos[items[j].id];
+  DATA.pos[items[idx].id] = b;
+  DATA.pos[items[j].id] = a;
+}
 document.getElementById('list').addEventListener('input', function(e){
   var ta = e.target.closest('[data-notefor]');
   if (!ta) return;

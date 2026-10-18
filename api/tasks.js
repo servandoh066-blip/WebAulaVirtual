@@ -94,6 +94,27 @@ async function calendarEvents(nowSec, courseIds) {
   return (r && r.events) || [];
 }
 
+async function courseTeachers(courseIds) {
+  const byId = {};
+  await mapLimit(courseIds, 4, async function (cid) {
+    try {
+      const users = await ws('core_enrol_get_enrolled_users', { courseid: cid });
+      const names = (users || [])
+        .filter(function (u) {
+          return (u.roles || []).some(function (r) {
+            return /teacher|docen|profes|tutor/i.test(String(r.name || ''));
+          });
+        })
+        .map(function (u) { return String(u.fullname || '').trim(); })
+        .filter(Boolean);
+      if (names.length) byId[cid] = names.slice(0, 3).join(', ');
+    } catch (e) {
+      /* el profesor es opcional */
+    }
+  });
+  return byId;
+}
+
 function eventUrl(e) {
   if (e.modulename && e.instance) return BASE + 'mod/' + e.modulename + '/view.php?id=' + e.instance;
   if (e.courseid) return BASE + 'course/view.php?id=' + e.courseid;
@@ -121,6 +142,11 @@ module.exports = async function (req, res) {
     const courseIds = courses.map(function (c) { return c.id; });
     const courseNames = {};
     courses.forEach(function (c) { courseNames[c.id] = c.fullname || c.shortname; });
+    const teachBy = await courseTeachers(courseIds);
+    const teachers = {};
+    Object.keys(teachBy).forEach(function (cid) {
+      if (courseNames[cid]) teachers[courseNames[cid]] = teachBy[cid];
+    });
 
     const tasks = [];
 
@@ -159,8 +185,10 @@ module.exports = async function (req, res) {
         const duedate = a.duedate || 0;
         if (!duedate && a.nosubmissions) return;
         tasks.push({
+          id: 'a' + a.id,
           s: a._courseName,
           t: a.name,
+          p: teachBy[a._courseId] || '',
           u: BASE + 'mod/assign/view.php?id=' + a.cmid,
           d: duedate > 0 ? new Date(duedate * 1000).toISOString() : null
         });
@@ -177,8 +205,10 @@ module.exports = async function (req, res) {
         if (seen[e.name]) return;
         seen[e.name] = true;
         tasks.push({
+          id: 'e' + e.id,
           s: courseNames[e.courseid] || '',
           t: e.name,
+          p: teachBy[e.courseid] || '',
           u: eventUrl(e),
           d: e.timestart > 0 ? new Date(e.timestart * 1000).toISOString() : null
         });
@@ -195,7 +225,7 @@ module.exports = async function (req, res) {
     });
 
     res.statusCode = 200;
-    return res.json({ tasks: tasks, fetchedAt: nowSec, user: info.fullname });
+    return res.json({ tasks: tasks, teachers: teachers, fetchedAt: nowSec, user: info.fullname });
   } catch (err) {
     res.statusCode = 502;
     return res.json({ error: String(err && err.message ? err.message : err) });

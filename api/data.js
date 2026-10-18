@@ -1,6 +1,8 @@
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [] };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {} };
+const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
+const SORT_MODES = ['date', 'date-desc', 'title'];
 
 function unauthorized(res) {
   res.setHeader('WWW-Authenticate', 'Basic realm="Tareas Aula Virtual", charset="UTF-8');
@@ -31,7 +33,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [] };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {} };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -57,6 +59,27 @@ function sanitize(input) {
     input.skip.slice(0, 500).forEach(function (id) {
       const v = str(id, 60);
       if (v) out.skip.push(v);
+    });
+  }
+  if (Array.isArray(input.hide)) {
+    input.hide.slice(0, 500).forEach(function (id) {
+      const v = str(id, 60);
+      if (v) out.hide.push(v);
+    });
+  }
+  if (input.colors && typeof input.colors === 'object' && !Array.isArray(input.colors)) {
+    Object.keys(input.colors).slice(0, 300).forEach(function (k) {
+      const key = str(k, 60);
+      const val = str(input.colors[k], 20);
+      if (key && COLOR_RE.test(val)) out.colors[key] = val;
+    });
+  }
+  if (SORT_MODES.indexOf(input.sort) >= 0) out.sort = input.sort;
+  if (input.pos && typeof input.pos === 'object' && !Array.isArray(input.pos)) {
+    Object.keys(input.pos).slice(0, 300).forEach(function (k) {
+      const key = str(k, 60);
+      const v = Number(input.pos[k]);
+      if (key && isFinite(v)) out.pos[key] = v;
     });
   }
   out.global = str(input.global, 8000);
