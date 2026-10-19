@@ -65,7 +65,17 @@ textarea.note:focus{outline:none;border-color:var(--accent)}
 #gnotes textarea{margin-top:10px}
 .card.own{border-style:dashed}
 .card.mail{border-style:dotted}
+.card{touch-action:pan-y}
+.card.dragging{opacity:.45;border-style:dashed;cursor:grabbing;pointer-events:none;touch-action:none}
+body.dragging{user-select:none;-webkit-user-select:none}
+.card.drop-after{box-shadow:0 3px 0 0 var(--accent)}
+.card.drop-before{box-shadow:0 -3px 0 0 var(--accent)}
 .card.old{background:rgba(128,138,150,.13);border-color:rgba(128,138,150,.42)}
+.card.done{opacity:.62;background:rgba(128,138,150,.1);border-color:rgba(128,138,150,.35)}
+.card.done .t{text-decoration:line-through}
+.cd.done{color:#0d7a45;font-weight:700}
+.done-tag{font-size:11px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
+#donetoggle.on{border-color:var(--accent);color:var(--accent)}
 .cd.old{color:#6b7480}
 @media (prefers-color-scheme: dark){ .cd.old{color:#9aa4b0} }
 .card.k-red{background:rgba(214,40,40,.13);border-color:rgba(214,40,40,.5)}.cd.k-red{color:#c62828}
@@ -87,6 +97,7 @@ textarea.note:focus{outline:none;border-color:var(--accent)}
 #panel .ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #panel .plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
 #panel button{display:block;width:100%;text-align:left;margin-bottom:4px}
+#panel .phint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.35}
 #panel-colors{display:flex;gap:7px;flex-wrap:wrap}
 #panel-colors i{width:21px;height:21px;border-radius:6px;cursor:pointer;border:1px solid var(--line);display:inline-block}
 #panel-colors i:hover{transform:scale(1.12)}
@@ -127,6 +138,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
   <div id="bar">
     <button id="refresh">Actualizar ahora</button>
     <button id="addtoggle">+ Añadir tarea</button>
+    <button id="donetoggle" title="Mostrar u ocultar las tareas ya entregadas">✓ Entregadas</button>
     <span id="next"></span>
     <span id="mailst"></span>
     <span id="savest"></span>
@@ -157,9 +169,8 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <button type="button" data-sort="date">📅 Fecha ↑ (por defecto)</button>
     <button type="button" data-sort="date-desc">📅 Fecha ↓ (más lejanas arriba)</button>
     <button type="button" data-sort="title">🔤 Título A-Z</button>
-    <button type="button" data-move="-1">⬆️ Subir esta tarea</button>
-    <button type="button" data-move="1">⬇️ Bajar esta tarea</button>
     <button type="button" data-move="clear">↺ Quitar orden manual</button>
+    <div class="phint">💡 Mantén pulsado y arrastra una tarea para colocarla donde quieras dentro de su asignatura.</div>
     <div class="plab">Color</div>
     <div id="panel-colors">
       <i class="sw auto" data-color="" title="Automático (según urgencia)"></i>
@@ -173,7 +184,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
       <i class="sw k-gray" data-color="k-gray" title="Gris"></i>
     </div>
   </div>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas desaparecen de la lista.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>✓ Entregadas</b> para verlas. Mantén pulsado y arrastra una tarea para reordenarla dentro de su asignatura.</div>
 </div>
 <script>
 var BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
@@ -196,8 +207,8 @@ var SEED = [
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
 ];
 var TASKS = [], EMAILS = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}},
-  NOTE_OPEN = {}, saveTimer = null, nextTimer = null, PANEL_ID = null;
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, showdone: false},
+  NOTE_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null;
 
 function dueMs(t){ return t.d ? new Date(t.d).getTime() : null; }
 function classify(ms){
@@ -321,7 +332,7 @@ function sortList(list){
 function allTasks(){
   var hide = {};
   (DATA.hide || []).forEach(function(id){ hide[id] = 1; });
-  var list = TASKS.filter(function(t){ return !(t.id && hide[t.id]); })
+  var list = TASKS.filter(function(t){ return !(t.id && hide[t.id]) && (SHOW_DONE || !t.done); })
     .concat(DATA.tasks.filter(function(t){ return !(t.id && hide[t.id]); }).map(function(t){
       return {s: t.s, t: t.t, d: t.d, u: null, own: 1, id: t.id, p: t.p || ''};
     }));
@@ -394,22 +405,27 @@ function render(){
     }
     items.forEach(function(t){
       var ms = dueMs(t), cls = taskClass(t);
-      var cd = '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '" data-id="' + esc(t.id || '') + '">' + fmtCountdown(ms) + '</div>';
+      var done = !!t.done;
+      var cd = done
+        ? '<div class="cd done" data-id="' + esc(t.id || '') + '">✓</div>'
+        : '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '" data-id="' + esc(t.id || '') + '">' + fmtCountdown(ms) + '</div>';
       var delown = t.id ? '<button class="del" type="button" data-del="' + esc(t.id) + '" title="Eliminar">✕</button>' : '';
       var delhide = t.id ? '<button class="del" type="button" data-hide="' + esc(t.id) + '" title="Ocultar esta tarea (no se borra en Moodle)">✕</button>' : '';
+      if (done) cls += ' done';
       if (t.own){
-        html += '<div class="card own ' + cls + '" data-id="' + esc(t.id || '') + '"><div class="row"><div><div class="t">' + esc(t.t) +
+        html += '<div class="card own ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' + esc(t.t) +
           '<span class="own-tag">propia</span></div><div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
           '<div style="display:flex;gap:8px;align-items:center">' + cd + delown + '</div></div></div>';
       } else if (t.mail){
         var ttitle = t.u ? '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' : esc(t.t);
-        html += '<div class="card mail ' + cls + '" data-id="' + esc(t.id || '') + '"><div class="row"><div><div class="t">' + ttitle +
+        html += '<div class="card mail ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' + ttitle +
           '<span class="mail-tag">correo</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
           '<div style="display:flex;gap:8px;align-items:center">' + cd +
           '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">✕</button></div></div></div>';
       } else {
-        html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '"><div class="row"><div><div class="t">' +
-          '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a></div>' +
+        html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' +
+          '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' +
+          (done ? '<span class="done-tag">entregada</span>' : '') + '</div>' +
           '<div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
           '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div></div>';
       }
@@ -456,7 +472,8 @@ function tick(){
     if (card){
       var isOwn = card.classList.contains('own');
       var isMail = card.classList.contains('mail');
-      card.className = 'card ' + cls + (isOwn ? ' own' : '') + (isMail ? ' mail' : '');
+      var isDone = card.classList.contains('done');
+      card.className = 'card ' + cls + (isOwn ? ' own' : '') + (isMail ? ' mail' : '') + (isDone ? ' done' : '');
     }
   });
 }
@@ -535,8 +552,12 @@ function loadData(){
           colors: (j.colors && typeof j.colors === 'object') ? j.colors : {},
           hide: Array.isArray(j.hide) ? j.hide : [],
           sort: typeof j.sort === 'string' ? j.sort : '',
-          pos: (j.pos && typeof j.pos === 'object') ? j.pos : {}
+          pos: (j.pos && typeof j.pos === 'object') ? j.pos : {},
+          showdone: j.showdone === true
         };
+        SHOW_DONE = !!DATA.showdone;
+        var db = document.getElementById('donetoggle');
+        if (db) db.classList.toggle('on', SHOW_DONE);
         var g = document.getElementById('gtext');
         if (g && document.activeElement !== g) g.value = DATA.global;
       }
@@ -630,6 +651,13 @@ document.getElementById('addtoggle').addEventListener('click', function(){
     document.getElementById('af-title').focus();
   }
 });
+document.getElementById('donetoggle').addEventListener('click', function(){
+  SHOW_DONE = !SHOW_DONE;
+  DATA.showdone = SHOW_DONE;
+  this.classList.toggle('on', SHOW_DONE);
+  render();
+  scheduleSave();
+});
 document.getElementById('af-cancel').addEventListener('click', function(){
   document.getElementById('addform').classList.remove('on');
 });
@@ -648,6 +676,7 @@ document.getElementById('addform').addEventListener('submit', function(e){
 });
 
 document.getElementById('list').addEventListener('click', function(e){
+  if (justDragged){ e.preventDefault(); e.stopPropagation(); return; }
   var del = e.target.closest('[data-del]');
   if (del){
     var id = del.getAttribute('data-del');
@@ -749,16 +778,11 @@ document.getElementById('panel').addEventListener('click', function(e){
   }
   var moveBtn = e.target.closest('[data-move]');
   if (moveBtn && PANEL_ID){
-    var mv = moveBtn.getAttribute('data-move');
-    if (mv === 'clear'){
+    if (moveBtn.getAttribute('data-move') === 'clear'){
       DATA.pos = {};
       render();
       scheduleSave();
-      return;
     }
-    moveWithinGroup(PANEL_ID, Number(mv));
-    render();
-    scheduleSave();
     return;
   }
   var sw = e.target.closest('[data-color]');
@@ -771,24 +795,98 @@ document.getElementById('panel').addEventListener('click', function(e){
     openPanel(PANEL_ID, parseInt(document.getElementById('panel').style.left, 10), parseInt(document.getElementById('panel').style.top, 10));
   }
 });
-function moveWithinGroup(id, dir){
-  var t = findTask(id);
-  if (!t) return;
-  var g = t.s || 'Sin asignatura';
-  var items = [];
-  allTasks().forEach(function(x){ if ((x.s || 'Sin asignatura') === g) items.push(x); });
-  sortList(items);
-  var idx = -1;
-  items.forEach(function(x, i){ if (x.id === id) idx = i; });
-  if (idx < 0) return;
-  var j = idx + dir;
-  if (j < 0 || j >= items.length) return;
-  DATA.pos = DATA.pos || {};
-  items.forEach(function(x, i){ if (x.id) DATA.pos[x.id] = i; });
-  var a = DATA.pos[items[idx].id], b = DATA.pos[items[j].id];
-  DATA.pos[items[idx].id] = b;
-  DATA.pos[items[j].id] = a;
+/* ---------- arrastrar y soltar (orden manual por asignatura) ---------- */
+var DRAG = null, justDragged = false, dragLp = null;
+
+function dragBegin(card, ev){
+  DRAG = { card: card, subject: card.getAttribute('data-s'), active: true };
+  card.classList.add('dragging');
+  document.body.classList.add('dragging');
+  try { card.setPointerCapture(ev.pointerId); } catch (e) {}
 }
+
+function dragMove(x, y){
+  // auto-scroll cando o punteiro se achega aos bordos da ventá
+  var vh = window.innerHeight;
+  if (y < 70) window.scrollBy(0, -12);
+  else if (y > vh - 70) window.scrollBy(0, 12);
+  var el = document.elementFromPoint(x, y);
+  if (!el || !el.closest) return;
+  var over = el.closest('.card');
+  if (!over || over === DRAG.card) return;
+  if (over.getAttribute('data-s') !== DRAG.subject) return;
+  var r = over.getBoundingClientRect();
+  var before = y < r.top + r.height / 2;
+  if (before){
+    if (over.previousElementSibling !== DRAG.card) over.parentNode.insertBefore(DRAG.card, over);
+  } else {
+    if (DRAG.card.nextElementSibling !== over) over.parentNode.insertBefore(DRAG.card, over.nextElementSibling);
+  }
+}
+
+function dragEnd(){
+  var card = DRAG.card, subject = DRAG.subject;
+  card.classList.remove('dragging');
+  document.body.classList.remove('dragging');
+  DATA.pos = DATA.pos || {};
+  var i = 0;
+  document.querySelectorAll('#list .card').forEach(function(n){
+    if (n.getAttribute('data-s') !== subject) return;
+    var id = n.getAttribute('data-id');
+    if (id) DATA.pos[id] = i++;
+  });
+  render();
+  scheduleSave();
+}
+
+document.getElementById('list').addEventListener('pointerdown', function(e){
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  var card = e.target.closest('.card');
+  if (!card || !card.getAttribute('data-id')) return;
+  if (e.target.closest('button') || DRAG) return;
+  var sx = e.clientX, sy = e.clientY, isTouch = e.pointerType !== 'mouse';
+
+  function onMove(ev){
+    if (!DRAG){
+      var dx = Math.abs(ev.clientX - sx), dy = Math.abs(ev.clientY - sy);
+      if (isTouch){
+        if (dragLp && (dx > 10 || dy > 10)) cleanup(); // movimiento = scroll, no arrastre
+        return;
+      }
+      if (dx > 6 || dy > 6){ dragBegin(card, ev); return; }
+      return;
+    }
+    if (DRAG.active){
+      ev.preventDefault();
+      dragMove(ev.clientX, ev.clientY);
+    }
+  }
+  function onUp(){
+    var wasActive = DRAG && DRAG.active;
+    cleanup();
+    DRAG = null;
+    if (wasActive){
+      justDragged = true;
+      setTimeout(function(){ justDragged = false; }, 80);
+      dragEnd();
+    }
+  }
+  function cleanup(){
+    clearTimeout(dragLp); dragLp = null;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+  }
+  if (isTouch){
+    dragLp = setTimeout(function(){
+      dragBegin(card, e);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }, 350);
+  }
+  document.addEventListener('pointermove', onMove, { passive: false });
+  document.addEventListener('pointerup', onUp);
+  document.addEventListener('pointercancel', onUp);
+});
 document.getElementById('list').addEventListener('input', function(e){
   var ta = e.target.closest('[data-notefor]');
   if (!ta) return;

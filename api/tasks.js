@@ -121,6 +121,21 @@ function eventUrl(e) {
   return BASE;
 }
 
+function isCandidate(a, nowSec) {
+  const duedate = a.duedate || 0;
+  const cutoff = a.cutoffdate || 0;
+  const from = a.allowsubmissionsfromdate || 0;
+  if (duedate > 0) return duedate > nowSec - 31536000;
+  if (cutoff > 0) return cutoff > nowSec - 31536000;
+  return from > nowSec - 7776000;
+}
+
+function dueTimestamp(a) {
+  if ((a.duedate || 0) > 0) return a.duedate;
+  if ((a.cutoffdate || 0) > 0) return a.cutoffdate;
+  return 0;
+}
+
 module.exports = async function (req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') {
@@ -161,12 +176,7 @@ module.exports = async function (req, res) {
         });
       });
 
-      const candidates = assignments.filter(function (a) {
-        const duedate = a.duedate || 0;
-        const from = a.allowsubmissionsfromdate || 0;
-        if (duedate > 0) return duedate > nowSec - 31536000;
-        return from > nowSec - 7776000;
-      });
+      const candidates = assignments.filter(function (a) { return isCandidate(a, nowSec); });
 
       const delivered = await mapLimit(candidates, 6, async function (a) {
         try {
@@ -181,16 +191,16 @@ module.exports = async function (req, res) {
       });
 
       candidates.forEach(function (a, i) {
-        if (delivered[i]) return;
-        const duedate = a.duedate || 0;
-        if (!duedate && a.nosubmissions) return;
+        const due = dueTimestamp(a);
+        if (!due && a.nosubmissions) return;
         tasks.push({
           id: 'a' + a.id,
           s: a._courseName,
           t: a.name,
           p: teachBy[a._courseId] || '',
           u: BASE + 'mod/assign/view.php?id=' + a.cmid,
-          d: duedate > 0 ? new Date(duedate * 1000).toISOString() : null
+          d: due > 0 ? new Date(due * 1000).toISOString() : null,
+          done: delivered[i] ? 1 : 0
         });
       });
     }
@@ -231,3 +241,6 @@ module.exports = async function (req, res) {
     return res.json({ error: String(err && err.message ? err.message : err) });
   }
 };
+
+module.exports.isCandidate = isCandidate;
+module.exports.dueTimestamp = dueTimestamp;
