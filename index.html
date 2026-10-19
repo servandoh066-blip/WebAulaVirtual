@@ -52,6 +52,10 @@ button:hover{border-color:var(--accent);color:var(--accent)}
 .empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
 .foot{margin-top:36px;color:var(--muted);font-size:12px;text-align:center}
 h2 .acts{display:flex;gap:6px;align-items:center}
+.grp > h2{cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.grp.dragging{opacity:.5}
+.grp.dragging > h2{cursor:grabbing}
+.grp.dragging > h2, .grp.dragging > .card, .grp.dragging > textarea{pointer-events:none}
 button.mini{font-size:12px;padding:2px 9px;border-radius:6px}
 button.mini.on{border-color:var(--accent);color:var(--accent)}
 #addform{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0}
@@ -170,7 +174,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <button type="button" data-sort="date-desc">📅 Fecha ↓ (más lejanas arriba)</button>
     <button type="button" data-sort="title">🔤 Título A-Z</button>
     <button type="button" data-move="clear">↺ Quitar orden manual</button>
-    <div class="phint">💡 Mantén pulsado y arrastra una tarea para colocarla donde quieras dentro de su asignatura.</div>
+    <div class="phint">💡 Mantén pulsado y arrastra una <b>tarea</b> para colocarla donde quieras dentro de su asignatura, o arrastra el <b>título de la asignatura</b> para moverla de sitio.</div>
     <div class="plab">Color</div>
     <div id="panel-colors">
       <i class="sw auto" data-color="" title="Automático (según urgencia)"></i>
@@ -184,7 +188,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
       <i class="sw k-gray" data-color="k-gray" title="Gris"></i>
     </div>
   </div>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>✓ Entregadas</b> para verlas. Mantén pulsado y arrastra una tarea para reordenarla dentro de su asignatura.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>✓ Entregadas</b> para verlas. Para reordenar, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. Clic derecho en una tarjeta para color y orden.</div>
 </div>
 <script>
 var BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
@@ -207,7 +211,7 @@ var SEED = [
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
 ];
 var TASKS = [], EMAILS = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, showdone: false},
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false},
   NOTE_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null;
 
 function dueMs(t){ return t.d ? new Date(t.d).getTime() : null; }
@@ -359,6 +363,28 @@ function allTasks(){
   });
   return list;
 }
+function minDue(items){
+  var m = null;
+  items.forEach(function(t){
+    var d = dueMs(t);
+    if (d === null) return;
+    if (m === null || d < m) m = d;
+  });
+  return m;
+}
+function groupOrder(a, b, groups){
+  var ga = DATA.gord && DATA.gord[a] !== undefined ? DATA.gord[a] : null;
+  var gb = DATA.gord && DATA.gord[b] !== undefined ? DATA.gord[b] : null;
+  if (ga !== null || gb !== null){
+    var va = ga === null ? Infinity : ga, vb = gb === null ? Infinity : gb;
+    if (va !== vb) return va - vb;
+  }
+  var da = minDue(groups[a]), db = minDue(groups[b]);
+  if (da === null && db === null) return a.localeCompare(b);
+  if (da === null) return 1;
+  if (db === null) return -1;
+  return da - db;
+}
 function render(){
   var list = document.getElementById('list');
   var groups = {};
@@ -378,13 +404,7 @@ function render(){
     });
     return m;
   }
-  var keys = Object.keys(groups).sort(function(a, b){
-    var da = minDue(groups[a]), db = minDue(groups[b]);
-    if (da === null && db === null) return a.localeCompare(b);
-    if (da === null) return 1;
-    if (db === null) return -1;
-    return da - db;
-  });
+  var keys = Object.keys(groups).sort(function(a, b){ return groupOrder(a, b, groups); });
   if (!keys.length){
     list.innerHTML = '<div class="empty">No hay tareas pendientes. ¡Todo entregado!</div>';
     return;
@@ -397,7 +417,8 @@ function render(){
     var noteOpen = NOTE_OPEN[k] || !!noteVal;
     var prof = '';
     items.some(function(t){ if (t.p){ prof = t.p; return true; } return false; });
-    html += '<h2><span>' + esc(k) + (prof ? ' <span class="prof">· ' + esc(prof) + '</span>' : '') +
+    html += '<section class="grp" data-grp="' + esc(k) + '">';
+    html += '<h2 class="ghead" title="Mantén pulsado y arrastra para mover esta asignatura"><span>' + esc(k) + (prof ? ' <span class="prof">· ' + esc(prof) + '</span>' : '') +
       '</span><span class="acts"><button class="mini' + (noteOpen ? ' on' : '') +
       '" type="button" data-note="' + esc(k) + '">Nota</button><span class="n">' + items.length + '</span></span></h2>';
     if (noteOpen){
@@ -430,6 +451,7 @@ function render(){
           '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div></div>';
       }
     });
+    html += '</section>';
   });
   var act = document.activeElement;
   var keepNote = act && act.closest && act.closest('[data-notefor]') ? act.getAttribute('data-notefor') : null;
@@ -553,6 +575,7 @@ function loadData(){
           hide: Array.isArray(j.hide) ? j.hide : [],
           sort: typeof j.sort === 'string' ? j.sort : '',
           pos: (j.pos && typeof j.pos === 'object') ? j.pos : {},
+          gord: (j.gord && typeof j.gord === 'object') ? j.gord : {},
           showdone: j.showdone === true
         };
         SHOW_DONE = !!DATA.showdone;
@@ -780,6 +803,7 @@ document.getElementById('panel').addEventListener('click', function(e){
   if (moveBtn && PANEL_ID){
     if (moveBtn.getAttribute('data-move') === 'clear'){
       DATA.pos = {};
+      DATA.gord = {};
       render();
       scheduleSave();
     }
@@ -795,14 +819,23 @@ document.getElementById('panel').addEventListener('click', function(e){
     openPanel(PANEL_ID, parseInt(document.getElementById('panel').style.left, 10), parseInt(document.getElementById('panel').style.top, 10));
   }
 });
-/* ---------- arrastrar y soltar (orden manual por asignatura) ---------- */
+/* ---------- arrastrar y soltar (tareas dentro da asignatura e asignaturas) ---------- */
 var DRAG = null, justDragged = false, dragLp = null;
 
-function dragBegin(card, ev){
-  DRAG = { card: card, subject: card.getAttribute('data-s'), active: true };
-  card.classList.add('dragging');
+function dragBegin(el, ev){
+  el.classList.add('dragging');
   document.body.classList.add('dragging');
-  try { card.setPointerCapture(ev.pointerId); } catch (e) {}
+  try { el.setPointerCapture(ev.pointerId); } catch (e) {}
+}
+
+function moveNode(el, over, y){
+  var r = over.getBoundingClientRect();
+  var before = y < r.top + r.height / 2;
+  if (before){
+    if (over.previousElementSibling !== el) over.parentNode.insertBefore(el, over);
+  } else {
+    if (el.nextElementSibling !== over) over.parentNode.insertBefore(el, over.nextElementSibling);
+  }
 }
 
 function dragMove(x, y){
@@ -812,64 +845,92 @@ function dragMove(x, y){
   else if (y > vh - 70) window.scrollBy(0, 12);
   var el = document.elementFromPoint(x, y);
   if (!el || !el.closest) return;
-  var over = el.closest('.card');
-  if (!over || over === DRAG.card) return;
-  if (over.getAttribute('data-s') !== DRAG.subject) return;
-  var r = over.getBoundingClientRect();
-  var before = y < r.top + r.height / 2;
-  if (before){
-    if (over.previousElementSibling !== DRAG.card) over.parentNode.insertBefore(DRAG.card, over);
-  } else {
-    if (DRAG.card.nextElementSibling !== over) over.parentNode.insertBefore(DRAG.card, over.nextElementSibling);
+  if (DRAG.kind === 'group'){
+    var sec = el.closest('.grp');
+    if (sec === DRAG.el) return;
+    if (!sec){
+      if (!el.closest('#list')) return;
+      var secs = document.querySelectorAll('#list > .grp');
+      for (var s = 0; s < secs.length; s++){
+        if (secs[s] === DRAG.el) continue;
+        if (y < secs[s].getBoundingClientRect().bottom){ sec = secs[s]; break; }
+        sec = secs[s];
+      }
+      if (!sec || sec === DRAG.el) return;
+    }
+    moveNode(DRAG.el, sec, y);
+    return;
   }
+  var over = el.closest('.card');
+  if (!over || over === DRAG.el) return;
+  if (over.getAttribute('data-s') !== DRAG.subject) return;
+  moveNode(DRAG.el, over, y);
 }
 
 function dragEnd(){
-  var card = DRAG.card, subject = DRAG.subject;
-  card.classList.remove('dragging');
+  var el = DRAG.el;
+  el.classList.remove('dragging');
   document.body.classList.remove('dragging');
-  DATA.pos = DATA.pos || {};
-  var i = 0;
-  document.querySelectorAll('#list .card').forEach(function(n){
-    if (n.getAttribute('data-s') !== subject) return;
-    var id = n.getAttribute('data-id');
-    if (id) DATA.pos[id] = i++;
-  });
+  if (DRAG.kind === 'group'){
+    DATA.gord = DATA.gord || {};
+    var g = 0;
+    document.querySelectorAll('#list > .grp').forEach(function(n){
+      var k = n.getAttribute('data-grp');
+      if (k !== null) DATA.gord[k] = g++;
+    });
+  } else {
+    DATA.pos = DATA.pos || {};
+    var i = 0;
+    document.querySelectorAll('#list .card').forEach(function(n){
+      if (n.getAttribute('data-s') !== DRAG.subject) return;
+      var id = n.getAttribute('data-id');
+      if (id) DATA.pos[id] = i++;
+    });
+  }
   render();
   scheduleSave();
 }
 
 document.getElementById('list').addEventListener('pointerdown', function(e){
   if (e.pointerType === 'mouse' && e.button !== 0) return;
-  var card = e.target.closest('.card');
-  if (!card || !card.getAttribute('data-id')) return;
   if (e.target.closest('button') || DRAG) return;
+  var card = e.target.closest('.card');
+  var head = card ? null : e.target.closest('.grp > h2');
+  var sec = head ? head.parentNode : null;
+  if (!card && !sec) return;
+  if (card && !card.getAttribute('data-id')) return;
+  var target = card || sec;
+  var kind = card ? 'task' : 'group';
+  var subject = card ? card.getAttribute('data-s') : sec.getAttribute('data-grp');
   var sx = e.clientX, sy = e.clientY, isTouch = e.pointerType !== 'mouse';
 
   function onMove(ev){
     if (!DRAG){
       var dx = Math.abs(ev.clientX - sx), dy = Math.abs(ev.clientY - sy);
       if (isTouch){
-        if (dragLp && (dx > 10 || dy > 10)) cleanup(); // movimiento = scroll, no arrastre
+        if (dragLp && (dx > 10 || dy > 10)) cleanup(); // movemento = scroll, non arrastre
         return;
       }
-      if (dx > 6 || dy > 6){ dragBegin(card, ev); return; }
+      if (dx > 6 || dy > 6){
+        DRAG = { el: target, kind: kind, subject: subject };
+        dragBegin(target, ev);
+      }
       return;
     }
-    if (DRAG.active){
+    if (DRAG.el){
       ev.preventDefault();
       dragMove(ev.clientX, ev.clientY);
     }
   }
   function onUp(){
-    var wasActive = DRAG && DRAG.active;
+    var wasActive = !!(DRAG && DRAG.el);
     cleanup();
-    DRAG = null;
     if (wasActive){
       justDragged = true;
       setTimeout(function(){ justDragged = false; }, 80);
       dragEnd();
     }
+    DRAG = null;
   }
   function cleanup(){
     clearTimeout(dragLp); dragLp = null;
@@ -879,7 +940,8 @@ document.getElementById('list').addEventListener('pointerdown', function(e){
   }
   if (isTouch){
     dragLp = setTimeout(function(){
-      dragBegin(card, e);
+      DRAG = { el: target, kind: kind, subject: subject };
+      dragBegin(target, e);
       if (navigator.vibrate) navigator.vibrate(10);
     }, 350);
   }

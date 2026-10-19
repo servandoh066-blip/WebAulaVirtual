@@ -1,6 +1,6 @@
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, showdone: false };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 
@@ -33,7 +33,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, showdone: false };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -80,6 +80,13 @@ function sanitize(input) {
       const key = str(k, 60);
       const v = Number(input.pos[k]);
       if (key && isFinite(v)) out.pos[key] = v;
+    });
+  }
+  if (input.gord && typeof input.gord === 'object' && !Array.isArray(input.gord)) {
+    Object.keys(input.gord).slice(0, 100).forEach(function (k) {
+      const key = str(k, 250);
+      const v = Number(input.gord[k]);
+      if (key && isFinite(v)) out.gord[key] = v;
     });
   }
   out.global = str(input.global, 8000);
