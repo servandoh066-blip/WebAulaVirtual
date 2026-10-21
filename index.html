@@ -11,6 +11,7 @@
   --head:#24292f; --accent:#0b57d0; --link:#0b57d0;
   --red:rgba(214,40,40,.13); --yellow:rgba(214,160,0,.16); --green:rgba(20,150,80,.13);
   --redb:rgba(214,40,40,.45); --yellowb:rgba(214,160,0,.45); --greenb:rgba(20,150,80,.4);
+  --ease:cubic-bezier(.22,.61,.36,1); --fast:.38s;
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -35,8 +36,8 @@ h1{font-size:24px;margin:0;color:var(--head)}
 .sw.g{background:var(--green);border-color:var(--greenb)}
 h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;display:flex;justify-content:space-between;align-items:center}
 h2 .n{font-weight:600;opacity:.8}
-.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform .08s ease, box-shadow .08s ease}
-.card:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), opacity var(--fast) var(--ease)}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.13)}
 .card.soon{background:var(--red);border-color:var(--redb)}
 .card.mid{background:var(--yellow);border-color:var(--yellowb)}
 .card.ok{background:var(--green);border-color:var(--greenb)}
@@ -47,8 +48,10 @@ h2 .n{font-weight:600;opacity:.8}
 .cd.soon{color:#c62828}.cd.mid{color:#8a6400}.cd.ok{color:#0d7a45}
 @media (prefers-color-scheme: dark){ .cd.soon{color:#ff8a80}.cd.mid{color:#ffce55}.cd.ok{color:#5ad69a} }
 #bar{display:flex;gap:10px;align-items:center;margin:16px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-button{font:inherit;font-size:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:5px 12px;cursor:pointer}
+button{font:inherit;font-size:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:5px 12px;cursor:pointer;transition:color var(--fast) var(--ease), border-color var(--fast) var(--ease), background-color var(--fast) var(--ease), transform var(--fast) var(--ease)}
 button:hover{border-color:var(--accent);color:var(--accent)}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #err{display:none;margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--red);border:1px solid var(--redb);font-size:14px}
 .empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .foot{margin-top:36px;color:var(--muted);font-size:12px;text-align:center}
@@ -57,14 +60,24 @@ h2 .acts{display:flex;gap:6px;align-items:center}
 .grp.dragging{opacity:.5}
 .grp.dragging > h2{cursor:grabbing}
 .grp.dragging > h2, .grp.dragging > .card, .grp.dragging > textarea{pointer-events:none}
+/* resaltado al llegar desde el diagrama */
+.grp.flash > h2{color:var(--accent)}
+.grp.flash > h2 span:first-child{box-shadow:0 0 0 3px rgba(11,87,208,.22);border-radius:7px;padding:1px 6px;margin-left:-6px;transition:box-shadow var(--fast) var(--ease)}
+.grp.flash{animation:flashgrp 1.6s var(--ease)}
+@keyframes flashgrp{
+  0%{background:rgba(11,87,208,.14);border-radius:16px}
+  100%{background:transparent}
+}
 button.mini{font-size:12px;padding:2px 9px;border-radius:9px}
 button.mini.on{border-color:var(--accent);color:var(--accent)}
-#addform{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0}
-#addform.on{display:flex}
+#addform{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0;opacity:0;transform:translateY(-5px);transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease)}
+#addform.on{display:flex;opacity:1;transform:none}
 #addform input[type=text]{flex:1 1 180px;min-width:150px;font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
 #addform input[type=datetime-local]{font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
-textarea.note{display:block;width:100%;min-height:64px;max-height:240px;resize:vertical;font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--fg);margin:-4px 0 10px}
-textarea.note:focus{outline:none;border-color:var(--accent)}
+textarea.note{display:block;width:100%;min-height:64px;max-height:240px;resize:vertical;font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--fg);margin:-4px 0 10px;transition:border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease)}
+textarea.note:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(11,87,208,.13)}
+.anot-in{display:block;width:100%;font:inherit;font-size:13.5px;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);margin:-2px 0 10px;transition:border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease)}
+.anot-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(11,87,208,.13)}
 #gnotes{margin:14px 0 4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
 #gnotes summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--head)}
 #gnotes textarea{margin-top:10px}
@@ -91,6 +104,12 @@ body.dragging{user-select:none;-webkit-user-select:none}
 .card.k-purple{background:rgba(128,60,200,.13);border-color:rgba(128,60,200,.45)}.cd.k-purple{color:#7a3ec8}
 .card.k-pink{background:rgba(210,50,140,.13);border-color:rgba(210,50,140,.45)}.cd.k-pink{color:#b52077}
 .card.k-gray{background:rgba(128,138,150,.16);border-color:rgba(128,138,150,.5)}.cd.k-gray{color:#66707c}
+/* iconos SVG (sustituyen a los emoticonos) */
+.ic{width:1.05em;height:1.05em;display:inline-block;vertical-align:-.16em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+button .ic{margin-right:5px}
+button.del .ic{margin-right:0}
+.cd .ic{stroke-width:2.2}
+.ctitle .ic, #gnotes summary .ic{margin-right:6px;color:var(--muted)}
 @media (prefers-color-scheme: dark){
   .cd.k-red{color:#ff8a80}.cd.k-orange{color:#ffb26b}.cd.k-yellow{color:#ffce55}.cd.k-green{color:#5ad69a}
   .cd.k-blue{color:#7fb2ff}.cd.k-purple{color:#c39bf5}.cd.k-pink{color:#ff8ac2}.cd.k-gray{color:#9aa4b0}
@@ -98,19 +117,22 @@ body.dragging{user-select:none;-webkit-user-select:none}
 }
 .prof{font-size:12px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 .sw.n{background:rgba(128,138,150,.2);border-color:rgba(128,138,150,.5)}
-#panel{display:none;position:fixed;z-index:60;min-width:215px;max-width:280px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px}
+#panel{display:none;position:fixed;z-index:60;min-width:215px;max-width:280px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px) scale(.985);transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease)}
+#panel.on{opacity:1;transform:none}
 #panel .ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #panel .plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
 #panel button{display:block;width:100%;text-align:left;margin-bottom:4px}
+#panel button.on{border-color:var(--accent);color:var(--accent)}
 #panel .phint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.35}
 #panel-colors{display:flex;gap:7px;flex-wrap:wrap}
-#panel-colors i{width:21px;height:21px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block}
-#panel-colors i:hover{transform:scale(1.12)}
+#panel-colors i{width:21px;height:21px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block;transition:transform var(--fast) var(--ease), outline-color var(--fast) var(--ease)}
+#panel-colors i:hover{transform:scale(1.14)}
 #panel-colors i.on{outline:2px solid var(--accent);outline-offset:1px}
-#cpalette{display:none;position:fixed;z-index:61;width:238px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px}
+#cpalette{display:none;position:fixed;z-index:61;width:238px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px) scale(.985);transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease)}
+#cpalette.on{opacity:1;transform:none}
 #cp-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-#cp-swatches .cpsw{width:22px;height:22px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block}
-#cp-swatches .cpsw:hover{transform:scale(1.12)}
+#cp-swatches .cpsw{width:22px;height:22px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block;transition:transform var(--fast) var(--ease)}
+#cp-swatches .cpsw:hover{transform:scale(1.14)}
 #cp-swatches .cpsw.on{outline:2px solid var(--accent);outline-offset:1px}
 .cp-row{display:flex;align-items:center;gap:8px;margin:8px 0}
 .cp-row label{flex:0 0 84px;color:var(--muted);font-size:12px}
@@ -134,10 +156,10 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .csub{font-size:12px;text-transform:none;letter-spacing:0;color:var(--fg);font-weight:600;white-space:nowrap}
 .chart{max-width:240px;margin:0 auto}
 .donut{width:100%;height:auto;display:block;overflow:visible}
-.donut .seg{cursor:pointer;transition:stroke-width .18s ease,opacity .18s ease,transform .18s ease}
+.donut .seg{cursor:pointer;transition:stroke-width var(--fast) var(--ease),opacity var(--fast) var(--ease),transform var(--fast) var(--ease)}
 .cdots{position:relative;display:flex;justify-content:center;align-items:center;gap:7px;margin-top:16px;user-select:none;-webkit-user-select:none;touch-action:none}
 .cdots::before{content:'';position:absolute;left:6%;right:6%;top:50%;height:2px;background:var(--line);border-radius:2px;transform:translateY(-1px)}
-.cdot-dot{position:relative;display:block;width:9px;height:9px;border-radius:50%;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;box-shadow:0 0 0 2px var(--card)}
+.cdot-dot{position:relative;display:block;width:9px;height:9px;border-radius:50%;cursor:pointer;transition:transform var(--fast) var(--ease),box-shadow var(--fast) var(--ease);box-shadow:0 0 0 2px var(--card)}
 .cdot-dot:hover{transform:scale(1.25)}
 .cdot-dot.on{transform:scale(1.35);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--fg)}
 .cdot{width:10px;height:10px;border-radius:3px;flex:0 0 auto;display:inline-block}
@@ -147,7 +169,29 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .glabel{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
 .gin{width:92px;font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);text-align:center}
 .gin:focus{outline:none;border-color:var(--accent)}
-.gavg{font-size:11.5px;font-weight:600;color:var(--fg);background:rgba(128,138,150,.14);border-radius:9px;padding:1px 8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gavg{font-size:11.5px;font-weight:600;color:var(--fg);background:rgba(128,138,150,.14);border-radius:9px;padding:1px 8px;font-variant-numeric:tabular-nums;white-space:nowrap;transition:background-color var(--fast) var(--ease),color var(--fast) var(--ease)}
+/* panel de exámenes (desplegable de cada asignatura) */
+.exams{display:grid;grid-template-rows:0fr;opacity:0;margin:0 0 0;transition:grid-template-rows var(--fast) var(--ease),opacity var(--fast) var(--ease),margin var(--fast) var(--ease)}
+.exams.on{grid-template-rows:1fr;opacity:1;margin:2px 0 10px}
+.exams > div{overflow:hidden;min-height:0}
+.exams-in{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.exam-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.exam-in-name{flex:1 1 110px;min-width:80px;font:inherit;font-size:13px;padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg)}
+.exam-in{width:74px;flex:0 0 auto;font:inherit;font-size:13px;padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);text-align:center;font-variant-numeric:tabular-nums}
+.exam-in-name:focus,.exam-in:focus{outline:none;border-color:var(--accent)}
+.exam-in.bad{border-color:var(--redb);background:var(--red)}
+.exam-badge{font-size:11px;font-weight:700;border-radius:8px;padding:1px 7px;flex:0 0 auto;text-transform:uppercase;letter-spacing:.04em}
+.exam-badge.ok{color:#0d7a45;background:rgba(20,150,80,.16)}
+.exam-badge.bad{color:#c62828;background:rgba(214,40,40,.16)}
+.exam-del{font-size:13px;padding:1px 7px;color:var(--muted);flex:0 0 auto}
+.exam-del:hover{border-color:#c62828;color:#c62828}
+.exam-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.exam-add{font-size:12.5px;padding:4px 11px;border-radius:9px}
+.exam-sum{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.exam-sum b{font-size:13px}
+.exam-sum.is-bad b{color:#c62828}
+.exam-sum.is-ok b{color:#0d7a45}
+.exam-none{color:var(--muted);font-size:12.5px;padding:2px 0 8px}
 @media (max-width:900px){
   .wrap{grid-template-columns:1fr}
   #side{position:static;flex-direction:row;flex-wrap:wrap}
@@ -179,13 +223,13 @@ button.del:hover{border-color:#c62828;color:#c62828}
       <div class="chart" id="chart-tasks"></div>
     </section>
     <section class="cbox">
-      <h3 class="ctitle">Notas de examen <span class="csub" id="grades-avg"></span></h3>
+      <h3 class="ctitle"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span></h3>
       <div class="chart" id="chart-grades"></div>
-      <div class="cscale" title="Tramos por defecto. Si eliges un color propio para una asignatura, su slice usará ese color.">
-        <span><i class="cdot" style="background:#d62828"></i>suspenso</span>
-        <span><i class="cdot" style="background:#e07a1f"></i>aprobado</span>
-        <span><i class="cdot" style="background:#d4a017"></i>bien</span>
-        <span><i class="cdot" style="background:#2a9d8f"></i>notable</span>
+      <div class="cscale" title="Con 5 o más se aprueba. Si eliges un color propio para una asignatura, su slice usará ese color.">
+        <span><i class="cdot" style="background:#d62828"></i>suspenso (menos de 5)</span>
+        <span><i class="cdot" style="background:#e07a1f"></i>aprobado (5 – 6,9)</span>
+        <span><i class="cdot" style="background:#d4a017"></i>bien (7 – 8,9)</span>
+        <span><i class="cdot" style="background:#2a9d8f"></i>notable (9 – 10)</span>
       </div>
     </section>
   </aside>
@@ -198,7 +242,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
   <div id="bar">
     <button id="refresh">Actualizar ahora</button>
     <button id="addtoggle">+ Añadir tarea</button>
-    <button id="donetoggle" title="Mostrar u ocultar las tareas ya entregadas">✓ Entregadas</button>
+    <button id="donetoggle" title="Mostrar u ocultar las tareas ya entregadas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Entregadas</button>
     <span id="next"></span>
     <span id="mailst"></span>
     <span id="savest"></span>
@@ -219,18 +263,31 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <span><i class="sw n"></i> vencida hace más de 30 días</span>
   </div>
   <details id="gnotes">
-    <summary>Nota general</summary>
-    <textarea id="gtext" rows="4" placeholder="Escribe aquí tu nota global… se guarda automáticamente en la nube."></textarea>
+    <summary><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"></use></svg>Anotación general</summary>
+    <textarea id="gtext" rows="4" placeholder="Escribe aquí tu anotación global… se guarda automáticamente en la nube."></textarea>
   </details>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+    <g id="i-plus"><path d="M12 5v14"/><path d="M5 12h14"/></g>
+    <g id="i-check"><path d="M20 6 9 17l-5-5"/></g>
+    <g id="i-x"><path d="m5 5 14 14"/><path d="M19 5 5 19"/></g>
+    <g id="i-add"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7"/><path d="M8.5 12h7"/></g>
+    <g id="i-trash"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></g>
+    <g id="i-undo"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></g>
+    <g id="i-cal"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/></g>
+    <g id="i-az"><path d="M4 20V5a2 2 0 0 1 2-2h13"/><path d="M4 20h15a2 2 0 0 0 2-2V6"/><path d="M8 9h6"/><path d="M8 13h6"/></g>
+    <g id="i-info"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></g>
+    <g id="i-pencil"><path d="M4 20h4L20 8a2.83 2.83 0 0 0-4-4L4 16v4z"/><path d="M14 6l4 4"/></g>
+    <g id="i-note"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7.5h8"/><path d="M8 12h8"/><path d="M8 16.5h5"/></g>
+  </defs></svg>
   <main id="list"></main>
   <div id="panel">
     <div class="ptitle" id="panel-title"></div>
     <div class="plab">Orden</div>
-    <button type="button" data-sort="date">📅 Fecha ↑ (por defecto)</button>
-    <button type="button" data-sort="date-desc">📅 Fecha ↓ (más lejanas arriba)</button>
-    <button type="button" data-sort="title">🔤 Título A-Z</button>
-    <button type="button" data-move="clear">↺ Quitar orden manual</button>
-    <div class="phint">💡 Mantén pulsado y arrastra una <b>tarea</b> para colocarla donde quieras dentro de su asignatura, o arrastra el <b>título de la asignatura</b> para moverla de sitio.</div>
+    <button type="button" data-sort="date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Fecha ↑ (por defecto)</button>
+    <button type="button" data-sort="date-desc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Fecha ↓ (más lejanas arriba)</button>
+    <button type="button" data-sort="title"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-az"></use></svg>Título A-Z</button>
+    <button type="button" data-move="clear"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-undo"></use></svg>Quitar orden manual</button>
+    <div class="phint"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"></use></svg>Mantén pulsado y arrastra una <b>tarea</b> para colocarla donde quieras dentro de su asignatura, o arrastra el <b>título de la asignatura</b> para moverla de sitio.</div>
     <div class="plab">Color</div>
     <div id="panel-colors">
       <i class="sw auto" data-color="" title="Automático (según urgencia)"></i>
@@ -253,7 +310,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <div class="cp-prev"><i id="cp-prev"></i><span id="cp-prev-tx">Color automático</span></div>
     <button type="button" id="cp-reset">Restablecer color automático</button>
   </div>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>✓ Entregadas</b> para verlas. Para reordenar, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. Clic derecho en una tarjeta para color y orden. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: escribe las notas en el campo 📝 de cada cabecera separadas por punto y coma (por ejemplo <b>7,5; 8,2</b>) y el diagrama muestra la media de cada asignatura al instante. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. Para reordenar, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. Clic derecho en una tarjeta para color y orden. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
   </div>
 </div>
 <script>
@@ -277,8 +334,12 @@ var SEED = [
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
 ];
 var TASKS = [], EMAILS = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, grades: {}, subjectColors: {}},
-  NOTE_OPEN = {}, GRADE_DRAFT = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null;
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}},
+  NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null,
+  CP_SUBJ = null, CP_OPEN = false;
+
+/* iconos SVG (sprite inline definido en el HTML); no se usan emoticonos */
+function icon(id, cls){ return '<svg class="ic' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-' + id + '"></use></svg>'; }
 
 function dueMs(t){ return t.d ? new Date(t.d).getTime() : null; }
 function classify(ms){
@@ -461,7 +522,7 @@ function render(){
   Object.keys(DATA.notes).forEach(function(k){
     if (!groups[k]) groups[k] = [];
   });
-  Object.keys(DATA.grades || {}).forEach(function(k){
+  Object.keys(DATA.exams || {}).forEach(function(k){
     if (!groups[k]) groups[k] = [];
   });
   function minDue(items){
@@ -484,30 +545,35 @@ function render(){
     sortList(items);
     var noteVal = DATA.notes[k] || '';
     var noteOpen = NOTE_OPEN[k] || !!noteVal;
+    var examOpen = !!EXAM_OPEN[k];
     var prof = '';
     items.some(function(t){ if (t.p){ prof = t.p; return true; } return false; });
     html += '<section class="grp" data-grp="' + esc(k) + '">';
-    var gl = gradeList(k);
-    var ga = gl.length ? gl.reduce(function(a, b){ return a + b; }, 0) / gl.length : null;
-    var gv = (GRADE_DRAFT[k] !== undefined) ? GRADE_DRAFT[k] : formatGrades(gl);
+    var gl = examList(k);
+    var ga = examAvg(k);
     html += '<h2 class="ghead" title="Mantén pulsado y arrastra para mover esta asignatura"><span>' + esc(k) + (prof ? ' <span class="prof">· ' + esc(prof) + '</span>' : '') +
       '</span><span class="acts"><button class="mini' + (noteOpen ? ' on' : '') +
-      '" type="button" data-note="' + esc(k) + '">Nota</button>' +
-      '<label class="glabel" title="Notas de examen de esta asignatura separadas por &quot;;&quot; (ej: 7,5; 8,2). Se guarda la media."><span>📝</span>' +
-      '<input class="gin" type="text" inputmode="decimal" autocomplete="off" placeholder="notas" data-grade="' + esc(k) + '" value="' + esc(gv) + '"></label>' +
-      (ga !== null ? '<span class="gavg" title="Media de ' + gl.length + ' examen(s)">' + fmtGrade(ga) + ' (' + gl.length + ')</span>' : '') +
+      '" type="button" data-note="' + esc(k) + '" title="Anotación de texto libre de esta asignatura">' + icon('pencil') + 'Anotación</button>' +
+      '<button class="mini' + (examOpen ? ' on' : '') +
+      '" type="button" data-exams="' + esc(k) + '" title="Ver y editar los exámenes de esta asignatura">' + icon('plus') + 'Exámenes</button>' +
+      (ga !== null ? '<span class="gavg" title="' + escapeAttr(gradeTip(k)) + '">' + fmtGrade(ga) + ' (' + gl.length + ')</span>' : '') +
       '<span class="n">' + items.length + '</span></span></h2>';
     if (noteOpen){
-      html += '<textarea class="note" data-notefor="' + esc(k) + '" placeholder="Nota de ' + esc(k) + '…">' + esc(noteVal) + '</textarea>';
+      html += '<input class="anot-in" type="text" data-notefor="' + esc(k) + '" placeholder="Anotación de ' + esc(k) + '…" value="' + esc(noteVal) + '">';
     }
+    html += '<div class="exams' + (examOpen ? ' on' : '') + '" data-examfor="' + esc(k) + '"><div><div class="exams-in">' +
+      '<div class="exam-rows">' + examRowsHTML(k) + '</div>' +
+      '<div class="exam-foot"><button class="exam-add" type="button" data-examadd="' + esc(k) + '">' + icon('plus') + 'Añadir examen</button>' +
+      '<span class="exam-sum" id="esum-' + esc(k) + '">' + examSummary(k) + '</span></div>' +
+      '</div></div></div>';
     items.forEach(function(t){
       var ms = dueMs(t), cls = taskClass(t);
       var done = !!t.done;
       var cd = done
-        ? '<div class="cd done" data-id="' + esc(t.id || '') + '">✓</div>'
+        ? '<div class="cd done" data-id="' + esc(t.id || '') + '">' + icon('check') + '</div>'
         : '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '" data-id="' + esc(t.id || '') + '">' + fmtCountdown(ms) + '</div>';
-      var delown = t.id ? '<button class="del" type="button" data-del="' + esc(t.id) + '" title="Eliminar">✕</button>' : '';
-      var delhide = t.id ? '<button class="del" type="button" data-hide="' + esc(t.id) + '" title="Ocultar esta tarea (no se borra en Moodle)">✕</button>' : '';
+      var delown = t.id ? '<button class="del" type="button" data-del="' + esc(t.id) + '" title="Eliminar">' + icon('x') + '</button>' : '';
+      var delhide = t.id ? '<button class="del" type="button" data-hide="' + esc(t.id) + '" title="Ocultar esta tarea (no se borra en Moodle)">' + icon('x') + '</button>' : '';
       if (done) cls += ' done';
       if (t.own){
         html += '<div class="card own ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' + esc(t.t) +
@@ -518,7 +584,7 @@ function render(){
         html += '<div class="card mail ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' + ttitle +
           '<span class="mail-tag">correo</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
           '<div style="display:flex;gap:8px;align-items:center">' + cd +
-          '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">✕</button></div></div></div>';
+          '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">' + icon('x') + '</button></div></div></div>';
       } else {
         html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' +
           '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' +
@@ -531,7 +597,7 @@ function render(){
   });
   var act = document.activeElement;
   var keepNote = act && act.closest && act.closest('[data-notefor]') ? act.getAttribute('data-notefor') : null;
-  var keepGrade = act && act.closest && act.closest('[data-grade]') ? act.getAttribute('data-grade') : null;
+  var keepGrade = act && act.closest && act.closest('[data-examin]') ? { k: act.getAttribute('data-examin'), i: act.getAttribute('data-i') } : null;
   var keepSel = null;
   try { keepSel = act ? act.selectionStart : null; } catch (e) { keepSel = null; }
   list.innerHTML = html;
@@ -546,9 +612,9 @@ function render(){
     }
   }
   if (keepGrade){
-    var ginputs = document.querySelectorAll('[data-grade]');
+    var ginputs = document.querySelectorAll('[data-examin]');
     for (var gi = 0; gi < ginputs.length; gi++){
-      if (ginputs[gi].getAttribute('data-grade') === keepGrade){
+      if (ginputs[gi].getAttribute('data-examin') === keepGrade.k && ginputs[gi].getAttribute('data-i') === keepGrade.i){
         ginputs[gi].focus();
         try { ginputs[gi].setSelectionRange(keepSel, keepSel); } catch (e) {}
         break;
@@ -570,6 +636,7 @@ function esc(s){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
   });
 }
+function escapeAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
 function tick(){
   document.querySelectorAll('.cd[data-ms]').forEach(function(el){
     var raw = el.getAttribute('data-ms');
@@ -593,6 +660,32 @@ function stamp(msg){
   document.getElementById('updated').textContent = (msg ? msg + ' · ' : 'Actualizado: ') +
     d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}) + ' ' +
     d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+}
+/* los <input type="text"> no tienen la propiedad value, así que hay que volcarlos a mano */
+function flushDrafts(){
+  document.querySelectorAll('[data-notefor]').forEach(function(el){
+    var k = el.getAttribute('data-notefor');
+    var v = el.value;
+    if (v) DATA.notes[k] = v; else delete DATA.notes[k];
+  });
+  var touched = {};
+  document.querySelectorAll('[data-examin]').forEach(function(el){
+    var k = el.getAttribute('data-examin');
+    var i = Number(el.getAttribute('data-i'));
+    if (!touched[k]){ touched[k] = examList(k); }
+    if (!touched[k][i]) return;
+    var raw = String(el.value || '').trim().replace(',', '.');
+    var n = raw === '' ? 0 : parseFloat(raw);
+    if (isFinite(n)) touched[k][i].n = Math.min(10, Math.max(0, n));
+  });
+  document.querySelectorAll('[data-examt]').forEach(function(el){
+    var k = el.getAttribute('data-examt');
+    var i = Number(el.getAttribute('data-i'));
+    if (!touched[k]){ touched[k] = examList(k); }
+    if (!touched[k][i]) return;
+    touched[k][i].t = String(el.value || '').slice(0, 120);
+  });
+  Object.keys(touched).forEach(function(k){ setExams(k, touched[k]); });
 }
 function showErr(m){
   var e = document.getElementById('err');
@@ -634,7 +727,7 @@ function saveData(){
   }).then(function(r){
     if (r.status === 401) return Promise.reject(new Error('auth'));
     if (!r.ok) return Promise.reject(new Error('HTTP ' + r.status));
-    setSaveState('Guardado ✓');
+    setSaveState('Guardado');
     setTimeout(function(){ if (!saveTimer) setSaveState(''); }, 2500);
   }).catch(function(err){
     if (err.message === 'auth'){
@@ -647,6 +740,7 @@ function saveData(){
 }
 function loadData(){
   if (!getPass()) return Promise.resolve(null);
+  if (saveTimer){ clearTimeout(saveTimer); saveTimer = null; flushDrafts(); }
   return fetch('/api/data', {credentials: 'same-origin', headers: authHeader()})
     .then(function(r){
       if (r.status === 401) return Promise.reject(new Error('auth'));
@@ -666,7 +760,8 @@ function loadData(){
           pos: (j.pos && typeof j.pos === 'object') ? j.pos : {},
           gord: (j.gord && typeof j.gord === 'object') ? j.gord : {},
           showdone: j.showdone === true,
-          grades: (j.grades && typeof j.grades === 'object' && !Array.isArray(j.grades)) ? j.grades : {},
+          exams: (j.exams && typeof j.exams === 'object' && !Array.isArray(j.exams)) ? j.exams
+            : ((j.grades && typeof j.grades === 'object' && !Array.isArray(j.grades)) ? migrateExams(j.grades) : {}),
           subjectColors: (j.subjectColors && typeof j.subjectColors === 'object' && !Array.isArray(j.subjectColors)) ? j.subjectColors : {}
         };
         SHOW_DONE = !!DATA.showdone;
@@ -762,7 +857,8 @@ document.getElementById('addtoggle').addEventListener('click', function(){
   var on = f.classList.toggle('on');
   if (on){
     fillSubjects();
-    document.getElementById('af-title').focus();
+  var tt = document.getElementById('af-title');
+  if (tt) tt.focus();
   }
 });
 document.getElementById('donetoggle').addEventListener('click', function(){
@@ -834,6 +930,53 @@ document.getElementById('list').addEventListener('click', function(e){
       var ta = findNoteArea(k);
       if (ta) ta.focus();
     }
+    return;
+  }
+  var exb = e.target.closest('[data-exams]');
+  if (exb){
+    var ek = exb.getAttribute('data-exams');
+    EXAM_OPEN[ek] = !EXAM_OPEN[ek];
+    render();
+    if (EXAM_OPEN[ek]){
+      var box = document.querySelector('.exams[data-examfor="' + ek + '"]');
+      var first = box ? box.querySelector('.exam-in-name') : null;
+      if (first) first.focus();
+    }
+    return;
+  }
+  var eadd = e.target.closest('[data-examadd]');
+  if (eadd){
+    var ak = eadd.getAttribute('data-examadd');
+    var alist = examList(ak);
+    alist.push({ t: 'Examen ' + (alist.length + 1), n: 0 });
+    setExams(ak, alist);
+    flushDrafts();
+    render();
+    drawCharts();
+    scheduleSave();
+    var box2 = document.querySelector('.exams[data-examfor="' + ak + '"]');
+    if (box2){
+      var inputs = box2.querySelectorAll('.exam-in-name');
+      var last = inputs[inputs.length - 1];
+      if (last){ last.focus(); last.select(); }
+    }
+    return;
+  }
+  var edel = e.target.closest('[data-examdel]');
+  if (edel){
+    var dk = edel.getAttribute('data-examdel');
+    var di = Number(edel.getAttribute('data-i'));
+    var dlist = examList(dk);
+    if (!dlist[di]) return;
+    var dname = dlist[di].t || ('Examen ' + (di + 1));
+    if (!confirm('¿Quitar «' + dname + '» de esta asignatura?')) return;
+    dlist.splice(di, 1);
+    setExams(dk, dlist);
+    flushDrafts();
+    render();
+    drawCharts();
+    scheduleSave();
+    return;
   }
 });
 /* ---------- panel de click derecho (orden + color) ---------- */
@@ -866,11 +1009,13 @@ function openPanel(id, x, y){
   });
 }
 document.getElementById('list').addEventListener('contextmenu', function(e){
+  /* nunca dejamos que salga el menú del navegador dentro de la lista de tareas,
+     aunque el destino no sea una cabecera o una tarjeta reconocida */
+  e.preventDefault();
   var head = e.target.closest('.ghead');
   if (head){
     var grp = head.closest('[data-grp]');
     if (!grp) return;
-    e.preventDefault();
     closePanel();
     openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
     return;
@@ -879,20 +1024,25 @@ document.getElementById('list').addEventListener('contextmenu', function(e){
   if (!card) return;
   var id = card.getAttribute('data-id');
   if (!id) return;
-  e.preventDefault();
   closeCPalette();
   openPanel(id, e.clientX, e.clientY);
 });
 document.addEventListener('click', function(e){
+  if (CP_OPEN && !e.target.closest('#cpalette')) closeCPalette();
   if (PANEL_ID && !e.target.closest('#panel')) closePanel();
-  if (CP_SUBJ && !e.target.closest('#cpalette')) closeCPalette();
 });
 document.addEventListener('keydown', function(e){
-  if (e.key === 'Escape'){ closePanel(); closeCPalette(); }
+  if (e.key === 'Escape'){
+    if (CP_OPEN) closeCPalette();
+    if (PANEL_ID) closePanel();
+  }
 });
 window.addEventListener('scroll', function(){
+  if (CP_OPEN) closeCPalette();
   if (PANEL_ID) closePanel();
-  if (CP_SUBJ) closeCPalette();
+});
+document.addEventListener('contextmenu', function(e){
+  if (e.target.closest && e.target.closest('#cpalette')) e.preventDefault();
 });
 document.getElementById('panel').addEventListener('click', function(e){
   var sortBtn = e.target.closest('[data-sort]');
@@ -1055,35 +1205,43 @@ document.getElementById('list').addEventListener('pointerdown', function(e){
   document.addEventListener('pointercancel', onUp);
 });
 document.getElementById('list').addEventListener('input', function(e){
-  var gi = e.target.closest('[data-grade]');
+  var gi = e.target.closest('[data-examin]');
   if (gi){
-    var gk = gi.getAttribute('data-grade');
-    var raw = String(gi.value || '');
-    GRADE_DRAFT[gk] = raw;
-    var list = parseGrades(raw);
-    DATA.grades = DATA.grades || {};
-    if (list.length) DATA.grades[gk] = list; else delete DATA.grades[gk];
-    var head = gi.closest ? gi.closest('.ghead') : null;
-    var chip = head ? head.querySelector('.gavg') : null;
-    if (list.length){
-      var avg = 0;
-      list.forEach(function(x){ avg += x; });
-      avg = avg / list.length;
-      var txt = fmtGrade(avg) + ' (' + list.length + ')';
-      var tip = 'Media de ' + list.length + ' examen(s): ' + formatGrades(list);
-      if (!chip && head){
-        chip = document.createElement('span');
-        chip.className = 'gavg';
-        var acts = head.querySelector('.acts');
-        var num = acts ? acts.querySelector('.n') : null;
-        if (acts && num) acts.insertBefore(chip, num);
-        else if (acts) acts.appendChild(chip);
+    var gk = gi.getAttribute('data-examin');
+    var i = Number(gi.getAttribute('data-i'));
+    var list = examList(gk);
+    if (!list[i]) return;
+    var raw = String(gi.value || '').trim().replace(',', '.');
+    var n = raw === '' ? 0 : parseFloat(raw);
+    if (!isFinite(n)) return;
+    list[i].n = Math.min(10, Math.max(0, n));
+    setExams(gk, list);
+    gi.classList.toggle('bad', !passed(list[i].n));
+    var rowNodes = document.querySelectorAll('.exam-in[data-examin="' + gk + '"]');
+    if (rowNodes[i]){
+      var row = rowNodes[i].closest('.exam-row');
+      var badge = row ? row.querySelector('.exam-badge') : null;
+      if (badge){
+        badge.textContent = passed(list[i].n) ? 'apto' : 'susp';
+        badge.className = 'exam-badge ' + (passed(list[i].n) ? 'ok' : 'bad');
       }
-      if (chip){ chip.textContent = txt; chip.title = tip; }
-    } else if (chip){
-      chip.parentNode.removeChild(chip);
     }
+    var box = document.querySelector('.exams[data-examfor="' + gk + '"]');
+    var sum = box ? box.querySelector('.exam-sum') : null;
+    if (sum) sum.innerHTML = examSummary(gk);
+    syncAvgChip(gk);
     drawCharts();
+    scheduleSave();
+    return;
+  }
+  var nt = e.target.closest('[data-examt]');
+  if (nt){
+    var tk = nt.getAttribute('data-examt');
+    var ti = Number(nt.getAttribute('data-i'));
+    var tlist = examList(tk);
+    if (!tlist[ti]) return;
+    tlist[ti].t = String(nt.value || '').slice(0, 120);
+    setExams(tk, tlist);
     scheduleSave();
     return;
   }
@@ -1095,23 +1253,24 @@ document.getElementById('list').addEventListener('input', function(e){
   scheduleSave();
 });
 document.getElementById('list').addEventListener('change', function(e){
-  var gi = e.target.closest('[data-grade]');
+  var gi = e.target.closest('[data-examin]');
   if (!gi) return;
-  var gk = gi.getAttribute('data-grade');
-  var list = gradeList(gk);
-  DATA.grades = DATA.grades || {};
-  if (list.length) DATA.grades[gk] = list; else delete DATA.grades[gk];
-  gi.value = formatGrades(list);
-  GRADE_DRAFT[gk] = gi.value;
+  var gk = gi.getAttribute('data-examin');
+  var i = Number(gi.getAttribute('data-i'));
+  var list = examList(gk);
+  if (!list[i]) return;
+  gi.value = fmtGrade(list[i].n);
+  gi.classList.toggle('bad', !passed(list[i].n));
+  syncAvgChip(gk);
   drawCharts();
   scheduleSave();
 });
 /* ---------- diagramas circulares interactivos ---------- */
 var CHART_COLORS = ['#0b57d0','#d62828','#2a9d8f','#e07a1f','#6a4c93','#457b9d','#b5651d','#8ab17d','#9d4edd','#c1121f'];
 var GRADE_BANDS = [
-  {max: 5,   color: '#d62828', label: 'suspenso'},
-  {max: 6.9, color: '#e07a1f', label: 'aprobado'},
-  {max: 8.9, color: '#d4a017', label: 'bien'},
+  {max: 4.99, color: '#d62828', label: 'suspenso'},
+  {max: 6.99, color: '#e07a1f', label: 'aprobado'},
+  {max: 8.99, color: '#d4a017', label: 'bien'},
   {max: 99,  color: '#2a9d8f', label: 'notable'}
 ];
 function bandColor(n){
@@ -1123,39 +1282,139 @@ function bandLabel(n){
   return '';
 }
 function fmtGrade(n){ return String(Math.round(n * 100) / 100).replace('.', ','); }
-/* ---------- notas de examen: lista de notas por asignatura ---------- */
-function gradeList(subj){
-  var g = DATA.grades || {};
-  var v = g[subj];
-  if (v === undefined || v === null) return [];
-  if (typeof v === 'number') return isFinite(v) ? [v] : [];
-  if (typeof v === 'string') return parseGrades(v);
-  if (!Array.isArray(v)) return [];
-  return v.filter(function(x){ return typeof x === 'number' && isFinite(x); });
+/* ---------- exámenes: varias notas por asignatura (con nombre) ---------- */
+function normExams(v){
+  var out = [];
+  if (v === undefined || v === null) return out;
+  if (typeof v === 'number' || typeof v === 'string') v = [{ t: '', n: v }];
+  if (!Array.isArray(v)) return out;
+  v.forEach(function(e){
+    var o = (e && typeof e === 'object') ? e : { t: '', n: e };
+    var n = typeof o.n === 'string' ? parseFloat(String(o.n).replace(',', '.')) : Number(o.n);
+    if (!isFinite(n)) n = 0;
+    out.push({ t: String(o.t == null ? '' : o.t), n: Math.min(10, Math.max(0, n)) });
+  });
+  return out;
 }
-function gradeAvg(subj){
-  var l = gradeList(subj);
+/* formato antiguo { asignatura: [nota, ...] } -> exámenes */
+function migrateExams(g){
+  var out = {};
+  Object.keys(g || {}).forEach(function(k){ out[k] = normExams(g[k]); });
+  return out;
+}
+function examList(subj){
+  var ex = DATA.exams || {};
+  return normExams(ex[subj]);
+}
+function setExams(subj, list){
+  DATA.exams = DATA.exams || {};
+  var clean = normExams(list).map(function(e){
+    var n = typeof e.n === 'string' ? parseFloat(String(e.n).replace(',', '.')) : Number(e.n);
+    if (!isFinite(n)) n = 0;
+    return { t: String(e.t || '').slice(0, 120), n: Math.min(10, Math.max(0, n)) };
+  });
+  if (clean.length) DATA.exams[subj] = clean; else delete DATA.exams[subj];
+}
+function examAvg(subj){
+  var l = examList(subj).map(function(e){ return e.n; });
   if (!l.length) return null;
   var s = 0;
   l.forEach(function(x){ s += x; });
   return s / l.length;
 }
-/* "7,5; 8,2" -> [7.5, 8.2] (acepta coma o punto decimal) */
-function parseGrades(text){
-  var out = [];
-  String(text == null ? '' : text).split(';').forEach(function(part){
-    var v = String(part).trim().replace(',', '.');
-    if (!v) return;
-    var n = parseFloat(v);
-    if (!isFinite(n)) return;
-    out.push(Math.min(10, Math.max(0, n)));
-  });
-  return out;
+/* con 5 o más se aprueba */
+function passed(n){ return n >= 5; }
+function examRowsHTML(k){
+  var list = examList(k);
+  var rows = list.map(function(e, i){
+    var ok = passed(e.n);
+    return '<div class="exam-row">' +
+      '<input class="exam-in-name" type="text" data-examt="' + esc(k) + '" data-i="' + i + '" maxlength="120" placeholder="Examen ' + (i + 1) + '" value="' + escapeAttr(e.t) + '">' +
+      '<input class="exam-in' + (ok ? '' : ' bad') + '" type="text" inputmode="decimal" autocomplete="off" data-examin="' + esc(k) + '" data-i="' + i + '" placeholder="nota" value="' + esc(fmtGrade(e.n)) + '">' +
+      '<span class="exam-badge ' + (ok ? 'ok' : 'bad') + '">' + (ok ? 'apto' : 'susp') + '</span>' +
+      '<button class="exam-del" type="button" data-examdel="' + esc(k) + '" data-i="' + i + '" title="Quitar este examen">' + icon('x') + '</button>' +
+      '</div>';
+  }).join('');
+  if (!rows) rows = '<div class="exam-none">Aún no hay exámenes. Pulsa «Añadir examen».</div>';
+  return rows;
 }
-function formatGrades(list){
-  return (list || []).map(function(n){
-    return String(Math.round(n * 100) / 100).replace('.', ',');
-  }).join('; ');
+function examSummary(k){
+  var list = examList(k);
+  if (!list.length) return 'Sin exámenes todavía';
+  var a = examAvg(k);
+  var ok = passed(a);
+  return '<span class="' + (ok ? 'is-ok' : 'is-bad') + '">' + list.length + (list.length === 1 ? ' examen · media ' : ' exámenes · media ') +
+    '<b>' + fmtGrade(a) + '</b> · ' + (ok ? 'aprobado' : 'suspenso') + '</span>';
+}
+function gradeTip(subj){
+  var list = examList(subj);
+  if (!list.length) return '';
+  var a = examAvg(subj);
+  return list.map(function(e, i){ return (e.t || 'Examen ' + (i + 1)) + ': ' + fmtGrade(e.n); }).join(' · ') +
+    ' · media ' + fmtGrade(a) + ' (' + (passed(a) ? 'aprobado' : 'suspenso') + ')';
+}
+function syncAvgChip(k){
+  var sec = document.querySelector('.grp[data-grp="' + k + '"]');
+  var head = sec ? sec.querySelector('.ghead') : null;
+  if (!head) return;
+  var acts = head.querySelector('.acts');
+  if (!acts) return;
+  var chip = acts.querySelector('.gavg');
+  var avg = examAvg(k);
+  var n = examList(k).length;
+  if (avg === null){
+    if (chip) chip.parentNode.removeChild(chip);
+    return;
+  }
+  if (!chip){
+    chip = document.createElement('span');
+    chip.className = 'gavg';
+    var num = acts.querySelector('.n');
+    if (num) acts.insertBefore(chip, num); else acts.appendChild(chip);
+  }
+  chip.textContent = fmtGrade(avg) + ' (' + n + ')';
+  chip.title = gradeTip(k);
+}
+function refreshExams(k){
+  var box = document.querySelector('.exams[data-examfor="' + k + '"]');
+  if (!box) return;
+  var rows = box.querySelector('.exam-rows');
+  var sum = box.querySelector('.exam-sum');
+  var list = examList(k);
+  var keep = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-examin') === k
+    ? { i: document.activeElement.getAttribute('data-i'), pos: document.activeElement.selectionStart } : null;
+  if (rows) rows.innerHTML = examRowsHTML(k);
+  if (sum) sum.innerHTML = examSummary(k);
+  var head = document.querySelector('.ghead[data-hdr="' + k + '"]') || (box.closest ? box.closest('.grp') : null);
+  var chip = head ? head.querySelector('.gavg') : null;
+  var idx = null;
+  if (list.length){
+    var s = 0;
+    list.forEach(function(e){ s += e.n; });
+    idx = fmtGrade(s / list.length) + ' (' + list.length + ')';
+  }
+  if (idx !== null && chip){
+    chip.textContent = idx;
+    chip.title = gradeTip(k);
+  } else if (idx === null && chip){
+    chip.parentNode.removeChild(chip);
+  } else if (idx !== null && head && !chip){
+    var acts = head.querySelector('.acts');
+    var num = acts ? acts.querySelector('.n') : null;
+    if (!acts) return;
+    chip = document.createElement('span');
+    chip.className = 'gavg';
+    chip.textContent = idx;
+    chip.title = gradeTip(k);
+    if (num) acts.insertBefore(chip, num); else acts.appendChild(chip);
+  }
+  if (keep){
+    var inp = document.querySelector('.exam-in[data-examin="' + k + '"][data-i="' + keep.i + '"]');
+    if (inp){
+      inp.focus();
+      try { inp.setSelectionRange(keep.pos, keep.pos); } catch (e) {}
+    }
+  }
 }
 
 function shortTxt(s, n){ s = String(s || ''); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; }
@@ -1166,7 +1425,7 @@ function arcPath(cx, cy, r, a0, a1){
   return 'M' + x0.toFixed(2) + ' ' + y0.toFixed(2) + 'A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2);
 }
 /* ---------- color por asignatura (click derecho en la cabecera) ---------- */
-var CP_SUBJ = null;
+/* ---------- color por asignatura (clic derecho en la cabecera) ---------- */
 function subjectColor(k){
   var sc = DATA.subjectColors || {};
   var v = sc[k];
@@ -1203,8 +1462,9 @@ function cpRefresh(){
   prev.style.background = hexToRgba(color, sc ? sc.a : 1);
   document.getElementById('cp-prev-tx').textContent = sc ? (color + ' · ' + tr + '% transparente') : 'Color automático';
 }
-function openCPalette(k, x, y){
+function openCPalette(k, x, y){  /* definida antes de usarla se hoistea; CP_OPEN ya existe */
   CP_SUBJ = k;
+  CP_OPEN = true;
   document.getElementById('cp-title').textContent = k;
   var p = document.getElementById('cpalette');
   p.style.display = 'block';
@@ -1215,6 +1475,7 @@ function openCPalette(k, x, y){
 }
 function closeCPalette(){
   CP_SUBJ = null;
+  CP_OPEN = false;
   document.getElementById('cpalette').style.display = 'none';
 }
 function buildSwatches(){
@@ -1259,7 +1520,7 @@ var CHARTS = {
   grades: {
     el: 'chart-grades', badge: 'grades-avg',
     items: [], focusKey: null, hoverKey: null, paths: [], dots: [],
-    empty: 'Escribe las notas de examen en el campo 📝 de la cabecera de cada asignatura.'
+    empty: 'Pulsa «Exámenes» en la cabecera de una asignatura para añadir sus notas.'
   }
 };
 function chartActiveIndex(ch){
@@ -1379,6 +1640,7 @@ function setupChart(id){
     ch.focusKey = ch.items[i].key;
     ch.hoverKey = null;
     updateChart(id);
+    revealSubject(ch.items[i].key);
   });
   el.addEventListener('pointerdown', function(e){
     var d = e.target.closest('[data-dot]');
@@ -1387,6 +1649,21 @@ function setupChart(id){
     dragDots(id, e);
   });
 }
+/* ---------- llevar a la asignatura (clic en el diagrama) ---------- */
+var FLASH_TIMER = null;
+function revealSubject(key){
+  if (!key) return;
+  var sec = document.querySelector('.grp[data-grp="' + key + '"]');
+  if (!sec) return;
+  document.querySelectorAll('.grp.flash').forEach(function(s){ s.classList.remove('flash'); });
+  if (FLASH_TIMER) clearTimeout(FLASH_TIMER);
+  var y = sec.getBoundingClientRect().top + window.pageYOffset - 72;
+  try { window.scrollTo({top: y, behavior: 'smooth'}); }
+  catch (e) { window.scrollTo(0, y); }
+  sec.classList.add('flash');
+  FLASH_TIMER = setTimeout(function(){ sec.classList.remove('flash'); }, 1700);
+}
+
 function pendingCounts(){
   var hide = {};
   (DATA.hide || []).forEach(function(id){ hide[id] = 1; });
@@ -1424,9 +1701,9 @@ function drawTasksChart(){
   buildChart('tasks');
 }
 function drawGradesChart(){
-  var g = DATA.grades || {};
-  var keys = Object.keys(g).filter(function(k){ return gradeList(k).length > 0; });
-  keys.sort(function(a, b){ return (gradeAvg(b) - gradeAvg(a)) || a.localeCompare(b, 'es'); });
+  var g = DATA.exams || {};
+  var keys = Object.keys(g).filter(function(k){ return examList(k).length > 0; });
+  keys.sort(function(a, b){ return (examAvg(b) - examAvg(a)) || a.localeCompare(b, 'es'); });
   var ch = CHARTS.grades;
   var avgEl = document.getElementById('grades-avg');
   if (!keys.length){
@@ -1437,14 +1714,14 @@ function drawGradesChart(){
   }
   var sum = 0, wsum = 0;
   keys.forEach(function(k){
-    var a = gradeAvg(k);
+    var a = examAvg(k);
     sum += a;
     wsum += Math.max(a, 0.5);
   });
   var avg = sum / keys.length;
   ch.items = keys.map(function(k){
-    var a = gradeAvg(k);
-    var n = gradeList(k).length;
+    var a = examAvg(k);
+    var n = examList(k).length;
     var sc = subjectColor(k);
     return {
       key: k, label: k, value: a, frac: Math.max(a, 0.5) / wsum,
@@ -1468,7 +1745,7 @@ gtext.addEventListener('input', function(){
   DATA.global = gtext.value;
   scheduleSave();
 });
-window.addEventListener('beforeunload', function(){ if (saveTimer) saveData(); });
+window.addEventListener('beforeunload', function(){ if (saveTimer){ clearTimeout(saveTimer); saveTimer = null; flushDrafts(); } saveData(); });
 window.addEventListener('load', function(){
   document.getElementById('pass').focus();
   drawCharts();

@@ -1,6 +1,6 @@
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, grades: {}, subjectColors: {} };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {} };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 
@@ -33,7 +33,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, grades: {}, subjectColors: {} };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {} };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -55,25 +55,41 @@ function sanitize(input) {
       out.notes[key] = str(input.notes[k], 8000);
     });
   }
-  if (input.grades && typeof input.grades === 'object' && !Array.isArray(input.grades)) {
-    Object.keys(input.grades).slice(0, 100).forEach(function (k) {
+  // Exámenes: { asignatura: [{t: nombre, n: nota}] } (varias notas por asignatura).
+  // Acepta el formato antiguo `grades: { asignatura: [nota, ...] }` y lo migra.
+  const examOf = function (k) {
+    let list = input.exams ? input.exams[k] : null;
+    if (typeof list === 'number' || typeof list === 'string') list = [{ n: list }];
+    if (!Array.isArray(list)) list = [];
+    if (!list.length) {
+      let old = input.grades && typeof input.grades === 'object' ? input.grades[k] : null;
+      if (typeof old === 'number' || typeof old === 'string') old = [old];
+      list = Array.isArray(old) ? old.map(function (n) { return { n: n }; }) : [];
+    }
+    const exams = [];
+    list.slice(0, 50).forEach(function (e) {
+      if (typeof e === 'number' || typeof e === 'string') e = { n: e };
+      if (!e || typeof e !== 'object') return;
+      let v = e.n;
+      if (typeof v === 'string') {
+        v = v.trim().replace(',', '.');
+        if (!v) v = 0;
+      }
+      if (typeof v === 'boolean' || v === null || v === undefined) v = 0;
+      const n = Number(v);
+      exams.push({ t: str(e.t, 120), n: isFinite(n) ? Math.min(10, Math.max(0, n)) : 0 });
+    });
+    return exams;
+  };
+  const examKeys = (input.exams && typeof input.exams === 'object' && !Array.isArray(input.exams))
+    ? input.exams
+    : ((input.grades && typeof input.grades === 'object' && !Array.isArray(input.grades)) ? input.grades : null);
+  if (examKeys) {
+    Object.keys(examKeys).slice(0, 100).forEach(function (k) {
       const key = str(k, 250);
       if (!key) return;
-      let list = input.grades[k];
-      if (typeof list === 'number' || typeof list === 'string') list = [list];
-      if (!Array.isArray(list)) return;
-      const vals = [];
-      list.slice(0, 50).forEach(function (v) {
-        if (typeof v === 'string') {
-          v = v.trim().replace(',', '.');
-          if (!v) return;
-        }
-        if (typeof v === 'boolean') return;
-        const n = Number(v);
-        if (!isFinite(n)) return;
-        vals.push(Math.min(10, Math.max(0, n)));
-      });
-      if (vals.length) out.grades[key] = vals;
+      const exams = examOf(key);
+      if (exams.length) out.exams[key] = exams;
     });
   }
   if (input.subjectColors && typeof input.subjectColors === 'object' && !Array.isArray(input.subjectColors)) {
@@ -130,8 +146,14 @@ function sanitize(input) {
 }
 
 function readBody(req) {
-  if (req.body !== undefined && req.body !== null && req.body !== '') {
+  if (Buffer.isBuffer(req.body)) {
+    return Promise.resolve(req.body.toString('utf8'));
+  }
+  if (typeof req.body === 'string' && req.body.trim()) {
     return Promise.resolve(req.body);
+  }
+  if (req.body !== undefined && req.body !== null && typeof req.body === 'object') {
+    return Promise.resolve(JSON.stringify(req.body));
   }
   return new Promise(function (resolve, reject) {
     let size = 0;
