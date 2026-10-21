@@ -557,6 +557,7 @@ function render(){
       '" type="button" data-note="' + esc(k) + '" title="Anotación de texto libre de esta asignatura">' + icon('pencil') + 'Anotación</button>' +
       '<button class="mini' + (examOpen ? ' on' : '') +
       '" type="button" data-exams="' + esc(k) + '" title="Ver y editar los exámenes de esta asignatura">' + icon('plus') + 'Exámenes</button>' +
+      '<button class="mini" type="button" data-color="' + esc(k) + '" title="Cambiar el color de esta asignatura">' + icon('pencil') + 'Color</button>' +
       (ga !== null ? '<span class="gavg" title="' + escapeAttr(gradeTip(k)) + '">' + fmtGrade(ga) + ' (' + gl.length + ')</span>' : '') +
       '<span class="n">' + items.length + '</span></span></h2>';
     if (noteOpen){
@@ -945,6 +946,14 @@ document.getElementById('list').addEventListener('click', function(e){
     }
     return;
   }
+  var colb = e.target.closest('[data-color]');
+  if (colb){
+    var ck = colb.getAttribute('data-color');
+    var r = colb.getBoundingClientRect();
+    closePanel();
+    openCPalette(ck, Math.round(r.left), Math.round(r.bottom + 6));
+    return;
+  }
   var eadd = e.target.closest('[data-examadd]');
   if (eadd){
     var ak = eadd.getAttribute('data-examadd');
@@ -1009,27 +1018,31 @@ function openPanel(id, x, y){
     b.classList.toggle('on', b.getAttribute('data-sort') === (DATA.sort || 'date'));
   });
 }
-document.getElementById('list').addEventListener('contextmenu', function(e){
+document.addEventListener('contextmenu', function(e){
   /* nunca dejamos que salga el menú del navegador dentro de la lista de tareas,
      aunque el destino no sea una cabecera o una tarjeta reconocida */
+  if (!e.target.closest('#list')) return;
   e.preventDefault();
   var head = e.target.closest('.ghead');
   if (head){
     var grp = head.closest('[data-grp]');
-    if (!grp) return;
-    closePanel();
-    openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
-    return;
+    if (grp){
+      closePanel();
+      openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
+      return;
+    }
   }
   var card = e.target.closest('.card');
-  if (!card) return;
-  var id = card.getAttribute('data-id');
-  if (!id) return;
-  closeCPalette();
-  openPanel(id, e.clientX, e.clientY);
-});
+  if (card){
+    var id = card.getAttribute('data-id');
+    if (id){
+      closeCPalette();
+      openPanel(id, e.clientX, e.clientY);
+    }
+  }
+}, true);
 document.addEventListener('click', function(e){
-  if (CP_OPEN && !e.target.closest('#cpalette')) closeCPalette();
+  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]')) closeCPalette();
   if (PANEL_ID && !e.target.closest('#panel')) closePanel();
 });
 document.addEventListener('keydown', function(e){
