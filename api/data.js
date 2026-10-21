@@ -1,6 +1,6 @@
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, grades: {}, subjectColors: {} };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 
@@ -33,7 +33,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, grades: {}, subjectColors: {} };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -53,6 +53,41 @@ function sanitize(input) {
       const key = str(k, 250);
       if (!key) return;
       out.notes[key] = str(input.notes[k], 8000);
+    });
+  }
+  if (input.grades && typeof input.grades === 'object' && !Array.isArray(input.grades)) {
+    Object.keys(input.grades).slice(0, 100).forEach(function (k) {
+      const key = str(k, 250);
+      if (!key) return;
+      let list = input.grades[k];
+      if (typeof list === 'number' || typeof list === 'string') list = [list];
+      if (!Array.isArray(list)) return;
+      const vals = [];
+      list.slice(0, 50).forEach(function (v) {
+        if (typeof v === 'string') {
+          v = v.trim().replace(',', '.');
+          if (!v) return;
+        }
+        if (typeof v === 'boolean') return;
+        const n = Number(v);
+        if (!isFinite(n)) return;
+        vals.push(Math.min(10, Math.max(0, n)));
+      });
+      if (vals.length) out.grades[key] = vals;
+    });
+  }
+  if (input.subjectColors && typeof input.subjectColors === 'object' && !Array.isArray(input.subjectColors)) {
+    Object.keys(input.subjectColors).slice(0, 100).forEach(function (k) {
+      const key = str(k, 250);
+      if (!key) return;
+      const v = input.subjectColors[k];
+      if (!v || typeof v !== 'object') return;
+      const c = str(v.c, 20).trim();
+      if (!/^#[0-9a-fA-F]{6}$/.test(c)) return;
+      let a = Number(v.a);
+      if (!isFinite(a)) a = 1;
+      a = Math.min(1, Math.max(0.05, a));
+      out.subjectColors[key] = { c: c.toLowerCase(), a: a };
     });
   }
   if (Array.isArray(input.skip)) {

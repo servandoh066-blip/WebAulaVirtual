@@ -22,7 +22,8 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
-.wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 16px 64px;display:grid;grid-template-columns:292px minmax(0,1fr);gap:22px;align-items:start}
+.content{min-width:0}
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 h1{font-size:24px;margin:0;color:var(--head)}
 .sub{color:var(--muted);font-size:13px}
@@ -34,7 +35,7 @@ h1{font-size:24px;margin:0;color:var(--head)}
 .sw.g{background:var(--green);border-color:var(--greenb)}
 h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;display:flex;justify-content:space-between;align-items:center}
 h2 .n{font-weight:600;opacity:.8}
-.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform .08s ease, box-shadow .08s ease}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform .08s ease, box-shadow .08s ease}
 .card:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.12)}
 .card.soon{background:var(--red);border-color:var(--redb)}
 .card.mid{background:var(--yellow);border-color:var(--yellowb)}
@@ -46,25 +47,25 @@ h2 .n{font-weight:600;opacity:.8}
 .cd.soon{color:#c62828}.cd.mid{color:#8a6400}.cd.ok{color:#0d7a45}
 @media (prefers-color-scheme: dark){ .cd.soon{color:#ff8a80}.cd.mid{color:#ffce55}.cd.ok{color:#5ad69a} }
 #bar{display:flex;gap:10px;align-items:center;margin:16px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-button{font:inherit;font-size:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:5px 12px;cursor:pointer}
+button{font:inherit;font-size:13px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:5px 12px;cursor:pointer}
 button:hover{border-color:var(--accent);color:var(--accent)}
-#err{display:none;margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--red);border:1px solid var(--redb);font-size:14px}
-.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+#err{display:none;margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--red);border:1px solid var(--redb);font-size:14px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
 .foot{margin-top:36px;color:var(--muted);font-size:12px;text-align:center}
 h2 .acts{display:flex;gap:6px;align-items:center}
 .grp > h2{cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .grp.dragging{opacity:.5}
 .grp.dragging > h2{cursor:grabbing}
 .grp.dragging > h2, .grp.dragging > .card, .grp.dragging > textarea{pointer-events:none}
-button.mini{font-size:12px;padding:2px 9px;border-radius:6px}
+button.mini{font-size:12px;padding:2px 9px;border-radius:9px}
 button.mini.on{border-color:var(--accent);color:var(--accent)}
-#addform{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0}
+#addform{display:none;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:12px 0}
 #addform.on{display:flex}
-#addform input[type=text]{flex:1 1 180px;min-width:150px;font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg)}
-#addform input[type=datetime-local]{font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg)}
-textarea.note{display:block;width:100%;min-height:64px;max-height:240px;resize:vertical;font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);margin:-4px 0 10px}
+#addform input[type=text]{flex:1 1 180px;min-width:150px;font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+#addform input[type=datetime-local]{font:inherit;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+textarea.note{display:block;width:100%;min-height:64px;max-height:240px;resize:vertical;font:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--fg);margin:-4px 0 10px}
 textarea.note:focus{outline:none;border-color:var(--accent)}
-#gnotes{margin:14px 0 4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+#gnotes{margin:14px 0 4px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
 #gnotes summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--head)}
 #gnotes textarea{margin-top:10px}
 .card.own{border-style:dashed}
@@ -78,7 +79,7 @@ body.dragging{user-select:none;-webkit-user-select:none}
 .card.done{opacity:.62;background:rgba(128,138,150,.1);border-color:rgba(128,138,150,.35)}
 .card.done .t{text-decoration:line-through}
 .cd.done{color:#0d7a45;font-weight:700}
-.done-tag{font-size:11px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
+.done-tag{font-size:11px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
 #donetoggle.on{border-color:var(--accent);color:var(--accent)}
 .cd.old{color:#6b7480}
 @media (prefers-color-scheme: dark){ .cd.old{color:#9aa4b0} }
@@ -97,28 +98,66 @@ body.dragging{user-select:none;-webkit-user-select:none}
 }
 .prof{font-size:12px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 .sw.n{background:rgba(128,138,150,.2);border-color:rgba(128,138,150,.5)}
-#panel{display:none;position:fixed;z-index:60;min-width:215px;max-width:280px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px}
+#panel{display:none;position:fixed;z-index:60;min-width:215px;max-width:280px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px}
 #panel .ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #panel .plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
 #panel button{display:block;width:100%;text-align:left;margin-bottom:4px}
 #panel .phint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.35}
 #panel-colors{display:flex;gap:7px;flex-wrap:wrap}
-#panel-colors i{width:21px;height:21px;border-radius:6px;cursor:pointer;border:1px solid var(--line);display:inline-block}
+#panel-colors i{width:21px;height:21px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block}
 #panel-colors i:hover{transform:scale(1.12)}
 #panel-colors i.on{outline:2px solid var(--accent);outline-offset:1px}
+#cpalette{display:none;position:fixed;z-index:61;width:238px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px}
+#cp-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+#cp-swatches .cpsw{width:22px;height:22px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block}
+#cp-swatches .cpsw:hover{transform:scale(1.12)}
+#cp-swatches .cpsw.on{outline:2px solid var(--accent);outline-offset:1px}
+.cp-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+.cp-row label{flex:0 0 84px;color:var(--muted);font-size:12px}
+.cp-row input[type=color]{width:38px;height:26px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer}
+.cp-row input[type=range]{flex:1 1 auto;min-width:70px;accent-color:var(--accent)}
+.cp-row span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.cp-prev{display:flex;align-items:center;gap:8px;margin:8px 0 10px;color:var(--muted);font-size:11.5px}
+.cp-prev i{width:16px;height:16px;border-radius:50%;border:1px solid var(--line);display:inline-block;flex:0 0 auto}
+#cpalette button{width:100%}
 .sw.auto{background:linear-gradient(135deg,var(--red) 33%,var(--yellow) 33%,var(--yellow) 66%,var(--green) 66%)}
 .card .t a{color:inherit;text-decoration:none}
 .card .t a:hover{text-decoration:underline}
-.own-tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
-.mail-tag{font-size:11px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:5px;padding:0 5px;margin-left:8px;vertical-align:middle}
+.own-tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
+.mail-tag{font-size:11px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
 button.del{font-size:13px;padding:1px 8px;color:var(--muted)}
 button.del:hover{border-color:#c62828;color:#c62828}
 #savest{font-size:12px;color:var(--muted)}
+#side{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
+.cbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.ctitle{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.csub{font-size:12px;text-transform:none;letter-spacing:0;color:var(--fg);font-weight:600;white-space:nowrap}
+.chart{max-width:240px;margin:0 auto}
+.donut{width:100%;height:auto;display:block;overflow:visible}
+.donut .seg{cursor:pointer;transition:stroke-width .18s ease,opacity .18s ease,transform .18s ease}
+.cdots{position:relative;display:flex;justify-content:center;align-items:center;gap:7px;margin-top:16px;user-select:none;-webkit-user-select:none;touch-action:none}
+.cdots::before{content:'';position:absolute;left:6%;right:6%;top:50%;height:2px;background:var(--line);border-radius:2px;transform:translateY(-1px)}
+.cdot-dot{position:relative;display:block;width:9px;height:9px;border-radius:50%;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease;box-shadow:0 0 0 2px var(--card)}
+.cdot-dot:hover{transform:scale(1.25)}
+.cdot-dot.on{transform:scale(1.35);box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--fg)}
+.cdot{width:10px;height:10px;border-radius:3px;flex:0 0 auto;display:inline-block}
+.cempty{color:var(--muted);font-size:12.5px;text-align:center;padding:10px 0;line-height:1.4}
+.cscale{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+.cscale span{display:inline-flex;align-items:center;gap:5px}
+.glabel{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
+.gin{width:92px;font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);text-align:center}
+.gin:focus{outline:none;border-color:var(--accent)}
+.gavg{font-size:11.5px;font-weight:600;color:var(--fg);background:rgba(128,138,150,.14);border-radius:9px;padding:1px 8px;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  #side{position:static;flex-direction:row;flex-wrap:wrap}
+  .cbox{flex:1 1 250px}
+}
 #gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
-#gate form{width:100%;max-width:320px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;text-align:center}
+#gate form{width:100%;max-width:320px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;text-align:center}
 .gt{font-size:18px;font-weight:600;color:var(--head)}
 .gs{color:var(--muted);font-size:13px;margin:6px 0 16px}
-#pass{width:100%;font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg);margin-bottom:12px}
+#pass{width:100%;font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);margin-bottom:12px}
 #gate button{width:100%;padding:9px}
 #gate-msg{color:#c62828;font-size:13px;min-height:18px;margin-top:10px}
 </style>
@@ -134,6 +173,23 @@ button.del:hover{border-color:#c62828;color:#c62828}
   </form>
 </div>
 <div class="wrap">
+  <aside id="side">
+    <section class="cbox">
+      <h3 class="ctitle">Tareas por asignatura <span class="csub" id="tasks-total"></span></h3>
+      <div class="chart" id="chart-tasks"></div>
+    </section>
+    <section class="cbox">
+      <h3 class="ctitle">Notas de examen <span class="csub" id="grades-avg"></span></h3>
+      <div class="chart" id="chart-grades"></div>
+      <div class="cscale" title="Tramos por defecto. Si eliges un color propio para una asignatura, su slice usará ese color.">
+        <span><i class="cdot" style="background:#d62828"></i>suspenso</span>
+        <span><i class="cdot" style="background:#e07a1f"></i>aprobado</span>
+        <span><i class="cdot" style="background:#d4a017"></i>bien</span>
+        <span><i class="cdot" style="background:#2a9d8f"></i>notable</span>
+      </div>
+    </section>
+  </aside>
+  <div class="content">
   <header>
     <h1>Tareas pendientes</h1>
     <div class="sub">Aula Virtual · IES de Teis</div>
@@ -188,7 +244,17 @@ button.del:hover{border-color:#c62828;color:#c62828}
       <i class="sw k-gray" data-color="k-gray" title="Gris"></i>
     </div>
   </div>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>✓ Entregadas</b> para verlas. Para reordenar, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. Clic derecho en una tarjeta para color y orden.</div>
+  <div id="cpalette">
+    <div class="ptitle" id="cp-title"></div>
+    <div class="plab">Color de la asignatura</div>
+    <div id="cp-swatches"></div>
+    <div class="cp-row"><label for="cp-custom">Personalizado</label><input type="color" id="cp-custom"></div>
+    <div class="cp-row"><label for="cp-alpha">Transparencia</label><input type="range" id="cp-alpha" min="0" max="80" step="5"><span id="cp-alpha-val">0%</span></div>
+    <div class="cp-prev"><i id="cp-prev"></i><span id="cp-prev-tx">Color automático</span></div>
+    <button type="button" id="cp-reset">Restablecer color automático</button>
+  </div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>✓ Entregadas</b> para verlas. Para reordenar, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. Clic derecho en una tarjeta para color y orden. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: escribe las notas en el campo 📝 de cada cabecera separadas por punto y coma (por ejemplo <b>7,5; 8,2</b>) y el diagrama muestra la media de cada asignatura al instante. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
+  </div>
 </div>
 <script>
 var BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
@@ -211,8 +277,8 @@ var SEED = [
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
 ];
 var TASKS = [], EMAILS = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false},
-  NOTE_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null;
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, grades: {}, subjectColors: {}},
+  NOTE_OPEN = {}, GRADE_DRAFT = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null;
 
 function dueMs(t){ return t.d ? new Date(t.d).getTime() : null; }
 function classify(ms){
@@ -395,6 +461,9 @@ function render(){
   Object.keys(DATA.notes).forEach(function(k){
     if (!groups[k]) groups[k] = [];
   });
+  Object.keys(DATA.grades || {}).forEach(function(k){
+    if (!groups[k]) groups[k] = [];
+  });
   function minDue(items){
     var m = null;
     items.forEach(function(t){
@@ -418,9 +487,16 @@ function render(){
     var prof = '';
     items.some(function(t){ if (t.p){ prof = t.p; return true; } return false; });
     html += '<section class="grp" data-grp="' + esc(k) + '">';
+    var gl = gradeList(k);
+    var ga = gl.length ? gl.reduce(function(a, b){ return a + b; }, 0) / gl.length : null;
+    var gv = (GRADE_DRAFT[k] !== undefined) ? GRADE_DRAFT[k] : formatGrades(gl);
     html += '<h2 class="ghead" title="Mantén pulsado y arrastra para mover esta asignatura"><span>' + esc(k) + (prof ? ' <span class="prof">· ' + esc(prof) + '</span>' : '') +
       '</span><span class="acts"><button class="mini' + (noteOpen ? ' on' : '') +
-      '" type="button" data-note="' + esc(k) + '">Nota</button><span class="n">' + items.length + '</span></span></h2>';
+      '" type="button" data-note="' + esc(k) + '">Nota</button>' +
+      '<label class="glabel" title="Notas de examen de esta asignatura separadas por &quot;;&quot; (ej: 7,5; 8,2). Se guarda la media."><span>📝</span>' +
+      '<input class="gin" type="text" inputmode="decimal" autocomplete="off" placeholder="notas" data-grade="' + esc(k) + '" value="' + esc(gv) + '"></label>' +
+      (ga !== null ? '<span class="gavg" title="Media de ' + gl.length + ' examen(s)">' + fmtGrade(ga) + ' (' + gl.length + ')</span>' : '') +
+      '<span class="n">' + items.length + '</span></span></h2>';
     if (noteOpen){
       html += '<textarea class="note" data-notefor="' + esc(k) + '" placeholder="Nota de ' + esc(k) + '…">' + esc(noteVal) + '</textarea>';
     }
@@ -455,7 +531,9 @@ function render(){
   });
   var act = document.activeElement;
   var keepNote = act && act.closest && act.closest('[data-notefor]') ? act.getAttribute('data-notefor') : null;
-  var keepSel = keepNote ? act.selectionStart : null;
+  var keepGrade = act && act.closest && act.closest('[data-grade]') ? act.getAttribute('data-grade') : null;
+  var keepSel = null;
+  try { keepSel = act ? act.selectionStart : null; } catch (e) { keepSel = null; }
   list.innerHTML = html;
   if (keepNote){
     var areas = document.querySelectorAll('[data-notefor]');
@@ -467,7 +545,18 @@ function render(){
       }
     }
   }
+  if (keepGrade){
+    var ginputs = document.querySelectorAll('[data-grade]');
+    for (var gi = 0; gi < ginputs.length; gi++){
+      if (ginputs[gi].getAttribute('data-grade') === keepGrade){
+        ginputs[gi].focus();
+        try { ginputs[gi].setSelectionRange(keepSel, keepSel); } catch (e) {}
+        break;
+      }
+    }
+  }
   tick();
+  drawCharts();
 }
 function findNoteArea(k){
   var areas = document.querySelectorAll('[data-notefor]');
@@ -576,7 +665,9 @@ function loadData(){
           sort: typeof j.sort === 'string' ? j.sort : '',
           pos: (j.pos && typeof j.pos === 'object') ? j.pos : {},
           gord: (j.gord && typeof j.gord === 'object') ? j.gord : {},
-          showdone: j.showdone === true
+          showdone: j.showdone === true,
+          grades: (j.grades && typeof j.grades === 'object' && !Array.isArray(j.grades)) ? j.grades : {},
+          subjectColors: (j.subjectColors && typeof j.subjectColors === 'object' && !Array.isArray(j.subjectColors)) ? j.subjectColors : {}
         };
         SHOW_DONE = !!DATA.showdone;
         var db = document.getElementById('donetoggle');
@@ -775,20 +866,34 @@ function openPanel(id, x, y){
   });
 }
 document.getElementById('list').addEventListener('contextmenu', function(e){
+  var head = e.target.closest('.ghead');
+  if (head){
+    var grp = head.closest('[data-grp]');
+    if (!grp) return;
+    e.preventDefault();
+    closePanel();
+    openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
+    return;
+  }
   var card = e.target.closest('.card');
   if (!card) return;
   var id = card.getAttribute('data-id');
   if (!id) return;
   e.preventDefault();
+  closeCPalette();
   openPanel(id, e.clientX, e.clientY);
 });
 document.addEventListener('click', function(e){
   if (PANEL_ID && !e.target.closest('#panel')) closePanel();
+  if (CP_SUBJ && !e.target.closest('#cpalette')) closeCPalette();
 });
 document.addEventListener('keydown', function(e){
-  if (e.key === 'Escape') closePanel();
+  if (e.key === 'Escape'){ closePanel(); closeCPalette(); }
 });
-window.addEventListener('scroll', function(){ if (PANEL_ID) closePanel(); });
+window.addEventListener('scroll', function(){
+  if (PANEL_ID) closePanel();
+  if (CP_SUBJ) closeCPalette();
+});
 document.getElementById('panel').addEventListener('click', function(e){
   var sortBtn = e.target.closest('[data-sort]');
   if (sortBtn){
@@ -893,7 +998,7 @@ function dragEnd(){
 
 document.getElementById('list').addEventListener('pointerdown', function(e){
   if (e.pointerType === 'mouse' && e.button !== 0) return;
-  if (e.target.closest('button') || DRAG) return;
+  if (e.target.closest('button, input, textarea, select, label') || DRAG) return;
   var card = e.target.closest('.card');
   var head = card ? null : e.target.closest('.grp > h2');
   var sec = head ? head.parentNode : null;
@@ -950,6 +1055,38 @@ document.getElementById('list').addEventListener('pointerdown', function(e){
   document.addEventListener('pointercancel', onUp);
 });
 document.getElementById('list').addEventListener('input', function(e){
+  var gi = e.target.closest('[data-grade]');
+  if (gi){
+    var gk = gi.getAttribute('data-grade');
+    var raw = String(gi.value || '');
+    GRADE_DRAFT[gk] = raw;
+    var list = parseGrades(raw);
+    DATA.grades = DATA.grades || {};
+    if (list.length) DATA.grades[gk] = list; else delete DATA.grades[gk];
+    var head = gi.closest ? gi.closest('.ghead') : null;
+    var chip = head ? head.querySelector('.gavg') : null;
+    if (list.length){
+      var avg = 0;
+      list.forEach(function(x){ avg += x; });
+      avg = avg / list.length;
+      var txt = fmtGrade(avg) + ' (' + list.length + ')';
+      var tip = 'Media de ' + list.length + ' examen(s): ' + formatGrades(list);
+      if (!chip && head){
+        chip = document.createElement('span');
+        chip.className = 'gavg';
+        var acts = head.querySelector('.acts');
+        var num = acts ? acts.querySelector('.n') : null;
+        if (acts && num) acts.insertBefore(chip, num);
+        else if (acts) acts.appendChild(chip);
+      }
+      if (chip){ chip.textContent = txt; chip.title = tip; }
+    } else if (chip){
+      chip.parentNode.removeChild(chip);
+    }
+    drawCharts();
+    scheduleSave();
+    return;
+  }
   var ta = e.target.closest('[data-notefor]');
   if (!ta) return;
   var k = ta.getAttribute('data-notefor');
@@ -957,6 +1094,374 @@ document.getElementById('list').addEventListener('input', function(e){
   if (v) DATA.notes[k] = v; else delete DATA.notes[k];
   scheduleSave();
 });
+document.getElementById('list').addEventListener('change', function(e){
+  var gi = e.target.closest('[data-grade]');
+  if (!gi) return;
+  var gk = gi.getAttribute('data-grade');
+  var list = gradeList(gk);
+  DATA.grades = DATA.grades || {};
+  if (list.length) DATA.grades[gk] = list; else delete DATA.grades[gk];
+  gi.value = formatGrades(list);
+  GRADE_DRAFT[gk] = gi.value;
+  drawCharts();
+  scheduleSave();
+});
+/* ---------- diagramas circulares interactivos ---------- */
+var CHART_COLORS = ['#0b57d0','#d62828','#2a9d8f','#e07a1f','#6a4c93','#457b9d','#b5651d','#8ab17d','#9d4edd','#c1121f'];
+var GRADE_BANDS = [
+  {max: 5,   color: '#d62828', label: 'suspenso'},
+  {max: 6.9, color: '#e07a1f', label: 'aprobado'},
+  {max: 8.9, color: '#d4a017', label: 'bien'},
+  {max: 99,  color: '#2a9d8f', label: 'notable'}
+];
+function bandColor(n){
+  for (var i = 0; i < GRADE_BANDS.length; i++) if (n <= GRADE_BANDS[i].max) return GRADE_BANDS[i].color;
+  return GRADE_BANDS[GRADE_BANDS.length - 1].color;
+}
+function bandLabel(n){
+  for (var i = 0; i < GRADE_BANDS.length; i++) if (n <= GRADE_BANDS[i].max) return GRADE_BANDS[i].label;
+  return '';
+}
+function fmtGrade(n){ return String(Math.round(n * 100) / 100).replace('.', ','); }
+/* ---------- notas de examen: lista de notas por asignatura ---------- */
+function gradeList(subj){
+  var g = DATA.grades || {};
+  var v = g[subj];
+  if (v === undefined || v === null) return [];
+  if (typeof v === 'number') return isFinite(v) ? [v] : [];
+  if (typeof v === 'string') return parseGrades(v);
+  if (!Array.isArray(v)) return [];
+  return v.filter(function(x){ return typeof x === 'number' && isFinite(x); });
+}
+function gradeAvg(subj){
+  var l = gradeList(subj);
+  if (!l.length) return null;
+  var s = 0;
+  l.forEach(function(x){ s += x; });
+  return s / l.length;
+}
+/* "7,5; 8,2" -> [7.5, 8.2] (acepta coma o punto decimal) */
+function parseGrades(text){
+  var out = [];
+  String(text == null ? '' : text).split(';').forEach(function(part){
+    var v = String(part).trim().replace(',', '.');
+    if (!v) return;
+    var n = parseFloat(v);
+    if (!isFinite(n)) return;
+    out.push(Math.min(10, Math.max(0, n)));
+  });
+  return out;
+}
+function formatGrades(list){
+  return (list || []).map(function(n){
+    return String(Math.round(n * 100) / 100).replace('.', ',');
+  }).join('; ');
+}
+
+function shortTxt(s, n){ s = String(s || ''); return s.length > n ? s.slice(0, n - 1).trim() + '…' : s; }
+function arcPath(cx, cy, r, a0, a1){
+  var x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+  var x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+  var large = (a1 - a0) > Math.PI ? 1 : 0;
+  return 'M' + x0.toFixed(2) + ' ' + y0.toFixed(2) + 'A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2);
+}
+/* ---------- color por asignatura (click derecho en la cabecera) ---------- */
+var CP_SUBJ = null;
+function subjectColor(k){
+  var sc = DATA.subjectColors || {};
+  var v = sc[k];
+  if (!v || !v.c) return null;
+  var a = (typeof v.a === 'number' && isFinite(v.a)) ? v.a : 1;
+  return {c: String(v.c), a: Math.min(1, Math.max(0.05, a))};
+}
+function hexToRgba(hex, a){
+  var h = String(hex == null ? '' : hex).replace('#', '').trim();
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  var n = parseInt(h, 16);
+  if (!isFinite(n)) return 'rgba(128,138,150,' + a + ')';
+  return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+}
+function setSubjectColor(k, color, alpha){
+  DATA.subjectColors = DATA.subjectColors || {};
+  if (!color) delete DATA.subjectColors[k];
+  else DATA.subjectColors[k] = {c: color, a: alpha};
+  drawCharts();
+  scheduleSave();
+}
+function cpRefresh(){
+  if (!CP_SUBJ) return;
+  var sc = subjectColor(CP_SUBJ);
+  var color = sc ? sc.c : '#0b57d0';
+  var tr = sc ? Math.round((1 - sc.a) * 100) : 0;
+  document.getElementById('cp-custom').value = color;
+  document.getElementById('cp-alpha').value = tr;
+  document.getElementById('cp-alpha-val').textContent = tr + '%';
+  document.querySelectorAll('#cp-swatches .cpsw').forEach(function(el){
+    el.classList.toggle('on', !!sc && el.getAttribute('data-cpcolor').toLowerCase() === color.toLowerCase());
+  });
+  var prev = document.getElementById('cp-prev');
+  prev.style.background = hexToRgba(color, sc ? sc.a : 1);
+  document.getElementById('cp-prev-tx').textContent = sc ? (color + ' · ' + tr + '% transparente') : 'Color automático';
+}
+function openCPalette(k, x, y){
+  CP_SUBJ = k;
+  document.getElementById('cp-title').textContent = k;
+  var p = document.getElementById('cpalette');
+  p.style.display = 'block';
+  var w = p.offsetWidth, h = p.offsetHeight;
+  p.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 8)) + 'px';
+  p.style.top = Math.max(8, Math.min(y, window.innerHeight - h - 8)) + 'px';
+  cpRefresh();
+}
+function closeCPalette(){
+  CP_SUBJ = null;
+  document.getElementById('cpalette').style.display = 'none';
+}
+function buildSwatches(){
+  var pal = CHART_COLORS.concat(['#264653', '#e9c46a', '#f4a261', '#8ecae6']);
+  document.getElementById('cp-swatches').innerHTML = pal.map(function(c){
+    return '<i class="cpsw" data-cpcolor="' + c + '" style="background:' + c + '" title="' + c + '"></i>';
+  }).join('');
+}
+document.getElementById('cpalette').addEventListener('click', function(e){
+  var sw = e.target.closest('[data-cpcolor]');
+  if (sw && CP_SUBJ){
+    var sc = subjectColor(CP_SUBJ);
+    setSubjectColor(CP_SUBJ, sw.getAttribute('data-cpcolor'), sc ? sc.a : 1);
+    cpRefresh();
+    return;
+  }
+  if (e.target.closest('#cp-reset') && CP_SUBJ){
+    setSubjectColor(CP_SUBJ, null, 1);
+    cpRefresh();
+  }
+});
+document.getElementById('cp-custom').addEventListener('input', function(){
+  if (!CP_SUBJ) return;
+  var sc = subjectColor(CP_SUBJ);
+  setSubjectColor(CP_SUBJ, this.value, sc ? sc.a : 1);
+  cpRefresh();
+});
+document.getElementById('cp-alpha').addEventListener('input', function(){
+  if (!CP_SUBJ) return;
+  var sc = subjectColor(CP_SUBJ);
+  var tr = Number(this.value) || 0;
+  setSubjectColor(CP_SUBJ, sc ? sc.c : '#0b57d0', 1 - tr / 100);
+  cpRefresh();
+});
+buildSwatches();
+var CHARTS = {
+  tasks: {
+    el: 'chart-tasks', badge: 'tasks-total',
+    items: [], focusKey: null, hoverKey: null, paths: [], dots: [],
+    empty: 'No hay tareas pendientes.'
+  },
+  grades: {
+    el: 'chart-grades', badge: 'grades-avg',
+    items: [], focusKey: null, hoverKey: null, paths: [], dots: [],
+    empty: 'Escribe las notas de examen en el campo 📝 de la cabecera de cada asignatura.'
+  }
+};
+function chartActiveIndex(ch){
+  var key = ch.hoverKey || ch.focusKey;
+  for (var i = 0; i < ch.items.length; i++) if (ch.items[i].key === key) return i;
+  return 0;
+}
+function buildChart(id){
+  var ch = CHARTS[id];
+  var el = document.getElementById(ch.el);
+  if (!ch.items.length){
+    el.innerHTML = '<div class="cempty">' + esc(ch.empty) + '</div>';
+    ch.paths = []; ch.dots = [];
+    return;
+  }
+  var sw = 18;
+  ch.sw = sw;
+  var html = '<svg class="donut" viewBox="0 0 120 120" role="img">';
+  html += '<circle cx="60" cy="60" r="42" fill="none" style="stroke:var(--line)" stroke-width="' + sw + '" opacity=".45"/>';
+  var acc = 0;
+  ch.items.forEach(function(it, i){
+    var ang = it.frac * 2 * Math.PI;
+    var a0 = acc * 2 * Math.PI - Math.PI / 2;
+    var a1 = a0 + ang;
+    acc += it.frac;
+    it.mid = (a0 + a1) / 2;
+    if (ch.items.length === 1){
+      html += '<circle class="seg" data-seg="' + i + '" cx="60" cy="60" r="42" fill="none" stroke="' + it.color + '" stroke-width="' + sw + '"' + (it.alpha < 1 ? ' stroke-opacity="' + it.alpha + '"' : '') + '><title>' + esc(it.label + ': ' + it.value) + '</title></circle>';
+      return;
+    }
+    var gap = Math.min(0.05, ang * 0.22);
+    html += '<path class="seg" data-seg="' + i + '" d="' + arcPath(60, 60, 42, a0, a1 - gap) + '" fill="none" stroke="' + it.color + '" stroke-width="' + sw + '"' + (it.alpha < 1 ? ' stroke-opacity="' + it.alpha + '"' : '') + '><title>' + esc(it.label + ': ' + it.value) + '</title></path>';
+  });
+  html += '<text class="dn-name" x="60" y="49" text-anchor="middle" font-size="5.5" style="fill:var(--muted)"></text>';
+  html += '<text class="dn-val" x="60" y="63" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--fg)"></text>';
+  html += '<text class="dn-sub" x="60" y="73" text-anchor="middle" font-size="5.5" style="fill:var(--muted)"></text>';
+  html += '</svg><div class="cdots">';
+  ch.items.forEach(function(it, i){
+    html += '<i class="cdot-dot" data-dot="' + i + '" style="background:' + hexToRgba(it.color, it.alpha === undefined ? 1 : it.alpha) + '" title="' + esc(it.label) + '"></i>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+  ch.paths = Array.prototype.slice.call(el.querySelectorAll('[data-seg]'));
+  ch.dots = Array.prototype.slice.call(el.querySelectorAll('[data-dot]'));
+  updateChart(id);
+}
+function updateChart(id){
+  var ch = CHARTS[id];
+  var el = document.getElementById(ch.el);
+  if (!ch.items.length || !ch.paths.length) return;
+  var idx = chartActiveIndex(ch);
+  var it = ch.items[idx];
+  var sw = ch.sw || 18;
+  ch.paths.forEach(function(p, i){
+    var on = (i === idx);
+    p.style.strokeWidth = (on ? sw + 5 : sw) + 'px';
+    p.style.opacity = on ? '1' : '.42';
+    var item = ch.items[i];
+    var off = (on && ch.items.length > 1) ? 4.5 : 0;
+    if (item && item.mid !== undefined){
+      p.style.transform = 'translate(' + (Math.cos(item.mid) * off).toFixed(2) + 'px,' + (Math.sin(item.mid) * off).toFixed(2) + 'px)';
+    }
+  });
+  ch.dots.forEach(function(d, i){ d.classList.toggle('on', i === idx); });
+  var nm = el.querySelector('.dn-name'), vl = el.querySelector('.dn-val'), sb = el.querySelector('.dn-sub');
+  if (nm) nm.textContent = shortTxt(it.label, 22);
+  if (vl){ vl.textContent = it.valTxt; vl.style.fill = it.valColor || 'var(--fg)'; }
+  if (sb) sb.textContent = shortTxt(it.subTxt, 26);
+}
+function dragDots(id, ev){
+  var ch = CHARTS[id];
+  function pick(e){
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var d = el && el.closest ? el.closest('[data-dot]') : null;
+    if (!d) return;
+    var i = Number(d.getAttribute('data-dot'));
+    var it = ch.items[i];
+    if (!it || it.key === ch.focusKey) return;
+    ch.focusKey = it.key;
+    ch.hoverKey = null;
+    updateChart(id);
+  }
+  function mv(e){ if (e.cancelable) e.preventDefault(); pick(e); }
+  function up(){
+    document.removeEventListener('pointermove', mv);
+    document.removeEventListener('pointerup', up);
+    document.removeEventListener('pointercancel', up);
+  }
+  document.addEventListener('pointermove', mv, {passive: false});
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', up);
+  pick(ev);
+}
+function setupChart(id){
+  var ch = CHARTS[id];
+  var el = document.getElementById(ch.el);
+  el.addEventListener('mouseover', function(e){
+    var key = null;
+    var s = e.target.closest('[data-seg]');
+    var d = e.target.closest('[data-dot]');
+    if (s){ var i = Number(s.getAttribute('data-seg')); if (ch.items[i]) key = ch.items[i].key; }
+    else if (d){ var j = Number(d.getAttribute('data-dot')); if (ch.items[j]) key = ch.items[j].key; }
+    if (!key || key === ch.hoverKey) return;
+    ch.hoverKey = key;
+    updateChart(id);
+  });
+  el.addEventListener('mouseleave', function(){
+    if (!ch.hoverKey) return;
+    ch.hoverKey = null;
+    updateChart(id);
+  });
+  el.addEventListener('click', function(e){
+    var s = e.target.closest('[data-seg]');
+    if (!s) return;
+    var i = Number(s.getAttribute('data-seg'));
+    if (!ch.items[i]) return;
+    ch.focusKey = ch.items[i].key;
+    ch.hoverKey = null;
+    updateChart(id);
+  });
+  el.addEventListener('pointerdown', function(e){
+    var d = e.target.closest('[data-dot]');
+    if (!d) return;
+    e.preventDefault();
+    dragDots(id, e);
+  });
+}
+function pendingCounts(){
+  var hide = {};
+  (DATA.hide || []).forEach(function(id){ hide[id] = 1; });
+  var counts = {};
+  function add(t){
+    if (!t || t.mail) return;
+    if (t.id && hide[t.id]) return;
+    if (t.done) return;
+    var k = t.s || 'Sin asignatura';
+    counts[k] = (counts[k] || 0) + 1;
+  }
+  TASKS.forEach(add);
+  DATA.tasks.forEach(add);
+  return counts;
+}
+function drawTasksChart(){
+  var counts = pendingCounts();
+  var alpha = Object.keys(counts).sort(function(a, b){ return a.localeCompare(b, 'es'); });
+  var colorOf = {};
+  alpha.forEach(function(k, i){ colorOf[k] = CHART_COLORS[i % CHART_COLORS.length]; });
+  var keys = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a] || a.localeCompare(b, 'es'); });
+  var total = 0;
+  keys.forEach(function(k){ total += counts[k]; });
+  var ch = CHARTS.tasks;
+  ch.items = keys.map(function(k){
+    var pct = total ? Math.round(counts[k] / total * 100) : 0;
+    var sc = subjectColor(k);
+    return {
+      key: k, label: k, value: counts[k], frac: total ? counts[k] / total : 0,
+      color: sc ? sc.c : colorOf[k], alpha: sc ? sc.a : 1,
+      valTxt: String(counts[k]), valColor: 'var(--fg)', subTxt: pct + '% de ' + total
+    };
+  });
+  document.getElementById('tasks-total').textContent = total ? total + ' pendientes' : '';
+  buildChart('tasks');
+}
+function drawGradesChart(){
+  var g = DATA.grades || {};
+  var keys = Object.keys(g).filter(function(k){ return gradeList(k).length > 0; });
+  keys.sort(function(a, b){ return (gradeAvg(b) - gradeAvg(a)) || a.localeCompare(b, 'es'); });
+  var ch = CHARTS.grades;
+  var avgEl = document.getElementById('grades-avg');
+  if (!keys.length){
+    ch.items = [];
+    document.getElementById('chart-grades').innerHTML = '<div class="cempty">' + esc(ch.empty) + '</div>';
+    avgEl.textContent = '';
+    return;
+  }
+  var sum = 0, wsum = 0;
+  keys.forEach(function(k){
+    var a = gradeAvg(k);
+    sum += a;
+    wsum += Math.max(a, 0.5);
+  });
+  var avg = sum / keys.length;
+  ch.items = keys.map(function(k){
+    var a = gradeAvg(k);
+    var n = gradeList(k).length;
+    var sc = subjectColor(k);
+    return {
+      key: k, label: k, value: a, frac: Math.max(a, 0.5) / wsum,
+      color: sc ? sc.c : bandColor(a), alpha: sc ? sc.a : 1,
+      valTxt: fmtGrade(a), valColor: sc ? sc.c : bandColor(a),
+      subTxt: n + (n === 1 ? ' examen' : ' exámenes') + ' · ' + bandLabel(a)
+    };
+  });
+  avgEl.textContent = fmtGrade(avg) + ' · ' + keys.length + (keys.length === 1 ? ' asignatura' : ' asignaturas');
+  buildChart('grades');
+}
+function drawCharts(){
+  drawTasksChart();
+  drawGradesChart();
+}
+setupChart('tasks');
+setupChart('grades');
 var gtext = document.getElementById('gtext');
 gtext.value = DATA.global;
 gtext.addEventListener('input', function(){
@@ -966,6 +1471,7 @@ gtext.addEventListener('input', function(){
 window.addEventListener('beforeunload', function(){ if (saveTimer) saveData(); });
 window.addEventListener('load', function(){
   document.getElementById('pass').focus();
+  drawCharts();
   load();
   setInterval(load, 5 * 60 * 1000);
   setInterval(tick, 30 * 1000);
