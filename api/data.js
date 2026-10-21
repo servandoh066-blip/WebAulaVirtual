@@ -226,3 +226,5 @@ module.exports = async function (req, res) {
   res.statusCode = 405;
   return res.end('405');
 };
+
+module.exports.sanitize = sanitize;

@@ -3,3 +3,5 @@ node_modules/
 .env
 ESTADO.md
 localtest*.js
+.localdata.json
+localtest*.log
