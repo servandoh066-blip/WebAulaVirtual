@@ -181,7 +181,23 @@ function blobHeaders(extra) {
   }, extra || {});
 }
 
-async function readData() {
+// ---------- Almacén de datos ----------
+// Upstash Redis (REST). Variables: UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN.
+// El JSON completo se guarda en la clave `userdata.json`.
+function upstash(cmd) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) throw new Error('UPSTASH no configurado');
+  return fetch(url, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(cmd),
+    signal: AbortSignal.timeout(8000)
+  });
+}
+
+// Lee del Blob antiguo de Vercel (sólo para migrar la primera vez).
+async function readFromBlob() {
   const list = await fetch('https://blob.vercel-storage.com?limit=100', {
     headers: blobHeaders(),
     signal: AbortSignal.timeout(8000)
@@ -189,32 +205,52 @@ async function readData() {
   if (!list.ok) throw new Error('blob list ' + list.status);
   const j = await list.json();
   const b = (j.blobs || []).find(function (x) { return x.pathname === KEY; });
-  if (!b) return EMPTY;
+  if (!b) return null;
   const r = await fetch(b.url + '?cache=0', {
     headers: blobHeaders(),
     signal: AbortSignal.timeout(8000)
   });
-  if (r.status === 404) return EMPTY;
+  if (r.status === 404) return null;
   if (!r.ok) throw new Error('blob get ' + r.status);
   return sanitize(await r.json());
 }
 
+async function readData() {
+  const r = await upstash(['GET', KEY]);
+  if (!r.ok) throw new Error('upstash get ' + r.status);
+  const j = await r.json();
+  const raw = j && j.result;
+  if (raw == null) {
+    // primera vez: intentamos traer los datos del Blob antiguo de Vercel
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        const migrated = await readFromBlob();
+        if (migrated) {
+          await writeData(migrated);
+          return migrated;
+        }
+      } catch (e) { /* si falla la migración, seguimos con datos vacíos */ }
+    }
+    return EMPTY;
+  }
+  try {
+    return sanitize(typeof raw === 'string' ? JSON.parse(raw) : raw);
+  } catch (e) {
+    return EMPTY;
+  }
+}
+
 async function writeData(data) {
-  const r = await fetch('https://blob.vercel-storage.com/' + KEY, {
-    method: 'PUT',
-    headers: blobHeaders({ 'Content-Type': 'application/json', 'x-add-random-suffix': '0' }),
-    body: JSON.stringify(data),
-    signal: AbortSignal.timeout(10000)
-  });
-  if (!r.ok) throw new Error('blob put ' + r.status);
+  const r = await upstash(['SET', KEY, JSON.stringify(data)]);
+  if (!r.ok) throw new Error('upstash set ' + r.status);
 }
 
 module.exports = async function (req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!checkAuth(req)) return unauthorized(res);
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     res.statusCode = 500;
-    return res.json({ error: 'BLOB_READ_WRITE_TOKEN no configurado' });
+    return res.json({ error: 'UPSTASH_REDIS_REST_URL/TOKEN no configurados' });
   }
 
   if (req.method === 'GET') {

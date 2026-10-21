@@ -1,7 +1,9 @@
 node_modules/
 .vercel/
+.netlify/
 .env
 ESTADO.md
 localtest*.js
+localtest*.mjs
 .localdata.json
 localtest*.log
