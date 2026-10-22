@@ -266,8 +266,8 @@ async function almacenEscribir(texto) {
 }
 
 // Lee del Blob antiguo de Vercel (sólo para migrar la primera vez).
-// Sólo se intenta si el token tiene pinta de ser real; los de relleno
-// ("tu_token_blob") hacían perder 8 segundos en cada primera lectura.
+// Sólo se intenta si el token tiene el formato real; un valor de relleno
+// hacía perder 8 segundos en la primera lectura de cada usuario.
 function tokenBlobValido() {
   return /^vercel_blob_rw_/.test(process.env.BLOB_READ_WRITE_TOKEN || '');
 }
