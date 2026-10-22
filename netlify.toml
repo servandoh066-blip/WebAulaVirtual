@@ -5,6 +5,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # AUTH_USER y COMPOSIO_USER_ID no son secretos: sus valores son palabras
+  # comunes que aparecen en el código y provocan falsos positivos.
+  SECRETS_SCAN_OMIT_KEYS = "AUTH_USER,COMPOSIO_USER_ID"
 
 # Sin caché: los datos del usuario cambian en cada guardado y la
 # aplicación tiene que pedir siempre el estado más reciente.
