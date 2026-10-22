@@ -186,8 +186,26 @@ function blobHeaders(extra) {
 }
 
 // ---------- Almacén de datos ----------
-// Upstash Redis (REST). Variables: UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN.
+// Dos backends, se elige automáticamente:
+//   1. Netlify Blobs (nativo de Netlify): no necesita configuración ni cuentas.
+//   2. Upstash Redis (REST): sólo si la URL y el token son valores reales.
 // El JSON completo se guarda en la clave `userdata.json`.
+
+// `@netlify/blobs` se carga de forma tolerante: en local no está el contexto
+// de Blobs y el módulo puede no estar instalado, y aun así debe poder arrancar.
+let netlifyGetStore = null;
+try {
+  netlifyGetStore = require('@netlify/blobs').getStore;
+} catch (e) {
+  netlifyGetStore = null;
+}
+
+function upstashConfigurado() {
+  const url = process.env.UPSTASH_REDIS_REST_URL || '';
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+  return /^https:\/\//.test(url) && token.length > 0;
+}
+
 function upstash(cmd) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -200,8 +218,62 @@ function upstash(cmd) {
   });
 }
 
+let storePromise = null;
+function blobs() {
+  if (!netlifyGetStore) return Promise.reject(new Error('Blobs no disponible'));
+  if (!storePromise) {
+    try {
+      // consistency: 'strong' -> leer justo después de escribir devuelve lo último
+      storePromise = Promise.resolve(netlifyGetStore({ name: 'aulavirtual', consistency: 'strong' }));
+    } catch (err) {
+      storePromise = null;
+      return Promise.reject(err);
+    }
+  }
+  return storePromise;
+}
+
+async function hayAlmacen() {
+  if (upstashConfigurado()) return true;
+  try {
+    await blobs();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function almacenLeer() {
+  if (upstashConfigurado()) {
+    const r = await upstash(['GET', KEY]);
+    if (!r.ok) throw new Error('upstash get ' + r.status);
+    const j = await r.json();
+    return j && j.result != null ? j.result : null;
+  }
+  const store = await blobs();
+  const raw = await store.get(KEY);
+  return raw == null ? null : raw;
+}
+
+async function almacenEscribir(texto) {
+  if (upstashConfigurado()) {
+    const r = await upstash(['SET', KEY, texto]);
+    if (!r.ok) throw new Error('upstash set ' + r.status);
+    return;
+  }
+  const store = await blobs();
+  await store.set(KEY, texto);
+}
+
 // Lee del Blob antiguo de Vercel (sólo para migrar la primera vez).
+// Sólo se intenta si el token tiene pinta de ser real; los de relleno
+// ("tu_token_blob") hacían perder 8 segundos en cada primera lectura.
+function tokenBlobValido() {
+  return /^vercel_blob_rw_/.test(process.env.BLOB_READ_WRITE_TOKEN || '');
+}
+
 async function readFromBlob() {
+  if (!tokenBlobValido()) return null;
   const list = await fetch('https://blob.vercel-storage.com?limit=100', {
     headers: blobHeaders(),
     signal: AbortSignal.timeout(8000)
@@ -220,13 +292,10 @@ async function readFromBlob() {
 }
 
 async function readData() {
-  const r = await upstash(['GET', KEY]);
-  if (!r.ok) throw new Error('upstash get ' + r.status);
-  const j = await r.json();
-  const raw = j && j.result;
-  if (raw == null) {
+  const crudo = await almacenLeer();
+  if (crudo == null) {
     // primera vez: intentamos traer los datos del Blob antiguo de Vercel
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (tokenBlobValido()) {
       try {
         const migrated = await readFromBlob();
         if (migrated) {
@@ -238,23 +307,22 @@ async function readData() {
     return EMPTY;
   }
   try {
-    return sanitize(typeof raw === 'string' ? JSON.parse(raw) : raw);
+    return sanitize(typeof crudo === 'string' ? JSON.parse(crudo) : crudo);
   } catch (e) {
     return EMPTY;
   }
 }
 
 async function writeData(data) {
-  const r = await upstash(['SET', KEY, JSON.stringify(data)]);
-  if (!r.ok) throw new Error('upstash set ' + r.status);
+  await almacenEscribir(JSON.stringify(data));
 }
 
 module.exports = async function (req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!checkAuth(req)) return unauthorized(res);
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (!(await hayAlmacen())) {
     res.statusCode = 500;
-    return res.json({ error: 'UPSTASH_REDIS_REST_URL/TOKEN no configurados' });
+    return res.json({ error: 'Sin almacén de datos: UPSTASH_REDIS_REST_URL/TOKEN no configurados y Netlify Blobs no disponible' });
   }
 
   if (req.method === 'GET') {
