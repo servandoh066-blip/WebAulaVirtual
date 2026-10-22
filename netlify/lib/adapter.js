@@ -61,12 +61,13 @@ function makeRes() {
 }
 
 // Monta el Response de salida con el estado acumulado en `res`.
+// Ojo: no añadir aquí 'WWW-Authenticate'. Un 401 con reto "Basic" hace que
+// Chrome y Edge abran su diálogo nativo de usuario/contraseña encima de la
+// app; el usuario se queda atrapado y nunca ve el error de la pantalla de
+// acceso. La app ya distingue el 401 por el código de estado.
 function toResponse(res) {
   const s = res.__state;
   const headers = Object.assign({}, s.headers);
-  if (s.statusCode === 401 && !headers['WWW-Authenticate']) {
-    headers['WWW-Authenticate'] = 'Basic realm="Tareas Aula Virtual", charset="UTF-8"';
-  }
   return new Response(s.chunks.join(''), { status: s.statusCode, headers: headers });
 }
 

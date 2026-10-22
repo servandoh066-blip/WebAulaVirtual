@@ -706,8 +706,17 @@ function gateHide(){
 function getPass(){ return sessionStorage.getItem('av-pass') || ''; }
 function setPass(p){ sessionStorage.setItem('av-pass', p); }
 function clearPass(){ sessionStorage.removeItem('av-pass'); }
+// btoa() solo admite Latin-1: si la contraseña lleva 'ñ', 'á' o '€' lanza
+// InvalidCharacterError y el acceso se queda colgado sin mostrar nada.
+// Codificamos en UTF-8, que es justo lo que decodifica el servidor.
+function b64utf8(s){
+  var bytes = new TextEncoder().encode(String(s));
+  var bin = '';
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
 function authHeader(){
-  return {'Authorization': 'Basic ' + btoa(USERNAME + ':' + getPass())};
+  return {'Authorization': 'Basic ' + b64utf8(USERNAME + ':' + getPass())};
 }
 function setSaveState(m){
   document.getElementById('savest').textContent = m || '';
@@ -844,7 +853,14 @@ document.getElementById('gate-form').addEventListener('submit', function(e){
   if (!v) return;
   setPass(v);
   document.getElementById('pass').value = '';
-  load();
+  try {
+    load();
+  } catch (err) {
+    // sin esto, un fallo al construir la cabecera de auth deja la pantalla
+    // de acceso tal cual y el usuario no ve ningún error
+    clearPass();
+    gateShow('No se pudo validar la contraseña (' + (err && err.message ? err.message : err) + ').');
+  }
 });
 
 function fillSubjects(){

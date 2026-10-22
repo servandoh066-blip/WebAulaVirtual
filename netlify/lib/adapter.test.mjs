@@ -26,14 +26,16 @@ function ok(name, cond) {
   ok('makeReq: ruta', r.url === '/api/data');
 }
 
-// --- una respuesta 401 lleva WWW-Authenticate ---
+// --- un 401 NO lleva WWW-Authenticate ---
+// Si lo llevase, Chrome y Edge abren su diálogo nativo de usuario/contraseña
+// encima de la app y el usuario se queda atrapado sin poder entrar.
 {
   const res = makeRes();
   res.statusCode = 401;
   res.end('401 Unauthorized');
   const out = toResponse(res);
   ok('401: estado', out.status === 401);
-  ok('401: pide autenticación', /Basic realm=/.test(out.headers.get('www-authenticate') || ''));
+  ok('401: sin reto Basic (no abre el diálogo del navegador)', out.headers.get('www-authenticate') === null);
 }
 
 // --- una respuesta JSON se serializa bien ---
@@ -61,6 +63,7 @@ function ok(name, cond) {
   const res1 = makeRes();
   await handler(makeReq(req1, undefined), res1);
   ok('api/data sin auth -> 401', toResponse(res1).status === 401);
+  ok('api/data 401 sin WWW-Authenticate', toResponse(res1).headers.get('www-authenticate') === null);
 
   // con credenciales pero sin Upstash -> 500 con mensaje claro
   const req2 = new Request('http://x/api/data', {
@@ -79,6 +82,28 @@ function ok(name, cond) {
   ok('  y lo explica', /UPSTASH/.test(j2.error || ''));
   if (savedUrl) process.env.UPSTASH_REDIS_REST_URL = savedUrl;
   if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok;
+}
+
+// --- la contraseña con acentos viaja en UTF-8 (btoa() sola fallaría) ---
+// btoa() lanza InvalidCharacterError con 'ñ' o 'á'; la app usa b64utf8(),
+// que produce exactamente esto. El servidor debe aceptarlo.
+{
+  process.env.AUTH_USER = 'tareas';
+  process.env.AUTH_PASS = 'contraseña-ñ';
+  const handler = require('./../../api/data.js');
+  const b64 = Buffer.from('tareas:contraseña-ñ', 'utf8').toString('base64');
+  const req = new Request('http://x/api/data', { headers: { authorization: 'Basic ' + b64 } });
+  const res = makeRes();
+  const savedUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const savedTok = process.env.UPSTASH_REDIS_REST_TOKEN;
+  delete process.env.UPSTASH_REDIS_REST_URL;
+  delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  await handler(makeReq(req, undefined), res);
+  // sin Upstash devuelve 500; lo que importa es que la autenticación NO falle
+  ok('auth con contraseña acentuada (UTF-8)', toResponse(res).status !== 401);
+  if (savedUrl) process.env.UPSTASH_REDIS_REST_URL = savedUrl;
+  if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok;
+  process.env.AUTH_PASS = 'teis2026';
 }
 
 // --- el stream de req imita al de Node: 'data' y luego 'end' ---

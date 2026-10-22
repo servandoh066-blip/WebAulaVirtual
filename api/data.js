@@ -5,7 +5,11 @@ const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 
 function unauthorized(res) {
-  res.setHeader('WWW-Authenticate', 'Basic realm="Tareas Aula Virtual", charset="UTF-8');
+  // Sin cabecera 'WWW-Authenticate' a propósito: si el 401 lleva un reto
+  // "Basic", Chrome y Edge abren su diálogo nativo de usuario/contraseña
+  // encima de la app, el usuario no puede cerrarlo y nunca llega a ver el
+  // mensaje de error de la pantalla de acceso. La app detecta el 401 por
+  // el código de estado, así que el reto no hace falta.
   res.statusCode = 401;
   res.end('401 Unauthorized');
 }

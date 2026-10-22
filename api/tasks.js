@@ -2,7 +2,8 @@ const WS = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/webservice/rest/se
 const BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
 
 function unauthorized(res) {
-  res.setHeader('WWW-Authenticate', 'Basic realm="Tareas Aula Virtual", charset="UTF-8');
+  // Sin cabecera 'WWW-Authenticate' a propósito (ver api/data.js): el reto
+  // "Basic" hace que el navegador abra su diálogo nativo sobre la app.
   res.statusCode = 401;
   res.end('401 Unauthorized');
 }
