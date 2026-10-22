@@ -81,5 +81,49 @@ function ok(name, cond) {
   if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok;
 }
 
+// --- el stream de req imita al de Node: 'data' y luego 'end' ---
+// (sin esto, readBody() de api/data.js se queda colgada si el body va vacío)
+{
+  async function leerStream(body) {
+    const req = new Request('http://x/api/data', { method: 'POST' });
+    const r = makeReq(req, body);
+    const eventos = [];
+    return await Promise.race([
+      new Promise(function (resolve, reject) {
+        r.on('data', function (c) { eventos.push('data:' + c.length); });
+        r.on('end', function () { eventos.push('end'); resolve(eventos.join(',')); });
+        r.on('error', reject);
+      }),
+      new Promise(function (resolve) { setTimeout(function () { resolve('TIMEOUT'); }, 2000); })
+    ]);
+  }
+  ok('stream con body vacío: emite end', await leerStream('') === 'end');
+  ok('stream con body: emite data y end', await leerStream('hola') === 'data:4,end');
+}
+
+// --- un POST con el cuerpo vacío no deja la función colgada ---
+{
+  process.env.AUTH_USER = 'tareas';
+  process.env.AUTH_PASS = 'teis2026';
+  const handler = require('./../../api/data.js');
+  const req = new Request('http://x/api/data', {
+    method: 'POST',
+    headers: { authorization: 'Basic ' + Buffer.from('tareas:teis2026').toString('base64'), 'content-type': 'application/json' }
+  });
+  const res = makeRes();
+  const savedUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const savedTok = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Upstash falso: falla rápido, así la respuesta no depende de la red
+  process.env.UPSTASH_REDIS_REST_URL = 'http://127.0.0.1:1';
+  process.env.UPSTASH_REDIS_REST_TOKEN = 'x';
+  const resultado = await Promise.race([
+    handler(makeReq(req, ''), res).then(function () { return 'respondio'; }),
+    new Promise(function (r) { setTimeout(function () { r('COLGADO'); }, 3000); })
+  ]);
+  ok('api/data con body vacío no se cuelga', resultado === 'respondio');
+  if (savedUrl) process.env.UPSTASH_REDIS_REST_URL = savedUrl; else delete process.env.UPSTASH_REDIS_REST_URL;
+  if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok; else delete process.env.UPSTASH_REDIS_REST_TOKEN;
+}
+
 console.log('\n' + pass + ' ok, ' + fail + ' fail');
 process.exit(fail ? 1 : 0);

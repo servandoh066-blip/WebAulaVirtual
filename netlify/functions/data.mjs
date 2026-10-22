@@ -1,9 +1,6 @@
 // /api/data -> api/data.js (lee y guarda los datos del usuario)
-import { createRequire } from 'node:module';
+import handler from '../../api/data.js';
 import { makeReq, makeRes, toResponse } from '../lib/adapter.js';
-
-const require = createRequire(import.meta.url);
-const handler = require('../../api/data.js');
 
 export default async function (request) {
   const raw = await request.text();

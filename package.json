@@ -1,1 +1,11 @@
-{"name":"tareas-aulavirtual","version":"1.0.0","private":true}
+{
+  "name": "tareas-aulavirtual",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node netlify/lib/adapter.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

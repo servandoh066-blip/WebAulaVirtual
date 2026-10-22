@@ -1,7 +1,13 @@
 [build]
-  publish = "."
+  command = ""
+  publish = "public"
   functions = "netlify/functions"
 
+[build.environment]
+  NODE_VERSION = "22"
+
+# Sin caché: los datos del usuario cambian en cada guardado y la
+# aplicación tiene que pedir siempre el estado más reciente.
 [[headers]]
   for = "/"
   [headers.values]

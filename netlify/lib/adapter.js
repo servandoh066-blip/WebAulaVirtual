@@ -9,15 +9,32 @@ function makeReq(request, body) {
   const url = new URL(request.url);
   const headers = {};
   request.headers.forEach(function (v, k) { headers[k.toLowerCase()] = v; });
-  return {
+
+  // Los handlers de api/*.js leen el body como stream de Node ('data'/'end').
+  // Reproducimos ese flujo con el body ya bufferizado para que readBody()
+  // resuelva siempre: si el body llega vacío, el stream debe emitir 'end'
+  // igualmente (si no, la promesa se queda colgada para siempre).
+  const listeners = { data: [], end: [], error: [] };
+  const req = {
     method: request.method,
     url: url.pathname + url.search,
     headers: headers,
     body: body,
     query: Object.fromEntries(url.searchParams),
-    on: function () {},        // el handler sólo los usa si no hay body
+    on: function (evt, cb) {
+      (listeners[evt] = listeners[evt] || []).push(cb);
+      return req;
+    },
     destroy: function () {}
   };
+  queueMicrotask(function () {
+    if (body !== undefined && body !== null && body !== '') {
+      const chunk = Buffer.from(String(body));
+      listeners.data.forEach(function (cb) { cb(chunk); });
+    }
+    listeners.end.forEach(function (cb) { cb(); });
+  });
+  return req;
 }
 
 function makeRes() {
