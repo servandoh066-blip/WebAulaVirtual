@@ -219,14 +219,19 @@ function upstash(cmd) {
 }
 
 let storePromise = null;
+let blobsError = null;
 function blobs() {
-  if (!netlifyGetStore) return Promise.reject(new Error('Blobs no disponible'));
+  if (!netlifyGetStore) {
+    blobsError = 'require("@netlify/blobs") no disponible';
+    return Promise.reject(new Error(blobsError));
+  }
   if (!storePromise) {
     try {
       // consistency: 'strong' -> leer justo después de escribir devuelve lo último
       storePromise = Promise.resolve(netlifyGetStore({ name: 'aulavirtual', consistency: 'strong' }));
     } catch (err) {
       storePromise = null;
+      blobsError = String((err && err.message) || err).slice(0, 300);
       return Promise.reject(err);
     }
   }
@@ -322,7 +327,12 @@ module.exports = async function (req, res) {
   if (!checkAuth(req)) return unauthorized(res);
   if (!(await hayAlmacen())) {
     res.statusCode = 500;
-    return res.json({ error: 'Sin almacén de datos: UPSTASH_REDIS_REST_URL/TOKEN no configurados y Netlify Blobs no disponible' });
+    return res.json({
+      error: 'Sin almacén de datos: UPSTASH_REDIS_REST_URL/TOKEN no configurados y Netlify Blobs no disponible',
+      detalle: blobsError,
+      paquete: netlifyGetStore ? 'cargado' : 'ausente',
+      contextoBlobs: process.env.NETLIFY_BLOBS_CONTEXT ? 'presente' : 'ausente'
+    });
   }
 
   if (req.method === 'GET') {
