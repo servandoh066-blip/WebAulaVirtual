@@ -5,6 +5,12 @@ import { makeReq, makeRes, toResponse } from './adapter.js';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
+// Credenciales FICTICIAS: el test no debe contener las credenciales reales.
+// El escáner de secretos de Netlify bloquea el build si aparecen en el repo.
+const TEST_USER = 'demo-user';
+const TEST_PASS = 'demo-pass-123';
+const TEST_B64 = Buffer.from(TEST_USER + ':' + TEST_PASS, 'utf8').toString('base64');
+
 let pass = 0, fail = 0;
 function ok(name, cond) {
   if (cond) { pass++; console.log('ok   ' + name); }
@@ -15,13 +21,13 @@ function ok(name, cond) {
 {
   const req = new Request('http://x/api/data', {
     method: 'POST',
-    headers: { authorization: 'Basic dGFyZWFzOnRlaXMyMDI2', 'content-type': 'application/json' },
+    headers: { authorization: 'Basic ' + TEST_B64, 'content-type': 'application/json' },
     body: JSON.stringify({ notes: { DWEC: 'hola' } })
   });
   const body = await req.text();
   const r = makeReq(req, body);
   ok('makeReq: método', r.method === 'POST');
-  ok('makeReq: cabeceras en minúscula', r.headers.authorization === 'Basic dGFyZWFzOnRlaXMyMDI2');
+  ok('makeReq: cabeceras en minúscula', r.headers.authorization === 'Basic ' + TEST_B64);
   ok('makeReq: body de texto', r.body === body);
   ok('makeReq: ruta', r.url === '/api/data');
 }
@@ -54,8 +60,8 @@ function ok(name, cond) {
 
 // --- el handler real de api/data.js funciona a través del adaptador ---
 {
-  process.env.AUTH_USER = 'tareas';
-  process.env.AUTH_PASS = 'teis2026';
+  process.env.AUTH_USER = TEST_USER;
+  process.env.AUTH_PASS = TEST_PASS;
   const handler = require('./../../api/data.js');
 
   // sin credenciales -> 401
@@ -67,7 +73,7 @@ function ok(name, cond) {
 
   // con credenciales pero sin Upstash -> 500 con mensaje claro
   const req2 = new Request('http://x/api/data', {
-    headers: { authorization: 'Basic ' + Buffer.from('tareas:teis2026').toString('base64') }
+    headers: { authorization: 'Basic ' + TEST_B64 }
   });
   const res2 = makeRes();
   const savedUrl = process.env.UPSTASH_REDIS_REST_URL;
@@ -88,10 +94,10 @@ function ok(name, cond) {
 // btoa() lanza InvalidCharacterError con 'ñ' o 'á'; la app usa b64utf8(),
 // que produce exactamente esto. El servidor debe aceptarlo.
 {
-  process.env.AUTH_USER = 'tareas';
+  process.env.AUTH_USER = TEST_USER;
   process.env.AUTH_PASS = 'contraseña-ñ';
   const handler = require('./../../api/data.js');
-  const b64 = Buffer.from('tareas:contraseña-ñ', 'utf8').toString('base64');
+  const b64 = Buffer.from(TEST_USER + ':contraseña-ñ', 'utf8').toString('base64');
   const req = new Request('http://x/api/data', { headers: { authorization: 'Basic ' + b64 } });
   const res = makeRes();
   const savedUrl = process.env.UPSTASH_REDIS_REST_URL;
@@ -103,7 +109,7 @@ function ok(name, cond) {
   ok('auth con contraseña acentuada (UTF-8)', toResponse(res).status !== 401);
   if (savedUrl) process.env.UPSTASH_REDIS_REST_URL = savedUrl;
   if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok;
-  process.env.AUTH_PASS = 'teis2026';
+  process.env.AUTH_PASS = TEST_PASS;
 }
 
 // --- el stream de req imita al de Node: 'data' y luego 'end' ---
@@ -128,12 +134,12 @@ function ok(name, cond) {
 
 // --- un POST con el cuerpo vacío no deja la función colgada ---
 {
-  process.env.AUTH_USER = 'tareas';
-  process.env.AUTH_PASS = 'teis2026';
+  process.env.AUTH_USER = TEST_USER;
+  process.env.AUTH_PASS = TEST_PASS;
   const handler = require('./../../api/data.js');
   const req = new Request('http://x/api/data', {
     method: 'POST',
-    headers: { authorization: 'Basic ' + Buffer.from('tareas:teis2026').toString('base64'), 'content-type': 'application/json' }
+    headers: { authorization: 'Basic ' + TEST_B64, 'content-type': 'application/json' }
   });
   const res = makeRes();
   const savedUrl = process.env.UPSTASH_REDIS_REST_URL;
