@@ -1,0 +1,8 @@
+name = "webaulavirtual2"
+main = "_worker.js"
+compatibility_date = "2025-10-23"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
