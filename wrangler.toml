@@ -5,4 +5,4 @@ compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "./public"
-binding = "ASSETS"
+binding = "ASSETS" 
