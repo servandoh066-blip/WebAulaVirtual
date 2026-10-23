@@ -26,3 +26,8 @@
     Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
     Pragma = "no-cache"
     Expires = "0"
+
+[functions]
+  # Fuerza que el paquete de Netlify Blobs viaje dentro del bundle de la
+  # funcion aunque el empaquetador no lo detecte por su cuenta.
+  included_files = ["node_modules/@netlify/blobs/**"]

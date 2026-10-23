@@ -78,16 +78,19 @@ function ok(name, cond) {
   const res2 = makeRes();
   const savedUrl = process.env.UPSTASH_REDIS_REST_URL;
   const savedTok = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const savedLocal = process.env.LOCAL_DATA_FILE;
   delete process.env.UPSTASH_REDIS_REST_URL;
   delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  delete process.env.LOCAL_DATA_FILE;
   delete process.env.BLOB_READ_WRITE_TOKEN;
   await handler(makeReq(req2, undefined), res2);
   const out2 = toResponse(res2);
   ok('api/data con auth y sin Upstash -> 500', out2.status === 500);
   const j2 = await out2.json();
-  ok('  y lo explica', /UPSTASH/.test(j2.error || ''));
+  ok('  y lo explica', /almacen|almacén/i.test(j2.error || '') && /blobs|upstash/i.test(j2.detalle || ''));
   if (savedUrl) process.env.UPSTASH_REDIS_REST_URL = savedUrl;
   if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok;
+  if (savedLocal) process.env.LOCAL_DATA_FILE = savedLocal;
 }
 
 // --- la contraseña con acentos viaja en UTF-8 (btoa() sola fallaría) ---
@@ -154,6 +157,46 @@ function ok(name, cond) {
   ok('api/data con body vacío no se cuelga', resultado === 'respondio');
   if (savedUrl) process.env.UPSTASH_REDIS_REST_URL = savedUrl; else delete process.env.UPSTASH_REDIS_REST_URL;
   if (savedTok) process.env.UPSTASH_REDIS_REST_TOKEN = savedTok; else delete process.env.UPSTASH_REDIS_REST_TOKEN;
+}
+
+// --- almacen local en fichero: es el que se usa en localhost ---
+{
+  process.env.AUTH_USER = TEST_USER;
+  process.env.AUTH_PASS = TEST_PASS;
+  delete process.env.UPSTASH_REDIS_REST_URL;
+  delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  const os = await import('node:os');
+  const fsp = await import('node:fs/promises');
+  const rutaMod = await import('node:path');
+  const carpeta = await fsp.mkdtemp(rutaMod.join(os.tmpdir(), 'aula-'));
+  process.env.LOCAL_DATA_FILE = rutaMod.join(carpeta, 'datos.json');
+  const handlerData = require('./../../api/data.js');
+
+  const peticionPost = new Request('http://x/api/data', {
+    method: 'POST',
+    headers: { authorization: 'Basic ' + TEST_B64, 'content-type': 'application/json' },
+    body: JSON.stringify({ notes: { DWEC: 'hola' }, tasks: [{ id: 'a1', t: 'Tarea 1', s: 'DWEC' }] })
+  });
+  const resPost = makeRes();
+  await handlerData(makeReq(peticionPost, await peticionPost.text()), resPost);
+  ok('almacen local: POST -> 200', toResponse(resPost).status === 200);
+
+  const peticionGet = new Request('http://x/api/data', {
+    headers: { authorization: 'Basic ' + TEST_B64 }
+  });
+  const resGet = makeRes();
+  await handlerData(makeReq(peticionGet, undefined), resGet);
+  const salida = toResponse(resGet);
+  const datos = await salida.json();
+  ok('almacen local: GET -> 200', salida.status === 200);
+  ok('almacen local: guarda las notas', datos.notes && datos.notes.DWEC === 'hola');
+  ok(
+    'almacen local: guarda las tareas',
+    Array.isArray(datos.tasks) && datos.tasks.length === 1 && datos.tasks[0].t === 'Tarea 1'
+  );
+
+  delete process.env.LOCAL_DATA_FILE;
+  await fsp.rm(carpeta, { recursive: true, force: true });
 }
 
 console.log('\n' + pass + ' ok, ' + fail + ' fail');

@@ -1,3 +1,5 @@
+const fs = require('node:fs/promises');
+
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
 const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {} };
@@ -200,6 +202,23 @@ try {
   netlifyGetStore = null;
 }
 
+// El envoltorio de la funcion (netlify/functions/data.mjs) importa el paquete
+// de forma estatica y nos pasa el almacen ya creado. Hace falta porque el
+// empaquetador de Netlify (nft) sigue los imports desde el punto de entrada:
+// con solo este `require` el paquete no llegaba al bundle de la funcion y el
+// almacen fallaba en produccion.
+let storeInyectado = null;
+function setStore(store) {
+  storeInyectado = store || null;
+}
+
+// Tercer backend, solo para desarrollo en localhost: un fichero JSON.
+// Se activa con LOCAL_DATA_FILE (el servidor de desarrollo lo define) y nunca
+// esta presente en Netlify.
+function archivoLocal() {
+  return process.env.LOCAL_DATA_FILE || '';
+}
+
 function upstashConfigurado() {
   const url = process.env.UPSTASH_REDIS_REST_URL || '';
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || '';
@@ -221,8 +240,9 @@ function upstash(cmd) {
 let storePromise = null;
 let blobsError = null;
 function blobs() {
+  if (storeInyectado) return Promise.resolve(storeInyectado);
   if (!netlifyGetStore) {
-    blobsError = 'require("@netlify/blobs") no disponible';
+    blobsError = 'paquete @netlify/blobs no disponible en la funcion';
     return Promise.reject(new Error(blobsError));
   }
   if (!storePromise) {
@@ -239,6 +259,7 @@ function blobs() {
 }
 
 async function hayAlmacen() {
+  if (archivoLocal()) return true;
   if (upstashConfigurado()) return true;
   try {
     await blobs();
@@ -249,6 +270,14 @@ async function hayAlmacen() {
 }
 
 async function almacenLeer() {
+  if (archivoLocal()) {
+    try {
+      return await fs.readFile(archivoLocal(), 'utf8');
+    } catch (err) {
+      if (err && err.code === 'ENOENT') return null;
+      throw err;
+    }
+  }
   if (upstashConfigurado()) {
     const r = await upstash(['GET', KEY]);
     if (!r.ok) throw new Error('upstash get ' + r.status);
@@ -261,6 +290,13 @@ async function almacenLeer() {
 }
 
 async function almacenEscribir(texto) {
+  if (archivoLocal()) {
+    const destino = archivoLocal();
+    const temporal = destino + '.tmp';
+    await fs.writeFile(temporal, texto, 'utf8');
+    await fs.rename(temporal, destino);
+    return;
+  }
   if (upstashConfigurado()) {
     const r = await upstash(['SET', KEY, texto]);
     if (!r.ok) throw new Error('upstash set ' + r.status);
@@ -328,10 +364,10 @@ module.exports = async function (req, res) {
   if (!(await hayAlmacen())) {
     res.statusCode = 500;
     return res.json({
-      error: 'Sin almacén de datos: UPSTASH_REDIS_REST_URL/TOKEN no configurados y Netlify Blobs no disponible',
-      detalle: blobsError,
+      error: 'Sin almacen de datos disponible',
+      detalle: blobsError || 'Netlify Blobs no disponible y UPSTASH_REDIS_REST_URL/TOKEN no configurados',
       paquete: netlifyGetStore ? 'cargado' : 'ausente',
-      contextoBlobs: process.env.NETLIFY_BLOBS_CONTEXT ? 'presente' : 'ausente'
+      inyectado: storeInyectado ? 'si' : 'no'
     });
   }
 
@@ -368,3 +404,4 @@ module.exports = async function (req, res) {
 };
 
 module.exports.sanitize = sanitize;
+module.exports.setStore = setStore;

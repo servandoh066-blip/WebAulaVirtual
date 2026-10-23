@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "node dev-server.mjs",
     "test": "node netlify/lib/adapter.test.mjs"
   },
   "engines": {
