@@ -206,6 +206,16 @@ button.del:hover{border-color:#c62828;color:#c62828}
 #gate button{width:100%;padding:9px}
 #gate-msg{color:#c62828;font-size:13px;min-height:18px;margin-top:10px}
 
+/* === TARJETAS DE DIAGRAMAS: ORDEN POR ARRASTRE === */
+.chart-card{position:relative;transition:opacity var(--fast) var(--ease),box-shadow var(--fast) var(--ease),border-color var(--fast) var(--ease)}
+.chart-card .cdrag{margin-left:2px;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;padding:0;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);cursor:grab;touch-action:none}
+.chart-card .cdrag:hover{color:var(--accent);border-color:var(--line);background:var(--bg)}
+.chart-card .cdrag:active{cursor:grabbing}
+.chart-card .cdrag .ic{width:15px;height:15px;margin:0}
+.chart-card.dragging{opacity:.45}
+.chart-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px rgba(11,87,208,.35) inset}
+@media (prefers-color-scheme: dark){.chart-card.drag-over{box-shadow:0 0 0 2px rgba(110,168,254,.45) inset}}
+
 /* === AGENDA / MINICALENDARIO === */
 .nav-tabs {
   display: flex;
@@ -240,8 +250,9 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .minical-title { font-weight: 600; font-size: 13.5px; color: var(--head); text-transform: capitalize; }
 .minical-nav { display: flex; gap: 4px; }
 .minical-nav button { padding: 3px 8px; border-radius: 9px; font-size: 12px; }
-.minical-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.minical-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.minical-weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.minical-weekdays span { min-width: 0; }
+.minical-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; width: 100%; }
 .minical-day {
   position: relative;
   display: flex;
@@ -249,12 +260,16 @@ button.del:hover{border-color:#c62828;color:#c62828}
   align-items: center;
   justify-content: center;
   gap: 4px;
+  width: 100%;
+  min-width: 0;
   height: 34px;
+  padding: 0;
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--fg);
   font-size: 12.5px;
+  line-height: 1;
   cursor: pointer;
   transition: background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease);
 }
@@ -265,8 +280,10 @@ button.del:hover{border-color:#c62828;color:#c62828}
 @media (prefers-color-scheme: dark) {
   .minical-day.active { background: rgba(110,168,254,.22); border-color: rgba(110,168,254,.6); }
 }
-.minical-dots { display: flex; gap: 3px; }
-.minical-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 1px var(--card); }
+.minical-dots { position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); display: flex; justify-content: center; gap: 3px; max-width: 100%; }
+.minical-num { line-height: 1; }
+.minical-day.other .minical-num { opacity: .8; }
+.minical-dot { width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 1px var(--card); }
 .minical-clear { align-self: flex-start; font-size: 11.5px; padding: 2px 8px; border-radius: 9px; }
 
 #agenda-view { display: none; flex-direction: column; gap: 16px; }
@@ -276,19 +293,20 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .agenda-title { font-size: 18px; font-weight: 600; color: var(--head); }
 .agenda-sub { color: var(--muted); font-size: 13px; text-transform: capitalize; }
 .agenda-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.agenda-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: start; }
-@media (max-width:1100px) { .agenda-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width:720px) { .agenda-grid { grid-template-columns: repeat(2, 1fr); } }
-.agenda-col { display: flex; flex-direction: column; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; min-height: 160px; }
-.agenda-col-head { display: flex; align-items: baseline; justify-content: space-between; }
+.agenda-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: start; }
+@media (max-width:1100px) { .agenda-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width:720px) { .agenda-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.agenda-col { display: flex; flex-direction: column; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; min-height: 160px; min-width: 0; }
+.agenda-col-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; }
 .agenda-col-day { font-weight: 600; }
 .agenda-col-date { color: var(--muted); font-size: 12px; }
 .agenda-col.is-today { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(11,87,208,.18); }
-.agenda-list { display: flex; flex-direction: column; gap: 8px; }
+.agenda-list { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .agenda-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
   padding: 9px 10px;
   border-radius: 12px;
   border: 1px solid var(--line);
@@ -297,10 +315,14 @@ button.del:hover{border-color:#c62828;color:#c62828}
   color: inherit;
 }
 .agenda-item.own { border-style: dashed; }
-.agenda-item-title { font-weight: 600; font-size: 14px; }
-.agenda-item-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--muted); }
-.agenda-pill { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line); font-size: 11px; }
+.agenda-item-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.agenda-item-meta { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; font-size: 12px; color: var(--muted); }
+.agenda-pill { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line); font-size: 11px; overflow-wrap: anywhere; }
 .agenda-empty { color: var(--muted); font-size: 12.5px; text-align: center; padding: 12px 0; }
+.agenda-grid.day-view { grid-template-columns: 1fr; }
+.agenda-grid.day-view .agenda-col { min-height: 0; }
+.agenda-clear[hidden] { display: none; }
+.agenda-col-count { color: var(--muted); font-size: 11.5px; }
 
 #agenda-modal { display: none; position: fixed; inset: 0; background: rgba(15,17,21,.55); align-items: center; justify-content: center; padding: 16px; z-index: 70; }
 #agenda-modal.on { display: flex; }
@@ -335,9 +357,9 @@ button.del:hover{border-color:#c62828;color:#c62828}
         <div class="minical-head">
           <div class="minical-title" id="mini-cal-title"></div>
           <div class="minical-nav">
-            <button type="button" id="mini-cal-prev" title="Mes anterior">◀</button>
+            <button type="button" id="mini-cal-prev" title="Mes anterior" aria-label="Mes anterior"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
             <button type="button" id="mini-cal-today" title="Ir al mes actual">Hoy</button>
-            <button type="button" id="mini-cal-next" title="Mes siguiente">▶</button>
+            <button type="button" id="mini-cal-next" title="Mes siguiente" aria-label="Mes siguiente"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
           </div>
         </div>
         <div class="minical-weekdays">
@@ -347,12 +369,12 @@ button.del:hover{border-color:#c62828;color:#c62828}
         <button type="button" class="mini-cal-clear" id="mini-cal-clear">Ver todas las fechas</button>
       </div>
     </section>
-    <section class="cbox">
-      <h3 class="ctitle">Tareas por asignatura <span class="csub" id="tasks-total"></span></h3>
+    <section class="cbox chart-card" data-chart="tasks">
+      <h3 class="ctitle"><span>Tareas por asignatura</span> <span class="csub" id="tasks-total"></span><button type="button" class="cdrag" draggable="true" title="Arrastra para mover esta tarjeta" aria-label="Reordenar tarjeta de tareas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></button></h3>
       <div class="chart" id="chart-tasks"></div>
     </section>
-    <section class="cbox">
-      <h3 class="ctitle"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span></h3>
+    <section class="cbox chart-card" data-chart="grades">
+      <h3 class="ctitle"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span><button type="button" class="cdrag" draggable="true" title="Arrastra para mover esta tarjeta" aria-label="Reordenar tarjeta de notas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg></button></h3>
       <div class="chart" id="chart-grades"></div>
       <div class="cscale" title="Con 5 o más se aprueba. Si eliges un color propio para una asignatura, su slice usará ese color.">
         <span><i class="cdot" style="background:#d62828"></i>suspenso (menos de 5)</span>
@@ -369,8 +391,8 @@ button.del:hover{border-color:#c62828;color:#c62828}
   </header>
   <div class="sub" id="updated">Cargando…</div>
   <div class="nav-tabs">
-    <button class="nav-tab on" data-view="list" id="tab-list">📋 Lista</button>
-    <button class="nav-tab" data-view="agenda" id="tab-agenda">📅 Agenda</button>
+    <button class="nav-tab on" data-view="list" id="tab-list" role="tab" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="3.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="3.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>Lista</button>
+    <button class="nav-tab" data-view="agenda" id="tab-agenda" role="tab" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/></svg>Agenda</button>
   </div>
   <div id="bar">
     <button id="refresh">Actualizar ahora</button>
@@ -407,9 +429,10 @@ button.del:hover{border-color:#c62828;color:#c62828}
         <div class="agenda-sub" id="agenda-month-label"></div>
       </div>
       <div class="agenda-actions">
-        <button type="button" id="agenda-prev">◀ Mes anterior</button>
+        <button type="button" id="agenda-prev" aria-label="Mes anterior"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Mes anterior</button>
         <button type="button" id="agenda-today">Hoy</button>
-        <button type="button" id="agenda-next">Mes siguiente ▶</button>
+        <button type="button" id="agenda-next">Mes siguiente<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button type="button" id="agenda-clear" class="agenda-clear" hidden>Ver todo el mes</button>
         <button type="button" id="agenda-add">+ Añadir evento personalizado</button>
       </div>
     </div>
@@ -516,7 +539,7 @@ var SEED = [
  {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
 ];
 var TASKS = [], EMAILS = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: []},
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades']},
   NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null,
   CP_SUBJ = null, CP_OPEN = false,
 
@@ -963,13 +986,18 @@ function loadData(){
           exams: (j.exams && typeof j.exams === 'object' && !Array.isArray(j.exams)) ? j.exams
             : ((j.grades && typeof j.grades === 'object' && !Array.isArray(j.grades)) ? migrateExams(j.grades) : {}),
           subjectColors: (j.subjectColors && typeof j.subjectColors === 'object' && !Array.isArray(j.subjectColors)) ? j.subjectColors : {},
-          customEvents: Array.isArray(j.customEvents) ? j.customEvents : []
+          customEvents: Array.isArray(j.customEvents) ? j.customEvents : [],
+          chartOrder: normalizeChartOrder(j.chartOrder)
         };
         SHOW_DONE = !!DATA.showdone;
         var db = document.getElementById('donetoggle');
         if (db) db.classList.toggle('on', SHOW_DONE);
         var g = document.getElementById('gtext');
         if (g && document.activeElement !== g) g.value = DATA.global;
+        /* el orden guardado y los puntos del calendario se aplican en cuanto llegan los datos,
+           aunque la consulta a Moodle falle después */
+        try { applyChartOrder(); } catch(e){}
+        try { renderMiniCalendar(); } catch(e){}
       }
       return j;
     })
@@ -1061,135 +1089,232 @@ function allEventsUnified(){
   return list;
 }
 
+/* --- utilidades de fecha (mes natural, lunes primero) --- */
+function calMonthStart(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function calMondayIndex(d){ return (d.getDay() + 6) % 7; }              /* 0 = lunes */
+function calDaysInMonth(y, m){ return new Date(y, m + 1, 0).getDate(); }
+function parseISODate(iso){
+  var p = String(iso || '').split('-');
+  if (p.length !== 3) return null;
+  var y = Number(p[0]), m = Number(p[1]), d = Number(p[2]);
+  if (!isFinite(y) || !isFinite(m) || !isFinite(d)) return null;
+  var out = new Date(y, m - 1, d);
+  return isNaN(out.getTime()) ? null : out;
+}
+/* Todos los eventos agrupados por día (clave ISO local). */
+function eventsByDate(){
+  var map = {};
+  allEventsUnified().forEach(function(ev){
+    if (!ev || !ev.date) return;
+    (map[ev.date] = map[ev.date] || []).push(ev);
+  });
+  Object.keys(map).forEach(function(k){
+    map[k].sort(function(a, b){ return (a.datetime || 0) - (b.datetime || 0); });
+  });
+  return map;
+}
+/* Color del punto/evento: el propio, si no el de su asignatura. */
+function eventDotColor(ev){
+  if (ev && ev.color) return ev.color;
+  var s = ev && ((ev.raw && ev.raw.s) || ev.subject);
+  var sc = s && DATA.subjectColors ? DATA.subjectColors[s] : null;
+  return (sc && sc.c) ? sc.c : '#6b7280';
+}
+
 function renderMiniCalendar(){
   initCustomEvents();
   var grid = document.getElementById('mini-cal-grid');
   var title = document.getElementById('mini-cal-title');
   var monthEl = document.getElementById('mini-cal-month');
   if (!grid) return;
-  var base = new Date(MINI_CAL.getFullYear(), MINI_CAL.getMonth(), 1);
+
+  var y = MINI_CAL.getFullYear();
+  var m = MINI_CAL.getMonth();
+  var base = new Date(y, m, 1);
+  var offset = calMondayIndex(base);                 /* huecos del principio */
+  var daysInMonth = calDaysInMonth(y, m);
+  var rows = Math.ceil((offset + daysInMonth) / 7);   /* 5 o 6 semanas */
+  var start = new Date(y, m, 1 - offset);             /* lunes de la 1ª semana */
+  var todayIso = toISODate(new Date());
+  var map = eventsByDate();
+
   title.textContent = base.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
   if (monthEl) monthEl.textContent = base.toLocaleDateString('es-ES', { month: 'long' });
   grid.innerHTML = '';
 
-  var firstDay = base.getDay();
-  var offset = (firstDay === 0) ? 6 : firstDay - 1;
-  var daysInMonth = new Date(base.getFullYear(), base.getMonth()+1, 0).getDate();
-  var daysInPrev = new Date(base.getFullYear(), base.getMonth(), 0).getDate();
-
-  var events = allEventsUnified();
-  var map = {};
-  events.forEach(function(ev){
-    if (!map[ev.date]) map[ev.date] = [];
-    map[ev.date].push(ev);
-  });
-
-  function addDay(y,m,d,cls){
+  for (var i = 0; i < rows * 7; i++){
+    var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    var iso = toISODate(d);                          /* ISO siempre válido */
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'minical-day ' + (cls||'');
-    var iso = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    var now = new Date();
-    if (now.getFullYear()===y && now.getMonth()===m && now.getDate()===d) btn.classList.add('today');
-    if (AGENDA_FILTER_DATE === iso) btn.classList.add('active');
-    btn.innerHTML = '<span>' + d + '</span>';
+    btn.className = 'minical-day';
+    btn.setAttribute('data-iso', iso);
+    btn.title = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (d.getMonth() !== m) btn.classList.add('other');   /* huecos del final */
+    if (iso === todayIso) btn.classList.add('today');
+    if (iso === AGENDA_FILTER_DATE) btn.classList.add('active');
+
+    var num = document.createElement('span');
+    num.className = 'minical-num';
+    num.textContent = String(d.getDate());
+    btn.appendChild(num);
+
     var evs = map[iso] || [];
     if (evs.length){
-      var dots = document.createElement('div');
+      var dots = document.createElement('span');
       dots.className = 'minical-dots';
-      evs.slice(0,3).forEach(function(ev){
+      evs.slice(0, 3).forEach(function(ev){
         var dot = document.createElement('span');
         dot.className = 'minical-dot';
-        if (ev.color) dot.style.background = ev.color;
-        else if (ev.raw && ev.raw.s && DATA.subjectColors && DATA.subjectColors[ev.raw.s]){
-          var c2 = DATA.subjectColors[ev.raw.s];
-          if (c2.c) dot.style.background = c2.c;
-        }
+        dot.style.background = eventDotColor(ev);
         dots.appendChild(dot);
       });
       btn.appendChild(dots);
     }
-    btn.addEventListener('click', function(){
-      AGENDA_FILTER_DATE = iso;
-      VIEW_MODE = 'agenda';
-      document.querySelectorAll('.nav-tab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-view')===VIEW_MODE); });
-      var av = document.getElementById('agenda-view');
-      if (av) av.classList.add('on');
-      var list = document.getElementById('list');
-      if (list) list.style.display = 'none';
-      var legend = document.querySelector('.legend');
-      if (legend) legend.style.display = 'none';
-      var gnotes = document.getElementById('gnotes');
-      if (gnotes) gnotes.style.display = 'none';
-      AGENDA_CAL = new Date(y,m,d);
-      renderAgenda();
-      renderMiniCalendar();
-      try { render(); } catch(e){}
-    });
     grid.appendChild(btn);
   }
 
-  for (var p=offset; p>0; p--){
-    addDay(base.getFullYear(), base.getMonth()-1, daysInPrev - p + 1, 'other');
+  /* Delegación: un clic en un día lo abre filtrado en la agenda. */
+  grid.onclick = function(e){
+    var b = e.target.closest ? e.target.closest('[data-iso]') : null;
+    if (!b) return;
+    setAgendaDay(b.getAttribute('data-iso'));
+  };
+}
+
+/* Pasa a la agenda mostrando solo el día indicado. */
+function setAgendaDay(iso){
+  var d = parseISODate(iso);
+  if (!d) return;
+  AGENDA_FILTER_DATE = iso;
+  AGENDA_CAL = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  MINI_CAL = new Date(d.getFullYear(), d.getMonth(), 1);
+  switchView('agenda');
+  renderMiniCalendar();
+  renderAgenda();
+}
+
+function clearAgendaFilter(){
+  AGENDA_FILTER_DATE = null;
+  renderMiniCalendar();
+  if (VIEW_MODE === 'agenda') renderAgenda();
+  try { render(); } catch(e){}
+}
+
+/* Cambia entre lista y agenda (un único punto de verdad). */
+function switchView(mode){
+  VIEW_MODE = (mode === 'agenda') ? 'agenda' : 'list';
+  var showAgenda = VIEW_MODE === 'agenda';
+  document.querySelectorAll('.nav-tab').forEach(function(x){
+    var on = x.getAttribute('data-view') === VIEW_MODE;
+    x.classList.toggle('on', on);
+    x.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  var list = document.getElementById('list');
+  var ag = document.getElementById('agenda-view');
+  var legend = document.querySelector('.legend');
+  var gnotes = document.getElementById('gnotes');
+  if (list) list.style.display = showAgenda ? 'none' : '';
+  if (legend) legend.style.display = showAgenda ? 'none' : '';
+  if (gnotes) gnotes.style.display = showAgenda ? 'none' : '';
+  if (ag) ag.classList.toggle('on', showAgenda);
+  if (showAgenda) renderAgenda();
+  else { try { render(); } catch(e){} }
+  renderMiniCalendar();
+}
+
+function agendaItemEl(ev){
+  var item = document.createElement(ev.link ? 'a' : 'div');
+  if (ev.link){ item.href = ev.link; item.target = '_blank'; item.rel = 'noopener'; }
+  item.className = 'agenda-item' + (ev.type === 'own' ? ' own' : '');
+  var color = eventDotColor(ev);
+  if (color){
+    item.style.borderColor = color + '55';
+    item.style.background = color + '14';
   }
-  for (var dd=1; dd<=daysInMonth; dd++){
-    addDay(base.getFullYear(), base.getMonth(), dd, '');
-  }
-  var total = offset + daysInMonth;
-  var need = (total % 7 === 0) ? 0 : 7 - (total % 7);
-  for (var n=1; n<=need; n++){
-    addDay(base.getFullYear(), base.getMonth()+1, n, 'other');
+  var time = ev.datetime ? new Date(ev.datetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
+  item.innerHTML = '<div class="agenda-item-title">' + esc(ev.title) + '</div><div class="agenda-item-meta">' +
+    (time ? '<span class="agenda-pill">' + time + '</span>' : '') +
+    (ev.subject ? '<span class="agenda-pill">' + esc(ev.subject) + '</span>' : '') +
+    '<span class="agenda-pill">' + (ev.type === 'custom' ? 'Evento' : (ev.type === 'own' ? 'Tarea propia' : 'Moodle')) + '</span></div>';
+  return item;
+}
+
+function fillAgendaList(list, evs, emptyText){
+  evs.forEach(function(ev){ list.appendChild(agendaItemEl(ev)); });
+  if (!evs.length){
+    var emp = document.createElement('div');
+    emp.className = 'agenda-empty';
+    emp.textContent = emptyText;
+    list.appendChild(emp);
   }
 }
 
 function renderAgenda(){
   var grid = document.getElementById('agenda-grid');
   var label = document.getElementById('agenda-month-label');
+  var clearBtn = document.getElementById('agenda-clear');
   if (!grid) return;
-  var base = new Date(AGENDA_CAL.getFullYear(), AGENDA_CAL.getMonth(), 1);
-  if (label) label.textContent = base.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
-  var start = new Date(base);
-  var wd = start.getDay();
-  var offset = (wd === 0) ? -6 : 1 - wd;
-  start.setDate(start.getDate() + offset);
+  var map = eventsByDate();
+  if (clearBtn) clearBtn.hidden = !AGENDA_FILTER_DATE;
+
+  /* --- vista de un día concreto (filtro del minicalendario) --- */
+  if (AGENDA_FILTER_DATE){
+    var day = parseISODate(AGENDA_FILTER_DATE);
+    if (day){
+      var isoDay = AGENDA_FILTER_DATE;
+      if (label) label.textContent = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      grid.classList.add('day-view');
+      grid.innerHTML = '';
+      var evs = map[isoDay] || [];
+      var col = document.createElement('div');
+      col.className = 'agenda-col';
+      if (isoDay === toISODate(new Date())) col.classList.add('is-today');
+      col.innerHTML = '<div class="agenda-col-head"><span class="agenda-col-day">' +
+        day.toLocaleDateString('es-ES', { weekday: 'long' }) +
+        '</span><span class="agenda-col-count">' + evs.length + (evs.length === 1 ? ' evento' : ' eventos') +
+        '</span></div><div class="agenda-list" data-iso="' + isoDay + '"></div>';
+      grid.appendChild(col);
+      fillAgendaList(col.querySelector('.agenda-list'), evs, 'Sin eventos este día');
+      return;
+    }
+    /* filtro corrupto: lo descartamos y seguimos con el mes */
+    AGENDA_FILTER_DATE = null;
+    if (clearBtn) clearBtn.hidden = true;
+  }
+
+  /* --- vista de mes --- */
+  grid.classList.remove('day-view');
+  var base = calMonthStart(AGENDA_CAL);
+  if (label) label.textContent = base.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  var offset = calMondayIndex(base);
+  var cells = Math.ceil((offset + calDaysInMonth(base.getFullYear(), base.getMonth())) / 7) * 7;
+  var start = new Date(base.getFullYear(), base.getMonth(), 1 - offset);
+  var todayIso = toISODate(new Date());
 
   grid.innerHTML = '';
-  var events = allEventsUnified();
-  var map = {};
-  events.forEach(function(ev){
-    if (!map[ev.date]) map[ev.date] = [];
-    map[ev.date].push(ev);
-  });
-  Object.keys(map).forEach(function(k){ map[k].sort(function(a,b){ return a.datetime - b.datetime; }); });
-
-  for (var i=0; i<42; i++){
-    var d = new Date(start);
-    d.setDate(start.getDate() + i);
+  for (var i = 0; i < cells; i++){
+    var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     var iso = toISODate(d);
     var col = document.createElement('div');
     col.className = 'agenda-col';
-    var now = new Date();
-    if (now.getFullYear()===d.getFullYear() && now.getMonth()===d.getMonth() && now.getDate()===d.getDate()) col.classList.add('is-today');
+    if (iso === todayIso) col.classList.add('is-today');
     if (d.getMonth() !== base.getMonth()) col.style.opacity = '.6';
-    col.innerHTML = '<div class="agenda-col-head"><span class="agenda-col-day">' + d.toLocaleDateString('es-ES', { weekday: 'short' }) + '</span><span class="agenda-col-date">' + d.getDate() + '</span></div><div class="agenda-list" data-iso="' + iso + '"></div>';
+    col.innerHTML = '<div class="agenda-col-head" data-iso="' + iso + '" title="Ver solo este día"><span class="agenda-col-day">' +
+      d.toLocaleDateString('es-ES', { weekday: 'short' }) + '</span><span class="agenda-col-date">' + d.getDate() +
+      '</span></div><div class="agenda-list" data-iso="' + iso + '"></div>';
     grid.appendChild(col);
-    var list = col.querySelector('.agenda-list');
-    var evs = map[iso] || [];
-    evs.forEach(function(ev){
-      var item = document.createElement(ev.link ? 'a' : 'div');
-      if (ev.link){ item.href = ev.link; item.target = '_blank'; item.rel = 'noopener'; }
-      item.className = 'agenda-item' + (ev.type === 'own' ? ' own' : '');
-      var color = ev.color || (ev.raw && ev.raw.s && DATA.subjectColors && DATA.subjectColors[ev.raw.s] ? (DATA.subjectColors[ev.raw.s].c) : '#6b7280');
-      if (color){
-        item.style.borderColor = color + '55';
-        item.style.background = color + '14';
-      }
-      var time = ev.datetime ? new Date(ev.datetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
-      item.innerHTML = '<div class="agenda-item-title">' + esc(ev.title) + '</div><div class="agenda-item-meta">' + (time ? '<span class="agenda-pill">' + time + '</span>' : '') + (ev.subject ? '<span class="agenda-pill">' + esc(ev.subject) + '</span>' : '') + '<span class="agenda-pill">' + (ev.type === 'custom' ? 'Evento' : (ev.type === 'own' ? 'Tarea propia' : 'Moodle')) + '</span></div>';
-      list.appendChild(item);
+    fillAgendaList(col.querySelector('.agenda-list'), map[iso] || [], 'Sin eventos');
+  }
+
+  /* Un clic en la cabecera de un día lo filtra (igual que el minicalendario). */
+  if (!grid.__dayFilterBound){
+    grid.__dayFilterBound = true;
+    grid.addEventListener('click', function(e){
+      var h = e.target.closest ? e.target.closest('.agenda-col-head[data-iso]') : null;
+      if (h) setAgendaDay(h.getAttribute('data-iso'));
     });
-    if (!evs.length){ var emp = document.createElement('div'); emp.className = 'agenda-empty'; emp.textContent = 'Sin eventos'; list.appendChild(emp); }
   }
 }
 
@@ -1241,39 +1366,37 @@ function initAgendaUI(){
   }
 
   document.querySelectorAll('.nav-tab').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      VIEW_MODE = btn.getAttribute('data-view');
-      document.querySelectorAll('.nav-tab').forEach(function(x){ x.classList.toggle('on', x===btn); });
-      var list = document.getElementById('list');
-      var ag = document.getElementById('agenda-view');
-      var legend = document.querySelector('.legend');
-      var gnotes = document.getElementById('gnotes');
-      if (VIEW_MODE === 'agenda'){
-        if (list) list.style.display = 'none';
-        if (legend) legend.style.display = 'none';
-        if (gnotes) gnotes.style.display = 'none';
-        if (ag) ag.classList.add('on');
-        renderAgenda();
-        renderMiniCalendar();
-      } else {
-        if (ag) ag.classList.remove('on');
-        if (list) list.style.display = '';
-        if (legend) legend.style.display = '';
-        if (gnotes) gnotes.style.display = '';
-        try { render(); } catch(e){}
-        renderMiniCalendar();
-      }
-    });
+    btn.addEventListener('click', function(){ switchView(btn.getAttribute('data-view')); });
   });
+
+  /* El minicalendario y la agenda comparten mes: navegar en uno mueve el otro. */
+  function goMonth(delta){
+    MINI_CAL = new Date(MINI_CAL.getFullYear(), MINI_CAL.getMonth() + delta, 1);
+    AGENDA_CAL = new Date(MINI_CAL.getFullYear(), MINI_CAL.getMonth(), 1);
+    AGENDA_FILTER_DATE = null;
+    renderMiniCalendar();
+    if (VIEW_MODE === 'agenda') renderAgenda();
+  }
+  function goToday(){
+    var n = new Date();
+    MINI_CAL = new Date(n.getFullYear(), n.getMonth(), 1);
+    AGENDA_CAL = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    AGENDA_FILTER_DATE = null;
+    renderMiniCalendar();
+    if (VIEW_MODE === 'agenda') renderAgenda();
+  }
 
   var mp = document.getElementById('mini-cal-prev');
   var mn = document.getElementById('mini-cal-next');
   var mt = document.getElementById('mini-cal-today');
   var mc = document.getElementById('mini-cal-clear');
-  if (mp) mp.addEventListener('click', function(){ MINI_CAL = new Date(MINI_CAL.getFullYear(), MINI_CAL.getMonth()-1, 1); renderMiniCalendar(); });
-  if (mn) mn.addEventListener('click', function(){ MINI_CAL = new Date(MINI_CAL.getFullYear(), MINI_CAL.getMonth()+1, 1); renderMiniCalendar(); });
-  if (mt) mt.addEventListener('click', function(){ MINI_CAL = new Date(); AGENDA_CAL = new Date(); renderMiniCalendar(); });
-  if (mc) mc.addEventListener('click', function(){ AGENDA_FILTER_DATE = null; renderMiniCalendar(); if (VIEW_MODE==='agenda'){ renderAgenda(); } try { render(); } catch(e){} });
+  if (mp) mp.addEventListener('click', function(){ goMonth(-1); });
+  if (mn) mn.addEventListener('click', function(){ goMonth(1); });
+  if (mt) mt.addEventListener('click', goToday);
+  if (mc) mc.addEventListener('click', clearAgendaFilter);
+
+  var ac = document.getElementById('agenda-clear');
+  if (ac) ac.addEventListener('click', clearAgendaFilter);
 
   var ap = document.getElementById('agenda-prev');
   var an = document.getElementById('agenda-next');
@@ -1283,9 +1406,9 @@ function initAgendaUI(){
   var amcan = document.getElementById('agenda-modal-cancel');
   var ams = document.getElementById('agenda-modal-save');
   var amm = document.getElementById('agenda-modal');
-  if (ap) ap.addEventListener('click', function(){ AGENDA_CAL = new Date(AGENDA_CAL.getFullYear(), AGENDA_CAL.getMonth()-1, 1); renderAgenda(); });
-  if (an) an.addEventListener('click', function(){ AGENDA_CAL = new Date(AGENDA_CAL.getFullYear(), AGENDA_CAL.getMonth()+1, 1); renderAgenda(); });
-  if (at) at.addEventListener('click', function(){ AGENDA_CAL = new Date(); MINI_CAL = new Date(); renderAgenda(); renderMiniCalendar(); });
+  if (ap) ap.addEventListener('click', function(){ goMonth(-1); });
+  if (an) an.addEventListener('click', function(){ goMonth(1); });
+  if (at) at.addEventListener('click', goToday);
   if (aa) aa.addEventListener('click', openAgendaModal);
   if (amc) amc.addEventListener('click', closeAgendaModal);
   if (amcan) amcan.addEventListener('click', closeAgendaModal);
@@ -1335,6 +1458,10 @@ function load(){
       gateHide();
       showErr('');
       try { render(); } catch(e){}
+      /* los datos ya están: refrescamos orden de tarjetas y puntos del calendario */
+      try { applyChartOrder(); } catch(e){}
+      try { renderMiniCalendar(); } catch(e){}
+      if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
       stamp('Actualizado');
       if (document.getElementById('next')) document.getElementById('next').textContent = 'Próxima consulta automática en 5 min';
     })
@@ -1347,6 +1474,8 @@ function load(){
         gateShow('Contraseña incorrecta. Inténtalo de nuevo.');
       } else {
         if (!TASKS.length){ TASKS = SEED; try { render(); } catch(e){} stamp('Modo sin conexión (copia local)'); }
+        try { renderMiniCalendar(); } catch(e){}
+        if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
         showErr('No se pudo consultar Moodle (' + err.message + '). Se muestra la última copia conocida.');
       }
     });
@@ -1547,28 +1676,28 @@ function openPanel(id, x, y){
     b.classList.toggle('on', b.getAttribute('data-sort') === (DATA.sort || 'date'));
   });
 }
+/* Delegado y en fase de captura: se ejecuta antes que cualquier otro handler
+   y sigue funcionando aunque #list se vuelva a pintar (render()). */
 document.addEventListener('contextmenu', function(e){
-  /* nunca dejamos que salga el menú del navegador dentro de la lista de tareas,
-     aunque el destino no sea una cabecera o una tarjeta reconocida */
-  if (!e.target.closest('#list')) return;
-  e.preventDefault();
-  var head = e.target.closest('.ghead');
+  var t = e.target;
+  if (!t || !t.closest) return;
+  /* La paleta se puede seguir usando con el botón derecho. */
+  if (t.closest('#cpalette')){ e.preventDefault(); return; }
+  if (!t.closest('#list')) return;
+  e.preventDefault();                    /* nunca el menú del navegador en la lista */
+  var head = t.closest('.ghead');
   if (head){
-    var grp = head.closest('[data-grp]');
-    if (grp){
-      closePanel();
-      openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
-      return;
-    }
+    var g = head.closest('.grp[data-grp]');
+    if (g){ closePanel(); openCPalette(g.getAttribute('data-grp'), e.clientX, e.clientY); return; }
   }
-  var card = e.target.closest('.card');
+  var card = t.closest('.card');
   if (card){
     var id = card.getAttribute('data-id');
-    if (id){
-      closeCPalette();
-      openPanel(id, e.clientX, e.clientY);
-    }
+    if (id){ closeCPalette(); openPanel(id, e.clientX, e.clientY); return; }
   }
+  /* Cualquier otro punto del bloque (anotación, exámenes, hueco): color. */
+  var grp = t.closest('.grp[data-grp]');
+  if (grp){ closePanel(); openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY); }
 }, true);
 document.addEventListener('click', function(e){
   if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]')) closeCPalette();
@@ -1583,9 +1712,6 @@ document.addEventListener('keydown', function(e){
 window.addEventListener('scroll', function(){
   if (CP_OPEN) closeCPalette();
   if (PANEL_ID) closePanel();
-});
-document.addEventListener('contextmenu', function(e){
-  if (e.target.closest && e.target.closest('#cpalette')) e.preventDefault();
 });
 document.getElementById('panel').addEventListener('click', function(e){
   var sortBtn = e.target.closest('[data-sort]');
@@ -1987,7 +2113,9 @@ function setSubjectColor(k, color, alpha){
   DATA.subjectColors = DATA.subjectColors || {};
   if (!color) delete DATA.subjectColors[k];
   else DATA.subjectColors[k] = {c: color, a: alpha};
-  drawCharts();
+  drawCharts();                       /* donuts + fila de puntos */
+  try { renderMiniCalendar(); } catch(e){}   /* puntos del calendario */
+  if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
   scheduleSave();
 }
 function cpRefresh(){
@@ -2280,6 +2408,97 @@ function drawCharts(){
   drawTasksChart();
   drawGradesChart();
 }
+
+/* ---------- orden de las tarjetas de diagramas (arrastrar y soltar) ---------- */
+var CHART_KEYS = ['tasks', 'grades'];
+var CHART_DRAG_KEY = null;
+
+/* Devuelve siempre un orden válido y completo: ['tasks','grades'] o ['grades','tasks']. */
+function normalizeChartOrder(order){
+  var out = [];
+  if (Array.isArray(order)){
+    order.forEach(function(k){
+      if (CHART_KEYS.indexOf(k) === -1) return;
+      if (out.indexOf(k) !== -1) return;
+      out.push(k);
+    });
+  }
+  CHART_KEYS.forEach(function(k){ if (out.indexOf(k) === -1) out.push(k); });
+  return out;
+}
+
+/* Pinta las tarjetas en el orden guardado (el calendario queda siempre arriba). */
+function applyChartOrder(){
+  var side = document.getElementById('side');
+  if (!side) return;
+  normalizeChartOrder(DATA.chartOrder).forEach(function(key){
+    var card = side.querySelector('.chart-card[data-chart="' + key + '"]');
+    if (card) side.appendChild(card);
+  });
+}
+
+/* Engancha el arrastre del asa y actualiza el orden al soltar. */
+function initChartOrder(){
+  var cards = document.querySelectorAll('#side .chart-card[data-chart]');
+  Array.prototype.forEach.call(cards, function(card){
+    var handle = card.querySelector('.cdrag');
+    if (!handle || handle.__chartDragBound) return;
+    handle.__chartDragBound = true;
+
+    handle.addEventListener('dragstart', function(e){
+      CHART_DRAG_KEY = card.getAttribute('data-chart');
+      card.classList.add('dragging');
+      if (e.dataTransfer){
+        e.dataTransfer.effectAllowed = 'move';
+        try { e.dataTransfer.setData('text/plain', CHART_DRAG_KEY); } catch (err) {}
+      }
+    });
+
+    handle.addEventListener('dragend', function(){
+      card.classList.remove('dragging');
+      Array.prototype.forEach.call(document.querySelectorAll('.chart-card.drag-over'), function(c){
+        c.classList.remove('drag-over');
+      });
+      CHART_DRAG_KEY = null;
+    });
+
+    card.addEventListener('dragover', function(e){
+      if (!CHART_DRAG_KEY || card.getAttribute('data-chart') === CHART_DRAG_KEY) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+
+    card.addEventListener('dragleave', function(e){
+      if (e.relatedTarget && card.contains(e.relatedTarget)) return;
+      card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', function(e){
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      var from = CHART_DRAG_KEY;
+      if (!from && e.dataTransfer){ try { from = e.dataTransfer.getData('text/plain'); } catch (err) {} }
+      var to = card.getAttribute('data-chart');
+      if (!from || !to || from === to) return;
+
+      var order = normalizeChartOrder(DATA.chartOrder);
+      var fi = order.indexOf(from);
+      if (fi === -1) return;
+      order.splice(fi, 1);
+      var ti = order.indexOf(to);
+      if (ti === -1) return;
+      var r = card.getBoundingClientRect();
+      var after = (e.clientY - r.top) > r.height / 2;
+      order.splice(ti + (after ? 1 : 0), 0, from);
+
+      DATA.chartOrder = normalizeChartOrder(order);
+      applyChartOrder();
+      scheduleSave();
+    });
+  });
+}
+
 setupChart('tasks');
 setupChart('grades');
 var gtext = document.getElementById('gtext');
@@ -2299,6 +2518,8 @@ window.addEventListener('load', function(){
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) { try { load(); } catch(e){} } });
   try {
     if (typeof initAgendaUI === 'function') initAgendaUI();
+    if (typeof applyChartOrder === 'function') applyChartOrder();
+    if (typeof initChartOrder === 'function') initChartOrder();
     if (typeof renderMiniCalendar === 'function') renderMiniCalendar();
   } catch(e){}
 });
