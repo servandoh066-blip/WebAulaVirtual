@@ -1,4 +1,9 @@
-const fs = require('node:fs/promises');
+let fs = null;
+try {
+  fs = require('node:fs/promises');
+} catch (e) {
+  fs = null;
+}
 
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
@@ -188,13 +193,14 @@ function blobHeaders(extra) {
 }
 
 // ---------- Almacén de datos ----------
-// Dos backends, se elige automáticamente:
-//   1. Netlify Blobs (nativo de Netlify): no necesita configuración ni cuentas.
-//   2. Upstash Redis (REST): sólo si la URL y el token son valores reales.
+// Backends soportados:
+//   1. Cloudflare KV (Workers) - si existe binding DATA
+//   2. Netlify Blobs (nativo de Netlify)
+//   3. Upstash Redis (REST): sólo si la URL y el token son valores reales.
+//   4. Fichero local (desarrollo)
 // El JSON completo se guarda en la clave `userdata.json`.
 
-// `@netlify/blobs` se carga de forma tolerante: en local no está el contexto
-// de Blobs y el módulo puede no estar instalado, y aun así debe poder arrancar.
+// `@netlify/blobs` se carga de forma tolerante
 let netlifyGetStore = null;
 try {
   netlifyGetStore = require('@netlify/blobs').getStore;
@@ -202,21 +208,34 @@ try {
   netlifyGetStore = null;
 }
 
-// El envoltorio de la funcion (netlify/functions/data.mjs) importa el paquete
-// de forma estatica y nos pasa el almacen ya creado. Hace falta porque el
-// empaquetador de Netlify (nft) sigue los imports desde el punto de entrada:
-// con solo este `require` el paquete no llegaba al bundle de la funcion y el
-// almacen fallaba en produccion.
 let storeInyectado = null;
 function setStore(store) {
   storeInyectado = store || null;
 }
 
-// Tercer backend, solo para desarrollo en localhost: un fichero JSON.
-// Se activa con LOCAL_DATA_FILE (el servidor de desarrollo lo define) y nunca
-// esta presente en Netlify.
 function archivoLocal() {
+  if (!fs) return '';
   return process.env.LOCAL_DATA_FILE || '';
+}
+
+// Cloudflare KV binding
+function getKv() {
+  try {
+    if (typeof globalThis !== 'undefined') {
+      if (globalThis.__CF_KV_DATA__ && typeof globalThis.__CF_KV_DATA__.get === 'function') return globalThis.__CF_KV_DATA__;
+      if (globalThis.DATA && typeof globalThis.DATA.get === 'function') return globalThis.DATA;
+    }
+    if (typeof global !== 'undefined') {
+      if (global.__CF_KV_DATA__ && typeof global.__CF_KV_DATA__.get === 'function') return global.__CF_KV_DATA__;
+      if (global.DATA && typeof global.DATA.get === 'function') return global.DATA;
+    }
+    if (typeof process !== 'undefined' && process.env) {
+      if (process.env.__CF_KV_DATA__ && typeof process.env.__CF_KV_DATA__.get === 'function') return process.env.__CF_KV_DATA__;
+      if (process.env.DATA && typeof process.env.DATA.get === 'function') return process.env.DATA;
+    }
+    if (typeof DATA !== 'undefined' && DATA && typeof DATA.get === 'function') return DATA;
+  } catch (e) {}
+  return null;
 }
 
 function upstashConfigurado() {
@@ -259,17 +278,23 @@ function blobs() {
 }
 
 async function hayAlmacen() {
+  if (getKv()) return true;
   if (archivoLocal()) return true;
   if (upstashConfigurado()) return true;
   try {
     await blobs();
     return true;
   } catch (e) {
-    return false;
+    return getKv() ? true : false;
   }
 }
 
 async function almacenLeer() {
+  const kv = getKv();
+  if (kv && typeof kv.get === 'function') {
+    const raw = await kv.get(KEY);
+    return raw == null ? null : raw;
+  }
   if (archivoLocal()) {
     try {
       return await fs.readFile(archivoLocal(), 'utf8');
@@ -284,12 +309,20 @@ async function almacenLeer() {
     const j = await r.json();
     return j && j.result != null ? j.result : null;
   }
-  const store = await blobs();
-  const raw = await store.get(KEY);
-  return raw == null ? null : raw;
+  if (netlifyGetStore || storeInyectado) {
+    const store = await blobs();
+    const raw = await store.get(KEY);
+    return raw == null ? null : raw;
+  }
+  throw new Error('Sin almacén de datos configurado');
 }
 
 async function almacenEscribir(texto) {
+  const kv = getKv();
+  if (kv && typeof kv.put === 'function') {
+    await kv.put(KEY, texto);
+    return;
+  }
   if (archivoLocal()) {
     const destino = archivoLocal();
     const temporal = destino + '.tmp';
@@ -302,8 +335,12 @@ async function almacenEscribir(texto) {
     if (!r.ok) throw new Error('upstash set ' + r.status);
     return;
   }
-  const store = await blobs();
-  await store.set(KEY, texto);
+  if (netlifyGetStore || storeInyectado) {
+    const store = await blobs();
+    await store.set(KEY, texto);
+    return;
+  }
+  throw new Error('Sin almacén de datos configurado');
 }
 
 // Lee del Blob antiguo de Vercel (sólo para migrar la primera vez).
@@ -361,14 +398,16 @@ async function writeData(data) {
 module.exports = async function (req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!checkAuth(req)) return unauthorized(res);
-  if (!(await hayAlmacen())) {
-    res.statusCode = 500;
-    return res.json({
-      error: 'Sin almacen de datos disponible',
-      detalle: blobsError || 'Netlify Blobs no disponible y UPSTASH_REDIS_REST_URL/TOKEN no configurados',
-      paquete: netlifyGetStore ? 'cargado' : 'ausente',
-      inyectado: storeInyectado ? 'si' : 'no'
-    });
+  // Inyectar KV desde _worker.js si viene en env
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env.DATA && typeof process.env.DATA.get === 'function') {
+      if (typeof globalThis !== 'undefined') { globalThis.__CF_KV_DATA__ = process.env.DATA; globalThis.DATA = process.env.DATA; }
+      if (typeof global !== 'undefined') { global.__CF_KV_DATA__ = process.env.DATA; global.DATA = process.env.DATA; }
+    }
+    if (process.env.__CF_KV_DATA__ && typeof process.env.__CF_KV_DATA__.get === 'function') {
+      if (typeof globalThis !== 'undefined') { globalThis.__CF_KV_DATA__ = process.env.__CF_KV_DATA__; globalThis.DATA = globalThis.__CF_KV_DATA__; }
+      if (typeof global !== 'undefined') { global.__CF_KV_DATA__ = process.env.__CF_KV_DATA__; global.DATA = global.__CF_KV_DATA__; }
+    }
   }
 
   if (req.method === 'GET') {

@@ -1,8 +1,12 @@
-name = "webaulavirtual"
+name = "webaulavirtual2"
 main = "_worker.js"
 compatibility_date = "2025-10-23"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "./public"
-binding = "ASSETS" 
+binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "DATA"
+id = "54917c1478774ee28487fd698f21f108"

@@ -69,6 +69,20 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     
+    // Inyectar KV binding en global para api/data.js
+    try {
+      if (env.DATA) {
+        if (typeof globalThis !== 'undefined') {
+          globalThis.__CF_KV_DATA__ = env.DATA;
+          globalThis.DATA = env.DATA;
+        }
+        if (typeof global !== 'undefined') {
+          global.__CF_KV_DATA__ = env.DATA;
+          global.DATA = env.DATA;
+        }
+      }
+    } catch (e) {}
+    
     if (url.pathname.startsWith('/api/')) {
       const path = url.pathname.replace('/api/', '').replace(/\/$/, '');
       
@@ -87,6 +101,16 @@ export default {
           process.env.COMPOSIO_API_KEY = env.COMPOSIO_API_KEY;
           process.env.COMPOSIO_USER_ID = env.COMPOSIO_USER_ID;
           process.env.BLOB_READ_WRITE_TOKEN = env.BLOB_READ_WRITE_TOKEN;
+          if (env.DATA) {
+            process.env.DATA = env.DATA;
+            process.env.__CF_KV_DATA__ = env.DATA;
+            try {
+              globalThis.__CF_KV_DATA__ = env.DATA;
+              globalThis.DATA = env.DATA;
+              global.__CF_KV_DATA__ = env.DATA;
+              global.DATA = env.DATA;
+            } catch (e) {}
+          }
           
           await handlerData(req, res);
           return getResponse();
