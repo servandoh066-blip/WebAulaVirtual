@@ -153,6 +153,15 @@ button.del:hover{border-color:#c62828;color:#c62828}
 #savest{font-size:12px;color:var(--muted)}
 #side{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
 .cbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+
+/* === DIAGRAMAS REORDENABLES === */
+.side-blocks{display:flex;flex-direction:column;gap:14px}
+.side-block{display:flex;flex-direction:column;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.side-block.dragging{opacity:.5}
+.side-block.dragging .side-block-head{cursor:grabbing}
+.side-block-head{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:grab;user-select:none}
+.side-block-title{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
+.side-block-handle{font-size:11px;color:var(--muted)}
 .ctitle{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .csub{font-size:12px;text-transform:none;letter-spacing:0;color:var(--fg);font-weight:600;white-space:nowrap}
 .chart{max-width:240px;margin:0 auto}
@@ -347,20 +356,28 @@ button.del:hover{border-color:#c62828;color:#c62828}
         <button type="button" class="mini-cal-clear" id="mini-cal-clear">Ver todas las fechas</button>
       </div>
     </section>
-    <section class="cbox">
-      <h3 class="ctitle">Tareas por asignatura <span class="csub" id="tasks-total"></span></h3>
-      <div class="chart" id="chart-tasks"></div>
-    </section>
-    <section class="cbox">
-      <h3 class="ctitle"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span></h3>
-      <div class="chart" id="chart-grades"></div>
-      <div class="cscale" title="Con 5 o más se aprueba. Si eliges un color propio para una asignatura, su slice usará ese color.">
-        <span><i class="cdot" style="background:#d62828"></i>suspenso (menos de 5)</span>
-        <span><i class="cdot" style="background:#e07a1f"></i>aprobado (5 – 6,9)</span>
-        <span><i class="cdot" style="background:#d4a017"></i>bien (7 – 8,9)</span>
-        <span><i class="cdot" style="background:#2a9d8f"></i>notable (9 – 10)</span>
-      </div>
-    </section>
+    <div class="side-blocks" id="side-blocks">
+      <section class="side-block" data-side-block="tasks" draggable="true">
+        <div class="side-block-head">
+          <div class="side-block-title">Tareas por asignatura <span class="csub" id="tasks-total"></span></div>
+          <span class="side-block-handle">::</span>
+        </div>
+        <div class="chart" id="chart-tasks"></div>
+      </section>
+      <section class="side-block" data-side-block="grades" draggable="true">
+        <div class="side-block-head">
+          <div class="side-block-title"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span></div>
+          <span class="side-block-handle">::</span>
+        </div>
+        <div class="chart" id="chart-grades"></div>
+        <div class="cscale" title="Con 5 o más se aprueba. Si eliges un color propio para una asignatura, su slice usará ese color.">
+          <span><i class="cdot" style="background:#d62828"></i>suspenso (menos de 5)</span>
+          <span><i class="cdot" style="background:#e07a1f"></i>aprobado (5 – 6,9)</span>
+          <span><i class="cdot" style="background:#d4a017"></i>bien (7 – 8,9)</span>
+          <span><i class="cdot" style="background:#2a9d8f"></i>notable (9 – 10)</span>
+        </div>
+      </section>
+    </div>
   </aside>
   <div class="content">
   <header>
@@ -1068,7 +1085,7 @@ function renderMiniCalendar(){
   var monthEl = document.getElementById('mini-cal-month');
   if (!grid) return;
   var base = new Date(MINI_CAL.getFullYear(), MINI_CAL.getMonth(), 1);
-  title.textContent = base.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  if (title) title.textContent = base.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
   if (monthEl) monthEl.textContent = base.toLocaleDateString('es-ES', { month: 'long' });
   grid.innerHTML = '';
 
@@ -1103,7 +1120,7 @@ function renderMiniCalendar(){
         if (ev.color) dot.style.background = ev.color;
         else if (ev.raw && ev.raw.s && DATA.subjectColors && DATA.subjectColors[ev.raw.s]){
           var c2 = DATA.subjectColors[ev.raw.s];
-          if (c2.c) dot.style.background = c2.c;
+          if (c2 && c2.c) dot.style.background = c2.c;
         }
         dots.appendChild(dot);
       });
@@ -1548,14 +1565,19 @@ function openPanel(id, x, y){
   });
 }
 document.addEventListener('contextmenu', function(e){
-  /* nunca dejamos que salga el menú del navegador dentro de la lista de tareas,
-     aunque el destino no sea una cabecera o una tarjeta reconocida */
-  if (!e.target.closest('#list')) return;
-  e.preventDefault();
+  var inList = e.target.closest('#list');
+  var inCpal = e.target.closest('#cpalette');
+  if (inCpal){
+    e.preventDefault();
+    return;
+  }
+  if (!inList) return;
   var head = e.target.closest('.ghead');
   if (head){
     var grp = head.closest('[data-grp]');
     if (grp){
+      e.preventDefault();
+      e.stopPropagation();
       closePanel();
       openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
       return;
@@ -1565,13 +1587,17 @@ document.addEventListener('contextmenu', function(e){
   if (card){
     var id = card.getAttribute('data-id');
     if (id){
+      e.preventDefault();
+      e.stopPropagation();
       closeCPalette();
       openPanel(id, e.clientX, e.clientY);
+      return;
     }
   }
+  e.preventDefault();
 }, true);
 document.addEventListener('click', function(e){
-  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]')) closeCPalette();
+  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]') && !e.target.closest('.ghead')) closeCPalette();
   if (PANEL_ID && !e.target.closest('#panel')) closePanel();
 });
 document.addEventListener('keydown', function(e){
@@ -1583,9 +1609,6 @@ document.addEventListener('keydown', function(e){
 window.addEventListener('scroll', function(){
   if (CP_OPEN) closeCPalette();
   if (PANEL_ID) closePanel();
-});
-document.addEventListener('contextmenu', function(e){
-  if (e.target.closest && e.target.closest('#cpalette')) e.preventDefault();
 });
 document.getElementById('panel').addEventListener('click', function(e){
   var sortBtn = e.target.closest('[data-sort]');
@@ -2283,12 +2306,59 @@ function drawCharts(){
 setupChart('tasks');
 setupChart('grades');
 var gtext = document.getElementById('gtext');
-gtext.value = DATA.global;
-gtext.addEventListener('input', function(){
-  DATA.global = gtext.value;
-  scheduleSave();
-});
+if (gtext){
+  gtext.value = DATA.global;
+  gtext.addEventListener('input', function(){
+    DATA.global = gtext.value;
+    try { scheduleSave(); } catch(e){}
+  });
+}
 window.addEventListener('beforeunload', function(){ if (saveTimer){ clearTimeout(saveTimer); saveTimer = null; flushDrafts(); } saveData(); });
+function initSideBlockDrag(){
+  var container = document.getElementById('side-blocks');
+  if (!container) return;
+  var key = 'av-side-block-order';
+  try {
+    var saved = localStorage.getItem(key);
+    if (saved){
+      var order = JSON.parse(saved);
+      order.forEach(function(id){
+        var el = container.querySelector('.side-block[data-side-block="' + id + '"]');
+        if (el) container.appendChild(el);
+      });
+    }
+  } catch(e){}
+  var dragEl = null;
+  container.addEventListener('dragstart', function(e){
+    var b = e.target.closest('.side-block');
+    if (!b) return;
+    dragEl = b;
+    b.classList.add('dragging');
+    try { e.dataTransfer.effectAllowed = 'move'; } catch(ex){}
+  });
+  container.addEventListener('dragend', function(e){
+    var b = e.target.closest('.side-block');
+    if (b) b.classList.remove('dragging');
+    dragEl = null;
+    var order = [];
+    container.querySelectorAll('.side-block').forEach(function(el){
+      var id = el.getAttribute('data-side-block');
+      if (id) order.push(id);
+    });
+    try { localStorage.setItem(key, JSON.stringify(order)); } catch(ex){}
+  });
+  container.addEventListener('dragover', function(e){
+    e.preventDefault();
+    try { e.dataTransfer.dropEffect = 'move'; } catch(ex){}
+    var b = e.target.closest('.side-block');
+    if (!b || !dragEl || b === dragEl) return;
+    var rect = b.getBoundingClientRect();
+    var after = e.clientY > rect.top + rect.height / 2;
+    if (after) container.insertBefore(dragEl, b.nextSibling);
+    else container.insertBefore(dragEl, b);
+  });
+}
+
 window.addEventListener('load', function(){
   var passEl = document.getElementById('pass');
   if (passEl) passEl.focus();
@@ -2300,6 +2370,7 @@ window.addEventListener('load', function(){
   try {
     if (typeof initAgendaUI === 'function') initAgendaUI();
     if (typeof renderMiniCalendar === 'function') renderMiniCalendar();
+    initSideBlockDrag();
   } catch(e){}
 });
 </script>
