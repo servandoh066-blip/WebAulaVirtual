@@ -7,9 +7,11 @@ try {
 
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {} };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'] };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
+const CHART_KEYS = ['tasks', 'grades'];
+const HEX_RE = /^#[0-9a-f]{6}$/i;
 
 function unauthorized(res) {
   // Sin cabecera 'WWW-Authenticate' a propósito: si el 401 lleva un reto
@@ -44,7 +46,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {} };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice() };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -150,6 +152,32 @@ function sanitize(input) {
       const v = Number(input.gord[k]);
       if (key && isFinite(v)) out.gord[key] = v;
     });
+  }
+  /* Eventos propios del calendario (agenda). Antes se perdían al guardar. */
+  if (Array.isArray(input.customEvents)) {
+    input.customEvents.slice(0, 200).forEach(function (ev, i) {
+      if (!ev || typeof ev !== 'object') return;
+      const title = str(ev.title, 200).trim();
+      const date = str(ev.date, 40).trim();
+      if (!title || !date) return;
+      const color = str(ev.color, 7).trim();
+      out.customEvents.push({
+        id: str(ev.id, 60) || 'ce' + i,
+        title: title,
+        subject: str(ev.subject, 250),
+        date: date,
+        color: HEX_RE.test(color) ? color.toLowerCase() : ''
+      });
+    });
+  }
+  /* Orden de las tarjetas de diagramas (arrastrar y soltar). */
+  if (Array.isArray(input.chartOrder)) {
+    const seen = [];
+    input.chartOrder.forEach(function (k) {
+      if (typeof k === 'string' && CHART_KEYS.indexOf(k) !== -1 && seen.indexOf(k) === -1) seen.push(k);
+    });
+    CHART_KEYS.forEach(function (k) { if (seen.indexOf(k) === -1) seen.push(k); });
+    out.chartOrder = seen;
   }
   out.global = str(input.global, 8000);
   out.showdone = input.showdone === true;
