@@ -57,7 +57,8 @@ function sanitize(input) {
         id: str(t.id, 40) || 'c' + i,
         s: str(t.s, 250),
         t: title,
-        d: t.d ? str(t.d, 40) : null
+        d: t.d ? str(t.d, 40) : null,
+        p: str(t.p, 200)
       });
     });
   }
