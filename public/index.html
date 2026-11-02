@@ -1470,9 +1470,13 @@ function load(){
   if (!getPass()){ EMAILS = []; setMailStatus(); gateShow(''); var nxt = document.getElementById('next'); if (nxt) nxt.textContent = ''; return Promise.resolve(); }
   var nxt2 = document.getElementById('next');
   if (nxt2) nxt2.textContent = 'Consultando Moodle…';
+  /* /api/data valida las credenciales. Si responde bien, la contraseña es
+     correcta y hay que entrar aunque /api/tasks (Moodle) tarde o falle. */
+  var dataP = loadData();
+  dataP.then(function(){ gateHide(); }).catch(function(){});
   return Promise.all([
     fetch('/api/tasks', {credentials:'same-origin', headers: authHeader()}),
-    loadData(),
+    dataP,
     loadEmails()
   ]).then(function(rs){
     var r = rs[0];
@@ -1502,6 +1506,9 @@ function load(){
         setMailStatus();
         gateShow('Contraseña incorrecta. Inténtalo de nuevo.');
       } else {
+        /* La contraseña ya se validó (los endpoints protegidos no devolvieron 401):
+           hay que entrar igualmente aunque Moodle no responda. */
+        gateHide();
         if (!TASKS.length){ TASKS = SEED; try { render(); } catch(e){} stamp('Modo sin conexión (copia local)'); }
         try { renderMiniCalendar(); } catch(e){}
         if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
