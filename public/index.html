@@ -37,15 +37,21 @@ h1{font-size:24px;margin:0;color:var(--head)}
 .sw.g{background:var(--green);border-color:var(--greenb)}
 h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;display:flex;justify-content:space-between;align-items:center}
 h2 .n{font-weight:600;opacity:.8}
-.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), opacity var(--fast) var(--ease)}
-.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.13)}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:14px;min-height:78px;text-decoration:none;color:inherit;transition:transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), opacity var(--fast) var(--ease)}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.14)}
 .card.soon{background:var(--red);border-color:var(--redb)}
 .card.mid{background:var(--yellow);border-color:var(--yellowb)}
 .card.ok{background:var(--green);border-color:var(--greenb)}
-.card .t{font-weight:600;font-size:15.5px}
-.card .d{color:var(--muted);font-size:13px;margin-top:3px}
-.card .cd{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;white-space:nowrap}
-.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.card .t{font-weight:600;font-size:17px;line-height:1.35}
+.card .d{color:var(--muted);font-size:14px;line-height:1.45;margin-top:6px}
+.card .cd{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;font-size:15.5px;white-space:nowrap}
+.card .tnote{display:flex;gap:6px;align-items:flex-start;margin-top:8px;padding:7px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--bg);color:var(--muted);font-size:13px;line-height:1.4}
+.card .tnote .ic{flex:0 0 auto;margin-top:2px}
+.row{display:flex;gap:14px;align-items:center;justify-content:space-between}
+@media (max-width: 560px){
+  .card{padding:14px 16px;min-height:70px}
+  .card .t{font-size:16px}
+}
 .cd.soon{color:#c62828}.cd.mid{color:#8a6400}.cd.ok{color:#0d7a45}
 @media (prefers-color-scheme: dark){ .cd.soon{color:#ff8a80}.cd.mid{color:#ffce55}.cd.ok{color:#5ad69a} }
 #bar{display:flex;gap:10px;align-items:center;margin:16px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
@@ -109,7 +115,7 @@ body.dragging{user-select:none;-webkit-user-select:none}
 .card.done{opacity:.62;background:rgba(128,138,150,.1);border-color:rgba(128,138,150,.35)}
 .card.done .t{text-decoration:line-through}
 .cd.done{color:#0d7a45;font-weight:700}
-.done-tag{font-size:11px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
+.done-tag{font-size:12px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:8px;padding:1px 7px;margin-left:8px;vertical-align:middle}
 #donetoggle.on{border-color:var(--accent);color:var(--accent)}
 .cd.old{color:#6b7480}
 @media (prefers-color-scheme: dark){ .cd.old{color:#9aa4b0} }
@@ -134,17 +140,8 @@ button.del .ic{margin-right:0}
 }
 .prof{font-size:12px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 .sw.n{background:rgba(128,138,150,.2);border-color:rgba(128,138,150,.5)}
-#panel{display:none;position:fixed;z-index:60;min-width:215px;max-width:280px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px) scale(.985);transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease)}
-#panel.on{opacity:1;transform:none}
-#panel .ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#panel .plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
-#panel button{display:block;width:100%;text-align:left;margin-bottom:4px}
-#panel button.on{border-color:var(--accent);color:var(--accent)}
-#panel .phint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.35}
-#panel-colors{display:flex;gap:7px;flex-wrap:wrap}
-#panel-colors i{width:21px;height:21px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block;transition:transform var(--fast) var(--ease), outline-color var(--fast) var(--ease)}
-#panel-colors i:hover{transform:scale(1.14)}
-#panel-colors i.on{outline:2px solid var(--accent);outline-offset:1px}
+.ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
 #cpalette{display:none;position:fixed;z-index:61;width:238px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px) scale(.985);transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease)}
 #cpalette.on{opacity:1;transform:none}
 #cp-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
@@ -162,9 +159,9 @@ button.del .ic{margin-right:0}
 .sw.auto{background:linear-gradient(135deg,var(--red) 33%,var(--yellow) 33%,var(--yellow) 66%,var(--green) 66%)}
 .card .t a{color:inherit;text-decoration:none}
 .card .t a:hover{text-decoration:underline}
-.own-tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
-.mail-tag{font-size:11px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
-button.del{font-size:13px;padding:1px 8px;color:var(--muted)}
+.own-tag{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:1px 7px;margin-left:8px;vertical-align:middle}
+.mail-tag{font-size:12px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:8px;padding:1px 7px;margin-left:8px;vertical-align:middle}
+button.del{font-size:13.5px;padding:4px 10px;color:var(--muted)}
 button.del:hover{border-color:#c62828;color:#c62828}
 #savest{font-size:12px;color:var(--muted)}
 #side{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
@@ -418,7 +415,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
 /* ---------- panel flotante de informacion (hover) ---------- */
 #cal-tip {
   position: fixed;
-  z-index: 95;
+  z-index: 130;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -442,20 +439,20 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .cal-tip-row { color: var(--muted); font-size: 11.5px; overflow-wrap: anywhere; }
 .cal-tip-tag { align-self: flex-start; margin-top: 2px; padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 10.5px; }
 
-/* ---------- menu contextual del calendario ---------- */
-#cal-menu {
+/* ---------- menu contextual unificado (lista y agenda) ---------- */
+#ctx-menu {
   display: none;
   position: absolute;
-  z-index: 96;
-  width: 228px;
+  z-index: 140;
+  width: 224px;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--card);
-  box-shadow: 0 16px 38px rgba(0,0,0,.3);
+  box-shadow: 0 16px 38px rgba(0,0,0,.32);
   font-size: 13px;
 }
-#cal-menu.on { display: block; }
+#ctx-menu.on { display: block; }
 .cm-head { padding: 4px 6px 8px; border-bottom: 1px solid var(--line); }
 .cm-title { font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cm-sub { margin-top: 2px; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -465,7 +462,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
   gap: 8px;
   width: 100%;
   margin-top: 4px;
-  padding: 7px 8px;
+  padding: 8px 9px;
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
@@ -477,38 +474,77 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .cm-btn:hover,
 .cm-btn:focus-visible { background: var(--bg); border-color: var(--line); outline: none; }
 .cm-btn .ic { width: 15px; height: 15px; margin: 0; }
-.cm-colors { display: none; flex-wrap: wrap; gap: 6px; padding: 8px 6px 4px; border-top: 1px solid var(--line); margin-top: 6px; }
-.cm-colors.on { display: flex; }
-.cm-color {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform var(--fast) var(--ease);
-}
-.cm-color:hover { transform: scale(1.12); }
-.cm-color.on { outline: 2px solid var(--accent); outline-offset: 1px; }
-.cm-color.auto { background: linear-gradient(135deg, var(--red) 33%, var(--yellow) 33%, var(--yellow) 66%, var(--green) 66%); }
 .cm-btn[hidden] { display: none; }
-#cal-edit button[hidden] { display: none; }
+#edit-modal button[hidden] { display: none; }
 
 /* ---------- edicion rapida de tareas y eventos ---------- */
-#cal-edit {
+#edit-modal {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 97;
+  z-index: 141;
   align-items: center;
   justify-content: center;
   padding: 16px;
   background: rgba(15,17,21,.55);
 }
-#cal-edit.on { display: flex; }
-.cal-edit-note { color: var(--muted); font-size: 12px; line-height: 1.4; }
-.cal-edit-note[hidden] { display: none; }
-#cal-edit input:disabled { opacity: .65; cursor: not-allowed; }
+#edit-modal.on { display: flex; }
+.edit-modal-note { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.edit-modal-note[hidden] { display: none; }
+#edit-modal input:disabled { opacity: .65; cursor: not-allowed; }
+
+/* ---------- modal de anotacion por tarea ---------- */
+#note-edit {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 142;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15,17,21,.55);
+}
+#note-edit.on { display: flex; }
+#note-edit textarea {
+  width: 100%;
+  min-height: 130px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+#note-edit textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- modulo de agendas en el panel lateral ---------- */
+#agendas-toggles { display: flex; flex-direction: column; gap: 8px; }
+.agenda-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.agenda-toggle:hover { border-color: var(--accent); }
+.agenda-toggle input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; cursor: pointer; }
+.agenda-toggle .swatch { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); }
+.agenda-toggle .nm { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agenda-toggle.off { opacity: .55; }
+#agendas-actions { display: flex; gap: 7px; margin-top: 10px; }
+#agendas-actions button { flex: 1 1 auto; font-size: 12.5px; padding: 5px 8px; }
+.agenda-toggle .rowbtns { display: flex; gap: 4px; }
+.agenda-toggle .rowbtns button { padding: 2px 6px; font-size: 12px; }
+#bar-order { max-width: 160px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: var(--fg); font: inherit; font-size: 13px; }
 
 /* ---------- reordenar modulos del panel lateral ---------- */
 #side .cbox { transition: opacity var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
@@ -538,6 +574,14 @@ button.del:hover{border-color:#c62828;color:#c62828}
 </style>
 </head>
 <body>
+<div id="ctx-menu" role="menu" aria-label="Acciones de la tarea">
+  <div class="cm-head">
+    <div class="cm-title" id="cm-title"></div>
+    <div class="cm-sub" id="cm-sub"></div>
+  </div>
+  <button type="button" class="cm-btn" id="cm-edit" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Editar</button>
+  <button type="button" class="cm-btn" id="cm-note" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"></use></svg>Añadir anotación</button>
+</div>
 <div id="gate">
   <form id="gate-form" autocomplete="off">
     <div class="gt">Tareas pendientes</div>
@@ -565,6 +609,13 @@ button.del:hover{border-color:#c62828;color:#c62828}
         </div>
         <div class="minical-grid" id="mini-cal-grid"></div>
         <button type="button" class="mini-cal-clear" id="mini-cal-clear">Ver todas las fechas</button>
+      </div>
+    </section>
+    <section class="cbox" data-mod="agendas">
+      <h3 class="ctitle">Agendas <span class="csub" id="agendas-count"></span><button type="button" class="mdrag" title="Arrastra para mover este módulo" aria-label="Reordenar el módulo de agendas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grip"></use></svg></button></h3>
+      <div id="agendas-toggles"></div>
+      <div id="agendas-actions">
+        <button type="button" id="agenda-new">+ Nueva agenda</button>
       </div>
     </section>
     <section class="cbox chart-card" data-chart="tasks" data-mod="chart-tasks">
@@ -596,6 +647,12 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <button id="refresh">Actualizar ahora</button>
     <button id="addtoggle">+ Añadir tarea</button>
     <button id="donetoggle" title="Mostrar u ocultar las tareas ya entregadas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Entregadas</button>
+    <select id="bar-order" title="Orden de la lista de tareas">
+      <option value="date">Fecha ↑</option>
+      <option value="date-desc">Fecha ↓</option>
+      <option value="title">Título A-Z</option>
+      <option value="clear">Quitar orden manual</option>
+    </select>
     <span id="next"></span>
     <span id="mailst"></span>
     <span id="savest"></span>
@@ -653,29 +710,6 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <g id="i-grip"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></g>
   </defs></svg>
   <main id="list"></main>
-  <div id="panel">
-    <div class="ptitle" id="panel-title"></div>
-    <div class="plab">Orden</div>
-    <button type="button" data-sort="date"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Fecha ↑ (por defecto)</button>
-    <button type="button" data-sort="date-desc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Fecha ↓ (más lejanas arriba)</button>
-    <button type="button" data-sort="title"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-az"></use></svg>Título A-Z</button>
-    <button type="button" data-move="clear"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-undo"></use></svg>Quitar orden manual</button>
-    <div class="phint"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"></use></svg>Mantén pulsado y arrastra una <b>tarea</b> para colocarla donde quieras dentro de su asignatura, o arrastra el <b>título de la asignatura</b> para moverla de sitio.</div>
-    <div class="plab">Color de la tarea (cuenta atrás)</div>
-    <div id="panel-colors">
-      <i class="sw auto" data-color="" title="Automático (según urgencia)"></i>
-      <i class="sw k-red" data-color="k-red" title="Rojo"></i>
-      <i class="sw k-orange" data-color="k-orange" title="Naranja"></i>
-      <i class="sw k-yellow" data-color="k-yellow" title="Amarillo"></i>
-      <i class="sw k-green" data-color="k-green" title="Verde"></i>
-      <i class="sw k-blue" data-color="k-blue" title="Azul"></i>
-      <i class="sw k-purple" data-color="k-purple" title="Morado"></i>
-      <i class="sw k-pink" data-color="k-pink" title="Rosa"></i>
-      <i class="sw k-gray" data-color="k-gray" title="Gris"></i>
-    </div>
-    <div class="plab">Asignatura</div>
-    <button type="button" id="panel-subjcolor"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Cambiar color de la asignatura</button>
-  </div>
   <div id="cpalette">
     <div class="ptitle" id="cp-title"></div>
     <div class="plab">Color de la asignatura</div>
@@ -710,6 +744,10 @@ button.del:hover{border-color:#c62828;color:#c62828}
           <span>Color del evento</span>
           <div class="agenda-color-row" id="agenda-color-row"></div>
         </div>
+        <label class="agenda-field">
+          <span>Agenda</span>
+          <select id="agenda-ev-agenda"></select>
+        </label>
       </div>
       <div class="agenda-modal-foot">
         <button type="button" id="agenda-modal-cancel">Cancelar</button>
@@ -719,48 +757,59 @@ button.del:hover{border-color:#c62828;color:#c62828}
   </div>
 
   <div id="cal-tip" role="tooltip" aria-hidden="true"></div>
-  <div id="cal-menu" role="menu" aria-label="Acciones de la tarea del calendario">
-    <div class="cm-head">
-      <div class="cm-title" id="cm-title"></div>
-      <div class="cm-sub" id="cm-sub"></div>
-    </div>
-    <button type="button" class="cm-btn" id="cm-edit" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Editar</button>
-    <button type="button" class="cm-btn" id="cm-color" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"></use></svg>Cambiar color</button>
-    <div class="cm-colors" id="cm-colors"></div>
-    <button type="button" class="cm-btn" id="cm-open" role="menuitem" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"></use></svg>Abrir en Moodle</button>
-  </div>
 
-  <div id="cal-edit">
+  <div id="edit-modal">
     <div class="agenda-modal-card">
       <div class="agenda-modal-head">
-        <div class="agenda-modal-title" id="cal-edit-heading">Editar</div>
-        <button type="button" id="cal-edit-close">Cerrar</button>
+        <div class="agenda-modal-title" id="edit-modal-heading">Editar</div>
+        <button type="button" id="edit-modal-close">Cerrar</button>
       </div>
       <div class="agenda-modal-body">
         <label class="agenda-field">
           <span>Título</span>
-          <input type="text" id="cal-edit-title" maxlength="200">
+          <input type="text" id="edit-modal-title" maxlength="200">
         </label>
         <div class="agenda-field-row">
           <label class="agenda-field">
             <span>Asignatura</span>
-            <input type="text" id="cal-edit-subject" maxlength="250">
+            <input type="text" id="edit-modal-subject" maxlength="250">
           </label>
           <label class="agenda-field">
             <span>Fecha y hora</span>
-            <input type="datetime-local" id="cal-edit-date">
+            <input type="datetime-local" id="edit-modal-date">
           </label>
         </div>
-        <div class="cal-edit-note" id="cal-edit-note" hidden></div>
+        <label class="agenda-field" id="edit-modal-agenda-field" hidden>
+          <span>Agenda</span>
+          <select id="edit-modal-agenda"></select>
+        </label>
+        <div class="edit-modal-note" id="edit-modal-note" hidden></div>
       </div>
       <div class="agenda-modal-foot">
-        <button type="button" id="cal-edit-cancel">Cancelar</button>
-        <button type="button" id="cal-edit-save">Guardar cambios</button>
+        <button type="button" id="edit-modal-cancel">Cancelar</button>
+        <button type="button" id="edit-modal-save">Guardar cambios</button>
       </div>
     </div>
   </div>
 
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. Para reordenar, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. Clic derecho en una tarjeta para color y orden. En <b>Agenda</b>, pasa el cursor sobre una tarea del calendario para ver su información completa y usa el <b>clic derecho</b> para editarla o cambiar su color. Los módulos del panel izquierdo se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
+  <div id="note-edit">
+    <div class="agenda-modal-card">
+      <div class="agenda-modal-head">
+        <div class="agenda-modal-title" id="note-edit-heading">Añadir anotación</div>
+        <button type="button" id="note-edit-close">Cerrar</button>
+      </div>
+      <div class="agenda-modal-body">
+        <div class="edit-modal-note" id="note-edit-sub"></div>
+        <textarea id="note-edit-text" placeholder="Escribe aquí tu anotación para esta tarea… se guarda automáticamente."></textarea>
+      </div>
+      <div class="agenda-modal-foot">
+        <button type="button" id="note-edit-cancel">Cancelar</button>
+        <button type="button" id="note-edit-save">Guardar anotación</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En lista y en agenda, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b> y <b>Añadir anotación</b> (una nota propia por tarea que se muestra en la tarjeta y al pasar el cursor). En <b>Agenda</b>, las celdas de los días son cuadradas y las tareas aparecen como indicadores: pasa el cursor sobre uno para ver la información completa en un panel flotante. El módulo <b>Agendas</b> del panel izquierdo permite crear agendas independientes (Instituto, Rutina diaria, Personal…) y activar o desactivar cuáles se superponen en el calendario, con un color por agenda. Los módulos del panel izquierdo se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
   </div>
 </div>
 <script>
@@ -789,8 +838,8 @@ var SUBJECT_TEACHERS = {
   'Dixitalización': 'Marcos Alonso'
 };
 var TASKS = [], EMAILS = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades']},
-  NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false, PANEL_ID = null,
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}},
+  NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false,
   CP_SUBJ = null, CP_OPEN = false;
 
 /* AGENDA / CALENDARIO */
@@ -799,7 +848,7 @@ var VIEW_MODE = 'list',
   MINI_CAL = new Date(),
   AGENDA_CAL = new Date(),
   AGENDA_COLOR = '',
-  CAL_EVENTS = {}, CAL_MENU_KEY = null, CAL_EDIT_KEY = null,
+  CTX_EVENTS = {}, CTX_MENU_KEY = null, CTX_EDIT_KEY = null, CTX_NOTE_KEY = null,
   SIDE_DRAG = null, SIDE_HANDLE = null, SIDE_DROP = null;
 
 /* iconos SVG (sprite inline definido en el HTML); no se usan emoticonos */
@@ -978,6 +1027,8 @@ function groupOrder(a, b, groups){
 }
 function render(){
   var list = document.getElementById('list');
+  var bo = document.getElementById('bar-order');
+  if (bo) bo.value = (DATA.sort === 'date-desc' || DATA.sort === 'title') ? DATA.sort : 'date';
   var groups = {};
   allTasks().forEach(function(t){
     var k = t.s || 'Sin asignatura';
@@ -1036,6 +1087,11 @@ function render(){
     items.forEach(function(t){
       var ms = dueMs(t), cls = taskClass(t);
       var done = !!t.done;
+      var evk = listEventKey(t);
+      CTX_EVENTS[evk] = taskToEvent(t);
+      var tnoteVal = (DATA.taskNotes || {})[taskNoteKey(t)] || '';
+      var tnoteHtml = tnoteVal ? '<div class="tnote">' + icon('note') + '<span>' + esc(tnoteVal) + '</span></div>' : '';
+      var evAttr = ' data-evk="' + esc(evk) + '"';
       var cd = done
         ? '<div class="cd done" data-id="' + esc(t.id || '') + '">' + icon('check') + '</div>'
         : '<div class="cd ' + cls + '" data-ms="' + (ms === null ? '' : ms) + '" data-id="' + esc(t.id || '') + '">' + fmtCountdown(ms) + '</div>';
@@ -1043,21 +1099,21 @@ function render(){
       var delhide = t.id ? '<button class="del" type="button" data-hide="' + esc(t.id) + '" title="Ocultar esta tarea (no se borra en Moodle)">' + icon('x') + '</button>' : '';
       if (done) cls += ' done';
       if (t.own){
-        html += '<div class="card own ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' + esc(t.t) +
+        html += '<div class="card own ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"' + evAttr + '><div class="row"><div><div class="t">' + esc(t.t) +
           '<span class="own-tag">propia</span></div><div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
-          '<div style="display:flex;gap:8px;align-items:center">' + cd + delown + '</div></div></div>';
+          '<div style="display:flex;gap:8px;align-items:center">' + cd + delown + '</div></div>' + tnoteHtml + '</div>';
       } else if (t.mail){
         var ttitle = t.u ? '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' : esc(t.t);
-        html += '<div class="card mail ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' + ttitle +
+        html += '<div class="card mail ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"' + evAttr + '><div class="row"><div><div class="t">' + ttitle +
           '<span class="mail-tag">correo</span></div><div class="d">' + fmtDue(ms) + '</div></div>' +
           '<div style="display:flex;gap:8px;align-items:center">' + cd +
-          '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">' + icon('x') + '</button></div></div></div>';
+          '<button class="del" type="button" data-dismiss="' + esc(t.id) + '" title="Ocultar este aviso">' + icon('x') + '</button></div></div>' + tnoteHtml + '</div>';
       } else {
-        html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"><div class="row"><div><div class="t">' +
+        html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"' + evAttr + '><div class="row"><div><div class="t">' +
           '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' +
           (done ? '<span class="done-tag">entregada</span>' : '') + '</div>' +
           '<div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
-          '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div></div>';
+          '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div>' + tnoteHtml + '</div>';
       }
     });
     html += '</section>';
@@ -1241,7 +1297,9 @@ function loadData(){
             : ((j.grades && typeof j.grades === 'object' && !Array.isArray(j.grades)) ? migrateExams(j.grades) : {}),
           subjectColors: (j.subjectColors && typeof j.subjectColors === 'object' && !Array.isArray(j.subjectColors)) ? j.subjectColors : {},
           customEvents: Array.isArray(j.customEvents) ? j.customEvents : [],
-          chartOrder: normalizeChartOrder(j.chartOrder)
+          chartOrder: normalizeChartOrder(j.chartOrder),
+          agendas: (Array.isArray(j.agendas) && j.agendas.length) ? j.agendas : [],
+          taskNotes: (j.taskNotes && typeof j.taskNotes === 'object' && !Array.isArray(j.taskNotes)) ? j.taskNotes : {}
         };
         SHOW_DONE = !!DATA.showdone;
         var db = document.getElementById('donetoggle');
@@ -1251,6 +1309,7 @@ function loadData(){
         /* el orden guardado y los puntos del calendario se aplican en cuanto llegan los datos,
            aunque la consulta a Moodle falle después */
         try { applyChartOrder(); } catch(e){}
+        try { renderAgendaToggles(); } catch(e){}
         try { renderMiniCalendar(); } catch(e){}
       }
       return j;
@@ -1283,8 +1342,102 @@ function loadEmails(){
     });
 }
 /* AGENDA / CALENDARIO */
+/* --- agendas multiples (estilo TimeTree) y eventos --- */
+function defaultAgendas(){
+  return [
+    { id: 'instituto', name: 'Instituto', color: '#0b57d0', enabled: true },
+    { id: 'rutina', name: 'Rutina diaria', color: '#22c55e', enabled: true },
+    { id: 'personal', name: 'Personal', color: '#f59e0b', enabled: true }
+  ];
+}
+function initAgendas(){
+  if (!Array.isArray(DATA.agendas)) DATA.agendas = [];
+  DATA.agendas = DATA.agendas.filter(function(a){ return a && a.id; });
+  if (!DATA.agendas.length) DATA.agendas = defaultAgendas();
+  DATA.agendas.forEach(function(a){
+    if (typeof a.enabled !== 'boolean') a.enabled = true;
+    if (!a.color) a.color = '#64748b';
+    if (!a.name) a.name = 'Agenda';
+  });
+}
+function agendaById(id){
+  if (!id) return null;
+  initAgendas();
+  for (var i = 0; i < DATA.agendas.length; i++) if (DATA.agendas[i].id === id) return DATA.agendas[i];
+  return null;
+}
+function agendaEnabled(id){
+  if (!id) return true;
+  var a = agendaById(id);
+  return a ? a.enabled !== false : true;
+}
+function agendaLabel(id){
+  var a = agendaById(id);
+  return a ? a.name : '';
+}
+function fillAgendaSelect(sel, selectedId){
+  if (!sel) return;
+  initAgendas();
+  sel.innerHTML = '';
+  var ids = [];
+  DATA.agendas.forEach(function(a){
+    var o = document.createElement('option');
+    o.value = a.id;
+    o.textContent = a.name;
+    sel.appendChild(o);
+    ids.push(a.id);
+  });
+  sel.value = ids.indexOf(selectedId) >= 0 ? selectedId : (ids[0] || '');
+}
+function firstEnabledAgendaId(){
+  initAgendas();
+  for (var i = 0; i < DATA.agendas.length; i++) if (DATA.agendas[i].enabled) return DATA.agendas[i].id;
+  return DATA.agendas[0] ? DATA.agendas[0].id : 'instituto';
+}
+
 function initCustomEvents(){
   if (!Array.isArray(DATA.customEvents)) DATA.customEvents = [];
+  initAgendas();
+  var fallback = firstEnabledAgendaId();
+  DATA.customEvents.forEach(function(ev){
+    if (ev && !ev.agenda) ev.agenda = fallback;
+  });
+}
+
+/* --- eventos de tarea reutilizables (lista y calendario) --- */
+function taskToEvent(t){
+  var ms = dueMs(t);
+  return {
+    type: t.own ? 'own' : (t.mail ? 'mail' : 'moodle'),
+    id: t.id,
+    title: t.t,
+    subject: t.s || '',
+    date: ms === null ? '' : toISODate(new Date(ms)),
+    datetime: ms,
+    color: null,
+    link: t.u || null,
+    agenda: 'instituto',
+    raw: t
+  };
+}
+function listEventKey(t){
+  if (t.id) return 'lst|' + t.id;
+  return 'lst|' + (t.own ? 'own' : (t.mail ? 'mail' : 'moodle')) + '|' + (t.s || '') + '|' + (t.t || '') + '|' + (t.d || '');
+}
+function taskNoteKey(t){
+  if (!t) return '';
+  if (t.id) return String(t.id);
+  var kind = t.own ? 'own' : (t.mail ? 'mail' : (t.type === 'custom' ? 'custom' : 'moodle'));
+  return kind + '|' + (t.s || t.subject || '') + '|' + (t.t || t.title || '') + '|' + (t.d || t.date || '');
+}
+function ctxNoteKey(ev){
+  if (!ev) return '';
+  if (ev.raw) return taskNoteKey(ev.raw);
+  return ev.id ? String(ev.id) : '';
+}
+function getTaskNote(ev){
+  var k = ctxNoteKey(ev);
+  return (k && DATA.taskNotes && DATA.taskNotes[k]) ? String(DATA.taskNotes[k]) : '';
 }
 
 function toISODate(d){
@@ -1300,27 +1453,16 @@ function getEventColor(ev){
     var sc = DATA.subjectColors[ev.subject];
     if (sc && sc.c) return sc.c;
   }
-  return '#6b7280';
+  var a = ev && ev.agenda ? agendaById(ev.agenda) : null;
+  return (a && a.color) ? a.color : '#6b7280';
 }
 
 function allEventsUnified(){
   var list = [];
   try {
     allTasks().forEach(function(t){
-      var ms = dueMs(t);
-      if (ms === null) return;
-      var d = new Date(ms);
-      list.push({
-        type: t.own ? 'own' : (t.mail ? 'mail' : 'moodle'),
-        id: t.id,
-        title: t.t,
-        subject: t.s || '',
-        date: toISODate(d),
-        datetime: ms,
-        color: null,
-        link: t.u || null,
-        raw: t
-      });
+      if (dueMs(t) === null) return;
+      list.push(taskToEvent(t));
     });
   } catch(e){}
   initCustomEvents();
@@ -1337,6 +1479,7 @@ function allEventsUnified(){
       datetime: ms,
       color: ev.color || getEventColor(ev),
       link: null,
+      agenda: ev.agenda || firstEnabledAgendaId(),
       raw: ev
     });
   });
@@ -1355,11 +1498,12 @@ function parseISODate(iso){
   var out = new Date(y, m - 1, d);
   return isNaN(out.getTime()) ? null : out;
 }
-/* Todos los eventos agrupados por día (clave ISO local). */
+/* Todos los eventos agrupados por día (clave ISO local), solo de las agendas activas. */
 function eventsByDate(){
   var map = {};
   allEventsUnified().forEach(function(ev){
     if (!ev || !ev.date) return;
+    if (!agendaEnabled(ev.agenda)) return;
     (map[ev.date] = map[ev.date] || []).push(ev);
   });
   Object.keys(map).forEach(function(k){
@@ -1367,12 +1511,14 @@ function eventsByDate(){
   });
   return map;
 }
-/* Color del punto/evento: el propio, si no el de su asignatura. */
+/* Color del punto/evento: el propio, si no el de su asignatura, si no el de su agenda. */
 function eventDotColor(ev){
   if (ev && ev.color) return ev.color;
   var s = ev && ((ev.raw && ev.raw.s) || ev.subject);
   var sc = s && DATA.subjectColors ? DATA.subjectColors[s] : null;
-  return (sc && sc.c) ? sc.c : '#6b7280';
+  if (sc && sc.c) return sc.c;
+  var a = ev && ev.agenda ? agendaById(ev.agenda) : null;
+  return (a && a.color) ? a.color : '#6b7280';
 }
 
 function renderMiniCalendar(){
@@ -1491,7 +1637,7 @@ function eventHref(link){
 
 function agendaItemEl(ev, compact, index){
   var key = calendarKey(ev, index);
-  CAL_EVENTS[key] = ev;
+  CTX_EVENTS[key] = ev;
   var color = eventDotColor(ev);
 
   if (compact){
@@ -1542,17 +1688,22 @@ function calDateText(ev){
 
 function showCalTip(el){
   var key = el.getAttribute('data-evk');
-  var ev = key ? CAL_EVENTS[key] : null;
+  var ev = key ? CTX_EVENTS[key] : null;
   var tip = document.getElementById('cal-tip');
   if (!ev || !tip) return;
   var color = eventDotColor(ev);
   var kind = ev.type === 'custom' ? 'Evento personalizado' : (ev.type === 'own' ? 'Tarea propia' : (ev.type === 'mail' ? 'Aviso de correo' : 'Tarea de Moodle'));
   var teacher = ev.raw && ev.raw.p ? ev.raw.p : '';
+  var agName = ev.agenda ? agendaLabel(ev.agenda) : '';
+  var note = getTaskNote(ev);
+  if (note.length > 170) note = note.slice(0, 170) + '…';
   tip.innerHTML = '<div class="cal-tip-head"><i class="cal-tip-dot" style="background:' + escapeAttr(color) + '"></i>' +
     '<span class="cal-tip-title">' + esc(ev.title) + '</span></div>' +
     (ev.subject ? '<div class="cal-tip-row">' + esc(ev.subject) + '</div>' : '') +
     '<div class="cal-tip-row">' + esc(calDateText(ev)) + '</div>' +
     (teacher ? '<div class="cal-tip-row">Profesor: ' + esc(teacher) + '</div>' : '') +
+    (agName ? '<div class="cal-tip-row">Agenda: ' + esc(agName) + '</div>' : '') +
+    (note ? '<div class="cal-tip-row">Anotación: ' + esc(note) + '</div>' : '') +
     '<span class="cal-tip-tag">' + kind + '</span>';
   tip.classList.add('on');
   tip.setAttribute('aria-hidden', 'false');
@@ -1596,60 +1747,24 @@ function bindCalendarHover(){
   });
 }
 
-/* ---------- menu contextual del calendario ---------- */
-function closeCalMenu(){
-  CAL_MENU_KEY = null;
-  var m = document.getElementById('cal-menu');
+/* ---------- menu contextual unificado (lista y agenda) ---------- */
+function closeCtxMenu(){
+  CTX_MENU_KEY = null;
+  var m = document.getElementById('ctx-menu');
   if (m) m.classList.remove('on');
-  var colors = document.getElementById('cm-colors');
-  if (colors) colors.classList.remove('on');
 }
-function clampCalMenu(){
-  var m = document.getElementById('cal-menu');
-  if (!m || !m.classList.contains('on')) return;
-  var w = m.offsetWidth, h = m.offsetHeight;
-  var vw = document.documentElement.clientWidth || window.innerWidth;
-  var vh = document.documentElement.clientHeight || window.innerHeight;
-  var x = parseFloat(m.style.left) || 0;
-  var y = parseFloat(m.style.top) || 0;
-  var maxX = window.scrollX + vw - w - 8;
-  var maxY = window.scrollY + vh - h - 8;
-  m.style.left = Math.max(window.scrollX + 8, Math.min(x, maxX)) + 'px';
-  m.style.top = Math.max(window.scrollY + 8, Math.min(y, maxY)) + 'px';
-}
-function calMenuEvent(){
-  return CAL_MENU_KEY ? (CAL_EVENTS[CAL_MENU_KEY] || null) : null;
-}
-function openCalMenu(key, x, y){
-  var ev = CAL_EVENTS[key];
+function openCtxMenu(key, x, y){
+  var ev = CTX_EVENTS[key];
   if (!ev) return;
   hideCalTip();
-  try { closePanel(); } catch(e){}
   try { closeCPalette(); } catch(e){}
-  CAL_MENU_KEY = key;
+  CTX_MENU_KEY = key;
 
   var kind = ev.type === 'custom' ? 'Evento' : (ev.type === 'own' ? 'Tarea propia' : (ev.type === 'mail' ? 'Correo' : 'Moodle'));
   document.getElementById('cm-title').textContent = ev.title;
   document.getElementById('cm-sub').textContent = (ev.subject ? ev.subject + ' · ' : '') + kind;
-  document.getElementById('cm-open').hidden = !ev.link;
 
-  var current = '';
-  if (ev.type === 'custom') current = (ev.raw && ev.raw.color) ? ev.raw.color : '';
-  else {
-    var sc = subjectColor(ev.subject);
-    current = sc ? sc.c : '';
-  }
-  var palette = ['#0b57d0','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#64748b'];
-  var colors = document.getElementById('cm-colors');
-  colors.innerHTML = '<button type="button" class="cm-color auto' + (!current ? ' on' : '') +
-    '" data-c="" title="Color automático" aria-label="Color automático"></button>' +
-    palette.map(function(c){
-      return '<button type="button" class="cm-color' + (current && current.toLowerCase() === c.toLowerCase() ? ' on' : '') +
-        '" data-c="' + c + '" style="background:' + c + '" title="' + c + '" aria-label="Color ' + c + '"></button>';
-    }).join('');
-  colors.classList.remove('on');
-
-  var m = document.getElementById('cal-menu');
+  var m = document.getElementById('ctx-menu');
   m.classList.add('on');
   var w = m.offsetWidth, h = m.offsetHeight;
   var vw = document.documentElement.clientWidth || window.innerWidth;
@@ -1670,24 +1785,42 @@ function findOwnTask(id){
   for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === id) return list[i];
   return null;
 }
-function applyCalColor(color){
-  var ev = calMenuEvent();
+/* ---------- anotaciones por tarea ---------- */
+function openCtxNote(key){
+  var ev = CTX_EVENTS[key];
   if (!ev) return;
-  if (ev.type === 'custom'){
-    var rec = findCustomEvent(ev.id);
-    if (rec){
-      if (color) rec.color = color; else delete rec.color;
-    }
-    try { scheduleSave(); } catch(e){}
-    try { renderMiniCalendar(); } catch(e){}
-    if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
-    try { render(); } catch(e){}
-  } else {
-    var subj = ev.subject || 'Sin asignatura';
-    var sc = subjectColor(subj);
-    setSubjectColor(subj, color || null, sc ? sc.a : 1);
-  }
-  closeCalMenu();
+  hideCalTip();
+  closeCtxMenu();
+  var nk = ctxNoteKey(ev);
+  if (!nk) return;
+  CTX_NOTE_KEY = nk;
+  var heading = document.getElementById('note-edit-heading');
+  var sub = document.getElementById('note-edit-sub');
+  var text = document.getElementById('note-edit-text');
+  var cur = (DATA.taskNotes && DATA.taskNotes[nk]) ? String(DATA.taskNotes[nk]) : '';
+  if (heading) heading.textContent = cur ? 'Editar anotación' : 'Añadir anotación';
+  if (sub) sub.textContent = ev.title + (ev.subject ? ' · ' + ev.subject : '');
+  if (text) text.value = cur;
+  var m = document.getElementById('note-edit');
+  if (m) m.classList.add('on');
+  if (text) setTimeout(function(){ text.focus(); }, 0);
+}
+function closeCtxNote(){
+  CTX_NOTE_KEY = null;
+  var m = document.getElementById('note-edit');
+  if (m) m.classList.remove('on');
+}
+function saveCtxNote(){
+  if (!CTX_NOTE_KEY){ closeCtxNote(); return; }
+  var text = document.getElementById('note-edit-text');
+  var v = text ? text.value.trim() : '';
+  DATA.taskNotes = DATA.taskNotes || {};
+  if (v) DATA.taskNotes[CTX_NOTE_KEY] = v;
+  else delete DATA.taskNotes[CTX_NOTE_KEY];
+  closeCtxNote();
+  try { scheduleSave(); } catch(e){}
+  try { render(); } catch(e){}
+  if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
 }
 
 /* ---------- edicion de tareas propias y eventos ---------- */
@@ -1705,29 +1838,29 @@ function localInputFromValue(v){
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s)) return s.slice(0, 16);
   return localInputFromMs(new Date(s).getTime());
 }
-function closeCalEdit(){
-  CAL_EDIT_KEY = null;
-  var m = document.getElementById('cal-edit');
+function closeEditModal(){
+  CTX_EDIT_KEY = null;
+  var m = document.getElementById('edit-modal');
   if (m) m.classList.remove('on');
 }
-function openCalEdit(key){
-  var ev = CAL_EVENTS[key];
+function openEditModal(key){
+  var ev = CTX_EVENTS[key];
   if (!ev) return;
   hideCalTip();
-  closeCalMenu();
-  CAL_EDIT_KEY = key;
+  closeCtxMenu();
+  CTX_EDIT_KEY = key;
 
   var rec = null, editable = false, heading = 'Detalle';
   if (ev.type === 'own'){ rec = findOwnTask(ev.id); editable = !!rec; heading = 'Editar tarea propia'; }
   else if (ev.type === 'custom'){ rec = findCustomEvent(ev.id); editable = !!rec; heading = 'Editar evento'; }
   else heading = ev.type === 'mail' ? 'Aviso de correo' : 'Tarea de Moodle';
 
-  var titleEl = document.getElementById('cal-edit-title');
-  var subjectEl = document.getElementById('cal-edit-subject');
-  var dateEl = document.getElementById('cal-edit-date');
-  var noteEl = document.getElementById('cal-edit-note');
-  var saveEl = document.getElementById('cal-edit-save');
-  var headingEl = document.getElementById('cal-edit-heading');
+  var titleEl = document.getElementById('edit-modal-title');
+  var subjectEl = document.getElementById('edit-modal-subject');
+  var dateEl = document.getElementById('edit-modal-date');
+  var noteEl = document.getElementById('edit-modal-note');
+  var saveEl = document.getElementById('edit-modal-save');
+  var headingEl = document.getElementById('edit-modal-heading');
 
   if (headingEl) headingEl.textContent = heading;
   if (titleEl) titleEl.value = ev.title || '';
@@ -1735,20 +1868,29 @@ function openCalEdit(key){
   if (dateEl) dateEl.value = ev.type === 'custom' && rec ? localInputFromValue(rec.date) : localInputFromMs(ev.datetime);
   [titleEl, subjectEl, dateEl].forEach(function(el){ if (el) el.disabled = !editable; });
   if (saveEl) saveEl.hidden = !editable;
+  var agField = document.getElementById('edit-modal-agenda-field');
+  var agSel = document.getElementById('edit-modal-agenda');
+  if (agField && agSel){
+    var showAg = ev.type === 'custom' && editable;
+    agField.hidden = !showAg;
+    if (showAg) fillAgendaSelect(agSel, (rec && rec.agenda) || ev.agenda || '');
+  }
   if (noteEl){
     noteEl.hidden = editable;
-    noteEl.textContent = editable ? '' : 'Esta tarea viene de Moodle o del correo. Los cambios se realizan en el Aula Virtual; aquí puedes consultar sus datos.';
+    var msg = editable ? '' : 'Esta tarea viene de Moodle o del correo. Los cambios se realizan en el Aula Virtual; aquí puedes consultar sus datos.';
+    if (!editable && ev.link) msg += ' <a href="' + escapeAttr(eventHref(ev.link)) + '" target="_blank" rel="noopener">Abrir en Moodle</a>';
+    noteEl.innerHTML = msg;
   }
-  var m = document.getElementById('cal-edit');
+  var m = document.getElementById('edit-modal');
   if (m) m.classList.add('on');
   if (editable && titleEl) setTimeout(function(){ titleEl.focus(); }, 0);
 }
-function saveCalEdit(){
-  var ev = CAL_EDIT_KEY ? CAL_EVENTS[CAL_EDIT_KEY] : null;
-  if (!ev) { closeCalEdit(); return; }
-  var titleEl = document.getElementById('cal-edit-title');
-  var subjectEl = document.getElementById('cal-edit-subject');
-  var dateEl = document.getElementById('cal-edit-date');
+function saveEditModal(){
+  var ev = CTX_EDIT_KEY ? CTX_EVENTS[CTX_EDIT_KEY] : null;
+  if (!ev) { closeEditModal(); return; }
+  var titleEl = document.getElementById('edit-modal-title');
+  var subjectEl = document.getElementById('edit-modal-subject');
+  var dateEl = document.getElementById('edit-modal-date');
   var title = titleEl ? titleEl.value.trim() : '';
   if (!title){ if (titleEl) titleEl.focus(); return; }
   var subject = subjectEl ? subjectEl.value.trim() : '';
@@ -1756,24 +1898,26 @@ function saveCalEdit(){
 
   if (ev.type === 'own'){
     var own = findOwnTask(ev.id);
-    if (!own) { closeCalEdit(); return; }
+    if (!own) { closeEditModal(); return; }
     own.t = title;
     own.s = subject;
     own.d = datev || null;
     own.p = subjectTeacherFor(subject);
   } else if (ev.type === 'custom'){
     var ce = findCustomEvent(ev.id);
-    if (!ce) { closeCalEdit(); return; }
+    if (!ce) { closeEditModal(); return; }
     ce.title = title;
     ce.subject = subject;
     ce.date = datev;
+    var agSel2 = document.getElementById('edit-modal-agenda');
+    if (agSel2 && agSel2.value) ce.agenda = agSel2.value;
   } else {
-    closeCalEdit();
+    closeEditModal();
     return;
   }
 
-  closeCalEdit();
-  closeCalMenu();
+  closeEditModal();
+  closeCtxMenu();
   hideCalTip();
   try { scheduleSave(); } catch(e){}
   try { render(); } catch(e){}
@@ -1787,7 +1931,6 @@ function renderAgenda(){
   var label = document.getElementById('agenda-month-label');
   var clearBtn = document.getElementById('agenda-clear');
   if (!grid) return;
-  CAL_EVENTS = {};
   hideCalTip();
 
   var map = eventsByDate();
@@ -1890,12 +2033,117 @@ function openAgendaModal(){
   }
   AGENDA_COLOR = '';
   document.querySelectorAll('.agenda-color-dot').forEach(function(x){ x.classList.toggle('on', false); });
+  var agSel = document.getElementById('agenda-ev-agenda');
+  if (agSel) fillAgendaSelect(agSel, firstEnabledAgendaId());
   m.classList.add('on');
 }
 
 function closeAgendaModal(){
   var m = document.getElementById('agenda-modal');
   if (m) m.classList.remove('on');
+}
+
+/* ---------- modulo de agendas en el panel lateral ---------- */
+function agendaRefresh(){
+  try { scheduleSave(); } catch(e){}
+  try { renderAgendaToggles(); } catch(e){}
+  try { renderMiniCalendar(); } catch(e){}
+  if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
+}
+function renderAgendaToggles(){
+  var box = document.getElementById('agendas-toggles');
+  if (!box) return;
+  initAgendas();
+  box.innerHTML = '';
+  var palette = ['#0b57d0','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#64748b'];
+  DATA.agendas.forEach(function(a, idx){
+    var row = document.createElement('div');
+    row.className = 'agenda-toggle' + (a.enabled ? '' : ' off');
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = !!a.enabled;
+    cb.setAttribute('aria-label', 'Mostrar la agenda ' + a.name + ' en el calendario');
+    cb.addEventListener('change', function(){
+      a.enabled = cb.checked;
+      row.classList.toggle('off', !a.enabled);
+      try { scheduleSave(); } catch(e){}
+      try { renderMiniCalendar(); } catch(e){}
+      if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
+      var cnt = document.getElementById('agendas-count');
+      if (cnt) cnt.textContent = agendaCountText();
+    });
+    var sw = document.createElement('i');
+    sw.className = 'swatch';
+    sw.style.background = a.color || palette[idx % palette.length];
+    var nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = a.name;
+    nm.title = a.name;
+    var btns = document.createElement('span');
+    btns.className = 'rowbtns';
+    var ren = document.createElement('button');
+    ren.type = 'button';
+    ren.className = 'del';
+    ren.title = 'Renombrar esta agenda';
+    ren.textContent = 'Renombrar';
+    ren.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); renameAgenda(a.id); });
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'del';
+    del.title = 'Eliminar esta agenda';
+    del.textContent = 'Borrar';
+    del.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); deleteAgenda(a.id); });
+    btns.appendChild(ren);
+    btns.appendChild(del);
+    row.appendChild(cb);
+    row.appendChild(sw);
+    row.appendChild(nm);
+    row.appendChild(btns);
+    box.appendChild(row);
+  });
+  var cnt = document.getElementById('agendas-count');
+  if (cnt) cnt.textContent = agendaCountText();
+}
+function agendaCountText(){
+  initAgendas();
+  var on = DATA.agendas.filter(function(a){ return a.enabled; }).length;
+  return on + '/' + DATA.agendas.length;
+}
+function createAgenda(){
+  initAgendas();
+  var v = prompt('Nombre de la nueva agenda');
+  if (v === null) return;
+  v = String(v).trim();
+  if (!v) return;
+  var palette = ['#0b57d0','#22c55e','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#64748b'];
+  DATA.agendas.push({
+    id: 'ag_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    name: v.slice(0, 60),
+    color: palette[DATA.agendas.length % palette.length],
+    enabled: true
+  });
+  agendaRefresh();
+}
+function renameAgenda(id){
+  var a = agendaById(id);
+  if (!a) return;
+  var v = prompt('Nombre de la agenda', a.name);
+  if (v === null) return;
+  v = String(v).trim();
+  if (!v) return;
+  a.name = v.slice(0, 60);
+  agendaRefresh();
+}
+function deleteAgenda(id){
+  initAgendas();
+  if (DATA.agendas.length <= 1){ alert('Debe quedar al menos una agenda.'); return; }
+  var a = agendaById(id);
+  if (!a) return;
+  if (!confirm('¿Eliminar la agenda "' + a.name + '"? Sus eventos pasarán a la primera agenda.')) return;
+  DATA.agendas = DATA.agendas.filter(function(x){ return x.id !== id; });
+  var fallback = DATA.agendas[0].id;
+  (DATA.customEvents || []).forEach(function(ev){ if (ev && ev.agenda === id) ev.agenda = fallback; });
+  agendaRefresh();
 }
 
 function initAgendaUI(){
@@ -1919,6 +2167,10 @@ function initAgendaUI(){
   document.querySelectorAll('.nav-tab').forEach(function(btn){
     btn.addEventListener('click', function(){ switchView(btn.getAttribute('data-view')); });
   });
+
+  var agNew = document.getElementById('agenda-new');
+  if (agNew) agNew.addEventListener('click', createAgenda);
+  renderAgendaToggles();
 
   /* El minicalendario y la agenda comparten mes: navegar en uno mueve el otro. */
   function goMonth(delta){
@@ -1971,12 +2223,14 @@ function initAgendaUI(){
     var datev = document.getElementById('agenda-ev-date').value;
     var subj = document.getElementById('agenda-ev-subject').value.trim();
     if (!title || !datev){ alert('Pon un título y fecha/hora'); return; }
+    var agSel = document.getElementById('agenda-ev-agenda');
     var ev = {
       id: 'ce_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
       title: title,
       subject: subj,
       date: datev,
-      color: AGENDA_COLOR || ''
+      color: AGENDA_COLOR || '',
+      agenda: (agSel && agSel.value) ? agSel.value : firstEnabledAgendaId()
     };
     if (!Array.isArray(DATA.customEvents)) DATA.customEvents = [];
     DATA.customEvents.push(ev);
@@ -2267,7 +2521,7 @@ document.getElementById('list').addEventListener('click', function(e){
     if (DATA.hide.indexOf(hidId) < 0) DATA.hide.push(hidId);
     delete DATA.pos[hidId];
     delete DATA.colors[hidId];
-    closePanel();
+    closeCtxMenu();
     render();
     scheduleSave();
     return;
@@ -2309,7 +2563,7 @@ document.getElementById('list').addEventListener('click', function(e){
   if (colb){
     var ck = colb.getAttribute('data-color');
     var r = colb.getBoundingClientRect();
-    closePanel();
+    closeCtxMenu();
     openCPalette(ck, Math.round(r.left), Math.round(r.bottom + 6));
     return;
   }
@@ -2348,192 +2602,120 @@ document.getElementById('list').addEventListener('click', function(e){
     return;
   }
 });
-/* ---------- panel de click derecho (orden + color) ---------- */
-function findTask(id){
-  var all = allTasks();
-  for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
-  return null;
-}
-function closePanel(){
-  PANEL_ID = null;
-  document.getElementById('panel').style.display = 'none';
-}
-function openPanel(id, x, y){
-  var t = findTask(id);
-  if (!t) return;
-  PANEL_ID = id;
-  document.getElementById('panel-title').textContent = t.t;
-  var p = document.getElementById('panel');
-  p.style.display = 'block';
-  var w = p.offsetWidth, h = p.offsetHeight;
-  p.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 8)) + 'px';
-  p.style.top = Math.max(8, Math.min(y, window.innerHeight - h - 8)) + 'px';
-  var col = DATA.colors ? DATA.colors[id] : null;
-  document.querySelectorAll('#panel-colors i').forEach(function(el){
-    var v = el.getAttribute('data-color');
-    el.classList.toggle('on', v === (col || ''));
-  });
-  document.querySelectorAll('#panel [data-sort]').forEach(function(b){
-    b.classList.toggle('on', b.getAttribute('data-sort') === (DATA.sort || 'date'));
-  });
-}
 /* Delegado y en fase de captura: se ejecuta antes que cualquier otro handler
-   y sigue funcionando aunque #list se vuelva a pintar (render()). */
+   y sigue funcionando aunque #list se vuelva a pintar (render()).
+   Un único menú contextual para la vista de lista y la de agenda. */
 document.addEventListener('contextmenu', function(e){
-  var calEl = e.target.closest ? e.target.closest('[data-evk]') : null;
-  if (calEl){
+  var evEl = e.target.closest ? e.target.closest('[data-evk]') : null;
+  if (evEl){
     e.preventDefault();
     e.stopPropagation();
-    var calKey = calEl.getAttribute('data-evk');
-    if (calKey) openCalMenu(calKey, e.pageX, e.pageY);
+    var evk = evEl.getAttribute('data-evk');
+    if (evk) openCtxMenu(evk, e.pageX, e.pageY);
     return;
   }
-  var inList = e.target.closest('#list');
   var inCpal = e.target.closest('#cpalette');
   if (inCpal){
     e.preventDefault();
     return;
   }
-  if (!inList) return;
   var head = e.target.closest('.ghead');
   if (head){
     var grp = head.closest('[data-grp]');
     if (grp){
       e.preventDefault();
       e.stopPropagation();
-      closePanel();
+      closeCtxMenu();
       openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
       return;
     }
   }
-  var card = e.target.closest('.card');
-  if (card){
-    var id = card.getAttribute('data-id');
-    if (id){
-      e.preventDefault();
-      e.stopPropagation();
-      closeCPalette();
-      openPanel(id, e.clientX, e.clientY);
-      return;
-    }
-  }
-  e.preventDefault();
+  if (e.target.closest('#list')) e.preventDefault();
 }, true);
 document.addEventListener('click', function(e){
-  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]') && !e.target.closest('.ghead') && !e.target.closest('#panel-subjcolor')) closeCPalette();
-  if (PANEL_ID && !e.target.closest('#panel')) closePanel();
-  if (CAL_MENU_KEY && !e.target.closest('#cal-menu')) closeCalMenu();
+  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]') && !e.target.closest('.ghead')) closeCPalette();
+  if (CTX_MENU_KEY && !e.target.closest('#ctx-menu')) closeCtxMenu();
 });
 document.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){
     if (CP_OPEN) closeCPalette();
-    if (PANEL_ID) closePanel();
-    if (CAL_MENU_KEY) closeCalMenu();
+    if (CTX_MENU_KEY) closeCtxMenu();
     hideCalTip();
-    if (CAL_EDIT_KEY) closeCalEdit();
+    if (CTX_EDIT_KEY) closeEditModal();
+    if (CTX_NOTE_KEY) closeCtxNote();
   }
 });
 window.addEventListener('scroll', function(){
   if (CP_OPEN) closeCPalette();
-  if (PANEL_ID) closePanel();
-  if (CAL_MENU_KEY) closeCalMenu();
+  if (CTX_MENU_KEY) closeCtxMenu();
   hideCalTip();
 });
 window.addEventListener('resize', function(){
-  if (CAL_MENU_KEY) closeCalMenu();
+  if (CTX_MENU_KEY) closeCtxMenu();
   hideCalTip();
 });
 
-document.getElementById('cal-menu').addEventListener('click', function(e){
+document.getElementById('ctx-menu').addEventListener('click', function(e){
   if (e.target.closest('#cm-edit')){
-    var key = CAL_MENU_KEY;
-    closeCalMenu();
-    if (key) openCalEdit(key);
+    var key = CTX_MENU_KEY;
+    closeCtxMenu();
+    if (key) openEditModal(key);
     return;
   }
-  if (e.target.closest('#cm-color')){
-    var colors = document.getElementById('cm-colors');
-    if (colors){
-      colors.classList.toggle('on');
-      clampCalMenu();
-    }
-    return;
-  }
-  var sw = e.target.closest('[data-c]');
-  if (sw){
-    applyCalColor(sw.getAttribute('data-c'));
-    return;
-  }
-  if (e.target.closest('#cm-open')){
-    var ev = calMenuEvent();
-    if (ev && ev.link){
-      window.open(eventHref(ev.link), '_blank', 'noopener');
-    }
-    closeCalMenu();
+  if (e.target.closest('#cm-note')){
+    var nkey = CTX_MENU_KEY;
+    closeCtxMenu();
+    if (nkey) openCtxNote(nkey);
   }
 });
 
-var _calEdit = document.getElementById('cal-edit');
-if (_calEdit){
-  _calEdit.addEventListener('click', function(e){
-    if (e.target === _calEdit) closeCalEdit();
+var _editModal = document.getElementById('edit-modal');
+if (_editModal){
+  _editModal.addEventListener('click', function(e){
+    if (e.target === _editModal) closeEditModal();
   });
 }
-var _calEditClose = document.getElementById('cal-edit-close');
-if (_calEditClose) _calEditClose.addEventListener('click', closeCalEdit);
-var _calEditCancel = document.getElementById('cal-edit-cancel');
-if (_calEditCancel) _calEditCancel.addEventListener('click', closeCalEdit);
-var _calEditSave = document.getElementById('cal-edit-save');
-if (_calEditSave) _calEditSave.addEventListener('click', saveCalEdit);
-var _calEditForm = document.getElementById('cal-edit');
-if (_calEditForm){
-  _calEditForm.addEventListener('keydown', function(e){
+var _editModalClose = document.getElementById('edit-modal-close');
+if (_editModalClose) _editModalClose.addEventListener('click', closeEditModal);
+var _editModalCancel = document.getElementById('edit-modal-cancel');
+if (_editModalCancel) _editModalCancel.addEventListener('click', closeEditModal);
+var _editModalSave = document.getElementById('edit-modal-save');
+if (_editModalSave) _editModalSave.addEventListener('click', saveEditModal);
+var _editModalForm = document.getElementById('edit-modal');
+if (_editModalForm){
+  _editModalForm.addEventListener('keydown', function(e){
     if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT'){
       e.preventDefault();
-      saveCalEdit();
+      saveEditModal();
     }
   });
 }
-document.getElementById('panel').addEventListener('click', function(e){
-  var subjBtn = e.target.closest('#panel-subjcolor');
-  if (subjBtn && PANEL_ID){
-    var pt = findTask(PANEL_ID);
-    var subjName = pt ? (pt.s || 'Sin asignatura') : '';
-    if (subjName){
-      var sr = subjBtn.getBoundingClientRect();
-      closePanel();
-      openCPalette(subjName, Math.round(sr.left), Math.round(sr.bottom + 6));
-    }
-    return;
-  }
-  var sortBtn = e.target.closest('[data-sort]');
-  if (sortBtn){
-    DATA.sort = sortBtn.getAttribute('data-sort');
+var _noteEdit = document.getElementById('note-edit');
+if (_noteEdit){
+  _noteEdit.addEventListener('click', function(e){
+    if (e.target === _noteEdit) closeCtxNote();
+  });
+}
+var _noteEditClose = document.getElementById('note-edit-close');
+if (_noteEditClose) _noteEditClose.addEventListener('click', closeCtxNote);
+var _noteEditCancel = document.getElementById('note-edit-cancel');
+if (_noteEditCancel) _noteEditCancel.addEventListener('click', closeCtxNote);
+var _noteEditSave = document.getElementById('note-edit-save');
+if (_noteEditSave) _noteEditSave.addEventListener('click', saveCtxNote);
+
+var _barOrder = document.getElementById('bar-order');
+if (_barOrder) _barOrder.addEventListener('change', function(){
+  var v = _barOrder.value;
+  if (v === 'clear'){
     DATA.pos = {};
-    render();
-    scheduleSave();
-    if (PANEL_ID) openPanel(PANEL_ID, parseInt(document.getElementById('panel').style.left, 10), parseInt(document.getElementById('panel').style.top, 10));
-    return;
+    DATA.gord = {};
+    _barOrder.value = (DATA.sort === 'date-desc' || DATA.sort === 'title') ? DATA.sort : 'date';
+  } else {
+    DATA.sort = v;
+    DATA.pos = {};
   }
-  var moveBtn = e.target.closest('[data-move]');
-  if (moveBtn && PANEL_ID){
-    if (moveBtn.getAttribute('data-move') === 'clear'){
-      DATA.pos = {};
-      DATA.gord = {};
-      render();
-      scheduleSave();
-    }
-    return;
-  }
-  var sw = e.target.closest('[data-color]');
-  if (sw && PANEL_ID){
-    var v = sw.getAttribute('data-color');
-    DATA.colors = DATA.colors || {};
-    if (v) DATA.colors[PANEL_ID] = v; else delete DATA.colors[PANEL_ID];
-    render();
-    scheduleSave();
-    openPanel(PANEL_ID, parseInt(document.getElementById('panel').style.left, 10), parseInt(document.getElementById('panel').style.top, 10));
-  }
+  try { render(); } catch(e){}
+  try { scheduleSave(); } catch(e){}
 });
 /* ---------- arrastrar y soltar (tareas dentro da asignatura e asignaturas) ---------- */
 var DRAG = null, justDragged = false, dragLp = null;
@@ -3204,6 +3386,29 @@ function drawCharts(){
 /* ---------- orden de los modulos del panel lateral (arrastrar y soltar) ---------- */
 var CHART_KEYS = ['tasks', 'grades'];
 var SIDE_ORDER_KEY = 'av-side-order';
+var PREFERRED_SIDE_ORDER = ['calendar', 'agendas', 'chart-tasks', 'chart-grades'];
+
+/* Inserta módulos que no estaban en el orden guardado (p. ej. «agendas»)
+   en su posición preferida en lugar de dejarlos al final. */
+function insertByPreferred(order, keys){
+  keys.forEach(function(k){
+    if (order.indexOf(k) !== -1) return;
+    var idx = PREFERRED_SIDE_ORDER.indexOf(k);
+    if (idx === -1){ order.push(k); return; }
+    var at = -1, before = -1, i;
+    for (i = idx - 1; i >= 0 && at === -1; i--){
+      var p = order.indexOf(PREFERRED_SIDE_ORDER[i]);
+      if (p !== -1) at = p;
+    }
+    for (i = idx + 1; i < PREFERRED_SIDE_ORDER.length && before === -1; i++){
+      var q = order.indexOf(PREFERRED_SIDE_ORDER[i]);
+      if (q !== -1) before = q;
+    }
+    if (at !== -1) order.splice(at + 1, 0, k);
+    else if (before !== -1) order.splice(before, 0, k);
+    else order.push(k);
+  });
+}
 
 /* Devuelve siempre un orden válido y completo: ['tasks','grades'] o ['grades','tasks']. */
 function normalizeChartOrder(order){
@@ -3273,10 +3478,8 @@ function applySideOrder(){
     });
     domKeys.forEach(function(k){ if (k && order.indexOf(k) === -1) order.push(k); });
   }
-  boxes.forEach(function(b){
-    var k = moduleKey(b);
-    if (k && order.indexOf(k) === -1) order.push(k);
-  });
+  var missing = boxes.map(moduleKey).filter(function(k){ return k && order.indexOf(k) === -1; });
+  insertByPreferred(order, missing);
 
   var frag = document.createDocumentFragment();
   order.forEach(function(k){ if (byKey[k]) frag.appendChild(byKey[k]); });

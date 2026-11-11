@@ -7,7 +7,7 @@ try {
 
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'] };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {} };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 const CHART_KEYS = ['tasks', 'grades'];
@@ -46,7 +46,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice() };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {} };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -167,8 +167,35 @@ function sanitize(input) {
         title: title,
         subject: str(ev.subject, 250),
         date: date,
-        color: HEX_RE.test(color) ? color.toLowerCase() : ''
+        color: HEX_RE.test(color) ? color.toLowerCase() : '',
+        agenda: str(ev.agenda, 60)
       });
+    });
+  }
+  /* Agendas múltiples (estilo TimeTree): id, nombre, color y visibilidad. */
+  if (Array.isArray(input.agendas)) {
+    const seenAg = [];
+    input.agendas.slice(0, 20).forEach(function (a) {
+      if (!a || typeof a !== 'object') return;
+      const id = str(a.id, 60).trim();
+      const name = str(a.name, 60).trim();
+      if (!id || !name || seenAg.indexOf(id) !== -1) return;
+      seenAg.push(id);
+      const color = str(a.color, 7).trim();
+      out.agendas.push({
+        id: id,
+        name: name,
+        color: HEX_RE.test(color) ? color.toLowerCase() : '#64748b',
+        enabled: a.enabled !== false
+      });
+    });
+  }
+  /* Anotaciones propias por tarea (clave = id de la tarea o composición). */
+  if (input.taskNotes && typeof input.taskNotes === 'object' && !Array.isArray(input.taskNotes)) {
+    Object.keys(input.taskNotes).slice(0, 300).forEach(function (k) {
+      const key = str(k, 120);
+      const val = str(input.taskNotes[k], 2000);
+      if (key && val.trim()) out.taskNotes[key] = val;
     });
   }
   /* Orden de las tarjetas de diagramas (arrastrar y soltar). */
