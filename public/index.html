@@ -25,6 +25,9 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
 .wrap{max-width:1240px;margin:0 auto;padding:24px 16px 64px;display:grid;grid-template-columns:292px minmax(0,1fr);gap:22px;align-items:start}
+/* En la vista de agenda la columna de contenido gana ancho: las celdas de los
+   dias crecen y respiran mejor sin ocultar el panel izquierdo. */
+.wrap.agenda-mode{max-width:1560px}
 .content{min-width:0}
 header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 h1{font-size:24px;margin:0;color:var(--head)}
@@ -37,21 +40,17 @@ h1{font-size:24px;margin:0;color:var(--head)}
 .sw.g{background:var(--green);border-color:var(--greenb)}
 h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px;display:flex;justify-content:space-between;align-items:center}
 h2 .n{font-weight:600;opacity:.8}
-.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:14px;min-height:78px;text-decoration:none;color:inherit;transition:transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), opacity var(--fast) var(--ease)}
-.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.14)}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background-color var(--fast) var(--ease), border-color var(--fast) var(--ease), opacity var(--fast) var(--ease)}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.13)}
 .card.soon{background:var(--red);border-color:var(--redb)}
 .card.mid{background:var(--yellow);border-color:var(--yellowb)}
 .card.ok{background:var(--green);border-color:var(--greenb)}
-.card .t{font-weight:600;font-size:17px;line-height:1.35}
-.card .d{color:var(--muted);font-size:14px;line-height:1.45;margin-top:6px}
-.card .cd{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;font-size:15.5px;white-space:nowrap}
+.card .t{font-weight:600;font-size:15.5px}
+.card .d{color:var(--muted);font-size:13px;margin-top:3px}
+.card .cd{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;white-space:nowrap}
 .card .tnote{display:flex;gap:6px;align-items:flex-start;margin-top:8px;padding:7px 10px;border:1px dashed var(--line);border-radius:10px;background:var(--bg);color:var(--muted);font-size:13px;line-height:1.4}
 .card .tnote .ic{flex:0 0 auto;margin-top:2px}
-.row{display:flex;gap:14px;align-items:center;justify-content:space-between}
-@media (max-width: 560px){
-  .card{padding:14px 16px;min-height:70px}
-  .card .t{font-size:16px}
-}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
 .cd.soon{color:#c62828}.cd.mid{color:#8a6400}.cd.ok{color:#0d7a45}
 @media (prefers-color-scheme: dark){ .cd.soon{color:#ff8a80}.cd.mid{color:#ffce55}.cd.ok{color:#5ad69a} }
 #bar{display:flex;gap:10px;align-items:center;margin:16px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
@@ -115,7 +114,7 @@ body.dragging{user-select:none;-webkit-user-select:none}
 .card.done{opacity:.62;background:rgba(128,138,150,.1);border-color:rgba(128,138,150,.35)}
 .card.done .t{text-decoration:line-through}
 .cd.done{color:#0d7a45;font-weight:700}
-.done-tag{font-size:12px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:8px;padding:1px 7px;margin-left:8px;vertical-align:middle}
+.done-tag{font-size:11px;font-weight:600;color:#0d7a45;border:1px solid rgba(20,150,80,.5);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
 #donetoggle.on{border-color:var(--accent);color:var(--accent)}
 .cd.old{color:#6b7480}
 @media (prefers-color-scheme: dark){ .cd.old{color:#9aa4b0} }
@@ -159,9 +158,9 @@ button.del .ic{margin-right:0}
 .sw.auto{background:linear-gradient(135deg,var(--red) 33%,var(--yellow) 33%,var(--yellow) 66%,var(--green) 66%)}
 .card .t a{color:inherit;text-decoration:none}
 .card .t a:hover{text-decoration:underline}
-.own-tag{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:1px 7px;margin-left:8px;vertical-align:middle}
-.mail-tag{font-size:12px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:8px;padding:1px 7px;margin-left:8px;vertical-align:middle}
-button.del{font-size:13.5px;padding:4px 10px;color:var(--muted)}
+.own-tag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
+.mail-tag{font-size:11px;font-weight:600;color:var(--accent);border:1px dashed var(--accent);border-radius:8px;padding:0 5px;margin-left:8px;vertical-align:middle}
+button.del{font-size:13px;padding:1px 8px;color:var(--muted)}
 button.del:hover{border-color:#c62828;color:#c62828}
 #savest{font-size:12px;color:var(--muted)}
 #side{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
@@ -309,6 +308,27 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .agenda-title { font-size: 18px; font-weight: 600; color: var(--head); }
 .agenda-sub { color: var(--muted); font-size: 13px; text-transform: capitalize; }
 .agenda-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Conmutador visual de agendas dentro de la vista de agenda. */
+#agenda-switcher { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.agenda-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--fg);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--fast) var(--ease), opacity var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.agenda-chip:hover { border-color: var(--accent); }
+.agenda-chip .dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); }
+.agenda-chip.off { opacity: .5; background: transparent; }
+.agenda-chip.on { border-color: var(--accent); background: rgba(11,87,208,.08); }
+.agenda-chip.all { font-weight: 600; }
 .agenda-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; align-items: start; }
 @media (max-width:1100px) { .agenda-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width:720px) { .agenda-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -358,17 +378,19 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .agenda-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
 
 /* ---------- calendario mensual: celdas cuadradas e indicadores ---------- */
-.agenda-grid.month-view { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.agenda-grid.month-view { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .agenda-grid.month-view .agenda-col {
   aspect-ratio: 1 / 1;
   min-height: 0;
-  padding: 8px 9px;
-  gap: 4px;
+  padding: 11px 12px;
+  gap: 5px;
   overflow: hidden;
 }
 .agenda-grid.month-view .agenda-col-head { flex: 0 0 auto; }
+.agenda-grid.month-view .agenda-col-day { font-size: 13.5px; }
+.agenda-grid.month-view .agenda-col-date { font-size: 12.5px; }
 .agenda-grid.month-view .agenda-col-count { display: none; }
-.agenda-grid.month-view .agenda-list { flex: 1 1 auto; gap: 2px; overflow: hidden; }
+.agenda-grid.month-view .agenda-list { flex: 1 1 auto; gap: 3px; overflow: hidden; }
 .agenda-grid.month-view .agenda-empty { display: none; }
 
 .cal-chip {
@@ -396,9 +418,18 @@ button.del:hover{border-color:#c62828;color:#c62828}
   height: 7px;
   border-radius: 50%;
   box-shadow: 0 0 0 2px var(--card);
+  transition: transform var(--fast) var(--ease);
 }
+.cal-chip:hover .cal-dot,
+.cal-chip:focus-visible .cal-dot { transform: scale(1.25); }
 .cal-chip-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal-more { padding: 1px 4px; color: var(--muted); font-size: 10.5px; }
+
+/* Indicador estatico: en el mes solo se ve el punto; la tarea completa se
+   despliega en el panel flotante al pasar el raton (ver #cal-tip). */
+.agenda-grid.month-view .cal-chip { padding: 3px 5px; gap: 5px; }
+.agenda-grid.month-view .cal-chip-t { display: none; }
+.agenda-grid.month-view .cal-dot { width: 8px; height: 8px; }
 
 @media (max-width: 720px) {
   .agenda-grid.month-view { gap: 4px; }
@@ -439,8 +470,9 @@ button.del:hover{border-color:#c62828;color:#c62828}
 .cal-tip-row { color: var(--muted); font-size: 11.5px; overflow-wrap: anywhere; }
 .cal-tip-tag { align-self: flex-start; margin-top: 2px; padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 10.5px; }
 
-/* ---------- menu contextual unificado (lista y agenda) ---------- */
-#ctx-menu {
+/* ---------- menu contextual (tareas) y menu de dia (agenda) ---------- */
+#ctx-menu,
+#day-menu {
   display: none;
   position: absolute;
   z-index: 140;
@@ -452,7 +484,8 @@ button.del:hover{border-color:#c62828;color:#c62828}
   box-shadow: 0 16px 38px rgba(0,0,0,.32);
   font-size: 13px;
 }
-#ctx-menu.on { display: block; }
+#ctx-menu.on,
+#day-menu.on { display: block; }
 .cm-head { padding: 4px 6px 8px; border-bottom: 1px solid var(--line); }
 .cm-title { font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cm-sub { margin-top: 2px; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -581,6 +614,15 @@ button.del:hover{border-color:#c62828;color:#c62828}
   </div>
   <button type="button" class="cm-btn" id="cm-edit" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Editar</button>
   <button type="button" class="cm-btn" id="cm-note" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"></use></svg>Añadir anotación</button>
+  <button type="button" class="cm-btn" id="cm-color" role="menuitem" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-palette"></use></svg>Cambiar color</button>
+</div>
+
+<div id="day-menu" role="menu" aria-label="Acciones del día">
+  <div class="cm-head">
+    <div class="cm-title" id="dm-title"></div>
+    <div class="cm-sub" id="dm-sub"></div>
+  </div>
+  <button type="button" class="cm-btn" id="dm-create" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"></use></svg>Crear tarea</button>
 </div>
 <div id="gate">
   <form id="gate-form" autocomplete="off">
@@ -690,9 +732,11 @@ button.del:hover{border-color:#c62828;color:#c62828}
         <button type="button" id="agenda-today">Hoy</button>
         <button type="button" id="agenda-next">Mes siguiente<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
         <button type="button" id="agenda-clear" class="agenda-clear" hidden>Ver todo el mes</button>
+        <button type="button" id="agenda-create">Crear agenda</button>
         <button type="button" id="agenda-add">+ Añadir evento personalizado</button>
       </div>
     </div>
+    <div id="agenda-switcher"></div>
     <div class="agenda-grid" id="agenda-grid"></div>
   </div>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -708,6 +752,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
     <g id="i-pencil"><path d="M4 20h4L20 8a2.83 2.83 0 0 0-4-4L4 16v4z"/><path d="M14 6l4 4"/></g>
     <g id="i-note"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7.5h8"/><path d="M8 12h8"/><path d="M8 16.5h5"/></g>
     <g id="i-grip"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></g>
+    <g id="i-palette"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.6-1.4-.4-.4-.6-.9-.6-1.4 0-1.1.9-2 2-2h1.6A5 5 0 0 0 21 9c0-3.5-4-6-9-6z"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1.1" fill="currentColor" stroke="none"/></g>
   </defs></svg>
   <main id="list"></main>
   <div id="cpalette">
@@ -809,7 +854,7 @@ button.del:hover{border-color:#c62828;color:#c62828}
     </div>
   </div>
 
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En lista y en agenda, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b> y <b>Añadir anotación</b> (una nota propia por tarea que se muestra en la tarjeta y al pasar el cursor). En <b>Agenda</b>, las celdas de los días son cuadradas y las tareas aparecen como indicadores: pasa el cursor sobre uno para ver la información completa en un panel flotante. El módulo <b>Agendas</b> del panel izquierdo permite crear agendas independientes (Instituto, Rutina diaria, Personal…) y activar o desactivar cuáles se superponen en el calendario, con un color por agenda. Los módulos del panel izquierdo se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b>, <b>Añadir anotación</b> y <b>Cambiar color</b> (una nota propia por tarea que se muestra en la tarjeta y al pasar el cursor). En <b>Agenda</b>, las celdas de los días son cuadradas y más amplias: el <b>clic derecho</b> sobre el espacio libre de un día abre un menú con <b>Crear tarea</b> para ese día, y las tareas aparecen como pequeños indicadores que se despliegan completos al pasar el cursor. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) sin depender de las asignaturas, y el conmutador situado bajo la barra de herramientas alterna visualmente entre ellas; el módulo <b>Agendas</b> del panel izquierdo también permite crearlas y activar o desactivar cuáles se superponen en el calendario, con un color por agenda. Los módulos del panel izquierdo se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
   </div>
 </div>
 <script>
@@ -1073,7 +1118,6 @@ function render(){
       '" type="button" data-note="' + esc(k) + '" title="Anotación de texto libre de esta asignatura">' + icon('pencil') + 'Anotación</button>' +
       '<button class="mini' + (examOpen ? ' on' : '') +
       '" type="button" data-exams="' + esc(k) + '" title="Ver y editar los exámenes de esta asignatura">' + icon('plus') + 'Exámenes</button>' +
-      '<button class="mini" type="button" data-color="' + esc(k) + '" title="Cambiar el color de esta asignatura">' + icon('pencil') + 'Color' + (sc ? '<i class="gsw" style="background:' + escapeAttr(sc.c) + '"></i>' : '') + '</button>' +
       (ga !== null ? '<span class="gavg" title="' + escapeAttr(gradeTip(k)) + '">' + fmtGrade(ga) + ' (' + gl.length + ')</span>' : '') +
       '<span class="n">' + items.length + '</span></span></h2>';
     if (noteOpen){
@@ -1614,10 +1658,12 @@ function switchView(mode){
   var ag = document.getElementById('agenda-view');
   var legend = document.querySelector('.legend');
   var gnotes = document.getElementById('gnotes');
+  var wrap = document.querySelector('.wrap');
   if (list) list.style.display = showAgenda ? 'none' : '';
   if (legend) legend.style.display = showAgenda ? 'none' : '';
   if (gnotes) gnotes.style.display = showAgenda ? 'none' : '';
   if (ag) ag.classList.toggle('on', showAgenda);
+  if (wrap) wrap.classList.toggle('agenda-mode', showAgenda);
   if (showAgenda) renderAgenda();
   else { try { render(); } catch(e){} }
   renderMiniCalendar();
@@ -1753,7 +1799,7 @@ function closeCtxMenu(){
   var m = document.getElementById('ctx-menu');
   if (m) m.classList.remove('on');
 }
-function openCtxMenu(key, x, y){
+function openCtxMenu(key, x, y, withColor){
   var ev = CTX_EVENTS[key];
   if (!ev) return;
   hideCalTip();
@@ -1763,6 +1809,10 @@ function openCtxMenu(key, x, y){
   var kind = ev.type === 'custom' ? 'Evento' : (ev.type === 'own' ? 'Tarea propia' : (ev.type === 'mail' ? 'Correo' : 'Moodle'));
   document.getElementById('cm-title').textContent = ev.title;
   document.getElementById('cm-sub').textContent = (ev.subject ? ev.subject + ' · ' : '') + kind;
+
+  /* La opcion «Cambiar color» solo se muestra en la vista de lista. */
+  var colorBtn = document.getElementById('cm-color');
+  if (colorBtn) colorBtn.hidden = !withColor;
 
   var m = document.getElementById('ctx-menu');
   m.classList.add('on');
@@ -1927,6 +1977,7 @@ function saveEditModal(){
 
 
 function renderAgenda(){
+  try { renderAgendaSwitcher(); } catch(e){}
   var grid = document.getElementById('agenda-grid');
   var label = document.getElementById('agenda-month-label');
   var clearBtn = document.getElementById('agenda-clear');
@@ -1948,6 +1999,7 @@ function renderAgenda(){
       var evs = map[isoDay] || [];
       var col = document.createElement('div');
       col.className = 'agenda-col';
+      col.setAttribute('data-iso', isoDay);
       if (isoDay === toISODate(new Date())) col.classList.add('is-today');
       col.innerHTML = '<div class="agenda-col-head"><span class="agenda-col-day">' +
         day.toLocaleDateString('es-ES', { weekday: 'long' }) +
@@ -1979,6 +2031,7 @@ function renderAgenda(){
     var iso = toISODate(d);
     var col = document.createElement('div');
     col.className = 'agenda-col';
+    col.setAttribute('data-iso', iso);
     if (iso === todayIso) col.classList.add('is-today');
     if (d.getMonth() !== base.getMonth()) col.style.opacity = '.6';
     col.innerHTML = '<div class="agenda-col-head" data-iso="' + iso + '" title="Ver solo este día"><span class="agenda-col-day">' +
@@ -1988,7 +2041,7 @@ function renderAgenda(){
 
     var listEl = col.querySelector('.agenda-list');
     var dayEvents = map[iso] || [];
-    var maxChips = 3;
+    var maxChips = 4;
     dayEvents.slice(0, maxChips).forEach(function(ev, ei){
       listEl.appendChild(agendaItemEl(ev, true, ei));
     });
@@ -2012,7 +2065,7 @@ function renderAgenda(){
   bindCalendarHover();
 }
 
-function openAgendaModal(){
+function openAgendaModal(iso){
   var m = document.getElementById('agenda-modal');
   if (!m) return;
   var t = document.getElementById('agenda-ev-title');
@@ -2020,7 +2073,10 @@ function openAgendaModal(){
   if (t) t.value = '';
   if (s) s.value = '';
   var d = new Date();
-  if (AGENDA_FILTER_DATE) {
+  if (iso){
+    var p = String(iso).split('-');
+    if (p.length === 3) d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), 9, 0);
+  } else if (AGENDA_FILTER_DATE) {
     var parts = AGENDA_FILTER_DATE.split('-');
     if (parts.length === 3) d = new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]), 9, 0);
   }
@@ -2050,6 +2106,45 @@ function agendaRefresh(){
   try { renderMiniCalendar(); } catch(e){}
   if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
 }
+/* Conmutador visual de agendas dentro de la propia vista de agenda:
+   permite alternar entre calendarios independientes de un vistazo. */
+function renderAgendaSwitcher(){
+  var box = document.getElementById('agenda-switcher');
+  if (!box) return;
+  initAgendas();
+  box.innerHTML = '';
+  DATA.agendas.forEach(function(a){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'agenda-chip ' + (a.enabled ? 'on' : 'off');
+    b.setAttribute('data-agenda', a.id);
+    b.setAttribute('aria-pressed', a.enabled ? 'true' : 'false');
+    b.title = (a.enabled ? 'Ocultar' : 'Mostrar') + ' la agenda «' + a.name + '»';
+    var dot = document.createElement('i');
+    dot.className = 'dot';
+    dot.style.background = a.color || '#64748b';
+    var nm = document.createElement('span');
+    nm.textContent = a.name;
+    b.appendChild(dot);
+    b.appendChild(nm);
+    b.addEventListener('click', function(){
+      a.enabled = !a.enabled;
+      agendaRefresh();
+    });
+    box.appendChild(b);
+  });
+  var all = document.createElement('button');
+  all.type = 'button';
+  all.className = 'agenda-chip all';
+  all.textContent = 'Todas';
+  all.title = 'Activar todas las agendas';
+  all.addEventListener('click', function(){
+    initAgendas();
+    DATA.agendas.forEach(function(a){ a.enabled = true; });
+    agendaRefresh();
+  });
+  box.appendChild(all);
+}
 function renderAgendaToggles(){
   var box = document.getElementById('agendas-toggles');
   if (!box) return;
@@ -2069,6 +2164,7 @@ function renderAgendaToggles(){
       try { scheduleSave(); } catch(e){}
       try { renderMiniCalendar(); } catch(e){}
       if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
+      else { try { renderAgendaSwitcher(); } catch(e){} }
       var cnt = document.getElementById('agendas-count');
       if (cnt) cnt.textContent = agendaCountText();
     });
@@ -2170,6 +2266,8 @@ function initAgendaUI(){
 
   var agNew = document.getElementById('agenda-new');
   if (agNew) agNew.addEventListener('click', createAgenda);
+  var agCreate = document.getElementById('agenda-create');
+  if (agCreate) agCreate.addEventListener('click', createAgenda);
   renderAgendaToggles();
 
   /* El minicalendario y la agenda comparten mes: navegar en uno mueve el otro. */
@@ -2559,14 +2657,6 @@ document.getElementById('list').addEventListener('click', function(e){
     }
     return;
   }
-  var colb = e.target.closest('[data-color]');
-  if (colb){
-    var ck = colb.getAttribute('data-color');
-    var r = colb.getBoundingClientRect();
-    closeCtxMenu();
-    openCPalette(ck, Math.round(r.left), Math.round(r.bottom + 6));
-    return;
-  }
   var eadd = e.target.closest('[data-examadd]');
   if (eadd){
     var ak = eadd.getAttribute('data-examadd');
@@ -2602,16 +2692,45 @@ document.getElementById('list').addEventListener('click', function(e){
     return;
   }
 });
+/* ---------- menu de dia: clic derecho sobre una celda de la agenda ---------- */
+var DAY_MENU_ISO = null;
+function closeDayMenu(){
+  DAY_MENU_ISO = null;
+  var m = document.getElementById('day-menu');
+  if (m) m.classList.remove('on');
+}
+function openDayMenu(iso, x, y){
+  if (!iso) return;
+  closeCtxMenu();
+  DAY_MENU_ISO = iso;
+  var d = parseISODate(iso);
+  var t = document.getElementById('dm-title');
+  var s = document.getElementById('dm-sub');
+  if (t) t.textContent = d ? d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : iso;
+  if (s) s.textContent = 'Añadir algo directamente a este día';
+  var m = document.getElementById('day-menu');
+  m.classList.add('on');
+  var w = m.offsetWidth, h = m.offsetHeight;
+  var vw = document.documentElement.clientWidth || window.innerWidth;
+  var vh = document.documentElement.clientHeight || window.innerHeight;
+  m.style.left = Math.max(window.scrollX + 8, Math.min(x, window.scrollX + vw - w - 8)) + 'px';
+  m.style.top = Math.max(window.scrollY + 8, Math.min(y, window.scrollY + vh - h - 8)) + 'px';
+  var b = document.getElementById('dm-create');
+  if (b) b.focus();
+}
+
 /* Delegado y en fase de captura: se ejecuta antes que cualquier otro handler
    y sigue funcionando aunque #list se vuelva a pintar (render()).
-   Un único menú contextual para la vista de lista y la de agenda. */
+   Gestiona los chips de la agenda, la cabecera de asignatura y las zonas
+   neutras; las tareas de la lista tienen su propio listener más abajo. */
 document.addEventListener('contextmenu', function(e){
+  if (e.target.closest && e.target.closest('#list .card')) return;
   var evEl = e.target.closest ? e.target.closest('[data-evk]') : null;
   if (evEl){
     e.preventDefault();
     e.stopPropagation();
     var evk = evEl.getAttribute('data-evk');
-    if (evk) openCtxMenu(evk, e.pageX, e.pageY);
+    if (evk) openCtxMenu(evk, e.pageX, e.pageY, false);
     return;
   }
   var inCpal = e.target.closest('#cpalette');
@@ -2626,20 +2745,52 @@ document.addEventListener('contextmenu', function(e){
       e.preventDefault();
       e.stopPropagation();
       closeCtxMenu();
+      closeDayMenu();
       openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
       return;
     }
   }
   if (e.target.closest('#list')) e.preventDefault();
 }, true);
+
+/* Clic derecho SOLO sobre las tareas de la vista de lista: panel flotante
+   posicionado en el ratón (pageX / pageY) con la opción «Cambiar color». */
+var _listEl = document.getElementById('list');
+if (_listEl) _listEl.addEventListener('contextmenu', function(e){
+  var card = e.target.closest ? e.target.closest('.card') : null;
+  if (!card) return;
+  var evk = card.getAttribute('data-evk');
+  if (!evk) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openCtxMenu(evk, e.pageX, e.pageY, true);
+});
+
+/* Clic derecho sobre el espacio libre de una celda de la agenda. */
+var _agendaGrid = document.getElementById('agenda-grid');
+if (_agendaGrid) _agendaGrid.addEventListener('contextmenu', function(e){
+  if (e.target.closest && e.target.closest('[data-evk]')) return;
+  var col = e.target.closest ? e.target.closest('.agenda-col') : null;
+  if (!col) return;
+  var iso = col.getAttribute('data-iso');
+  if (!iso) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openDayMenu(iso, e.pageX, e.pageY);
+});
+
 document.addEventListener('click', function(e){
-  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('[data-color]') && !e.target.closest('.ghead')) closeCPalette();
+  /* Al pulsar «Cambiar color» del menú contextual la paleta se abre en el mismo
+     ciclo de clic: no se cierra si el origen sigue dentro del menú. */
+  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('.ghead') && !e.target.closest('#ctx-menu')) closeCPalette();
   if (CTX_MENU_KEY && !e.target.closest('#ctx-menu')) closeCtxMenu();
+  if (DAY_MENU_ISO && !e.target.closest('#day-menu')) closeDayMenu();
 });
 document.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){
     if (CP_OPEN) closeCPalette();
     if (CTX_MENU_KEY) closeCtxMenu();
+    if (DAY_MENU_ISO) closeDayMenu();
     hideCalTip();
     if (CTX_EDIT_KEY) closeEditModal();
     if (CTX_NOTE_KEY) closeCtxNote();
@@ -2648,10 +2799,12 @@ document.addEventListener('keydown', function(e){
 window.addEventListener('scroll', function(){
   if (CP_OPEN) closeCPalette();
   if (CTX_MENU_KEY) closeCtxMenu();
+  if (DAY_MENU_ISO) closeDayMenu();
   hideCalTip();
 });
 window.addEventListener('resize', function(){
   if (CTX_MENU_KEY) closeCtxMenu();
+  if (DAY_MENU_ISO) closeDayMenu();
   hideCalTip();
 });
 
@@ -2666,7 +2819,32 @@ document.getElementById('ctx-menu').addEventListener('click', function(e){
     var nkey = CTX_MENU_KEY;
     closeCtxMenu();
     if (nkey) openCtxNote(nkey);
+    return;
   }
+  if (e.target.closest('#cm-color')){
+    var ckey = CTX_MENU_KEY;
+    var cbtn = document.getElementById('cm-color');
+    var crect = cbtn ? cbtn.getBoundingClientRect() : null;
+    closeCtxMenu();
+    if (ckey) openTaskColor(ckey, crect);
+  }
+});
+
+/* Abre la paleta de color de la asignatura de la tarea elegida. */
+function openTaskColor(key, rect){
+  var ev = CTX_EVENTS[key];
+  if (!ev) return;
+  var subj = ev.subject || 'Sin asignatura';
+  var x = rect ? Math.round(rect.left) : 24;
+  var y = rect ? Math.round(rect.bottom + 6) : 24;
+  openCPalette(subj, x, y);
+}
+
+document.getElementById('day-menu').addEventListener('click', function(e){
+  if (!e.target.closest('#dm-create')) return;
+  var iso = DAY_MENU_ISO;
+  closeDayMenu();
+  if (iso) openAgendaModal(iso);
 });
 
 var _editModal = document.getElementById('edit-modal');
