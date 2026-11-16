@@ -2,25 +2,28 @@ import handlerData from './api/data.js';
 import handlerTasks from './api/tasks.js';
 import handlerEmails from './api/emails.js';
 
-function unauthorized(resHeaders) {
-  const headers = new Headers(resHeaders);
-  return new Response('401 Unauthorized', { status: 401, headers });
-}
+/* La autenticacion no se resuelve aqui: cada funcion de api/*.js comprueba
+   cabecera X-Moodle-Token (pantalla de acceso) o Basic (antiguo). Si este
+   worker volviera a exigir Basic por su cuenta, la entrada con token de
+   Moodle devolveria siempre 401 y la app mostraria "El token no es valido
+   o ha caducado". */
 
-function checkAuth(request, env) {
-  const user = env.AUTH_USER;
-  const pass = env.AUTH_PASS;
-  if (!user || !pass) return false;
-  const header = request.headers.get('authorization') || '';
-  if (!header.startsWith('Basic ')) return false;
-  try {
-    const decoded = atob(header.slice(6));
-    const idx = decoded.indexOf(':');
-    if (idx < 0) return false;
-    return decoded.slice(0, idx) === user && decoded.slice(idx + 1) === pass;
-  } catch {
-    return false;
-  }
+/* Secrets del despliegue hacia process.env, que es donde api/*.js los lee.
+   Solo las claves definidas: asignar undefined a process.env deja el texto
+   "undefined" y romperia el acceso heredado con Basic. */
+function copiarEnv(env) {
+  [
+    'AUTH_USER',
+    'AUTH_PASS',
+    'MOODLE_TOKEN',
+    'COMPOSIO_API_KEY',
+    'COMPOSIO_USER_ID',
+    'BLOB_READ_WRITE_TOKEN',
+    'UPSTASH_REDIS_REST_URL',
+    'UPSTASH_REDIS_REST_TOKEN'
+  ].forEach(function (clave) {
+    if (env[clave] !== undefined && env[clave] !== null) process.env[clave] = String(env[clave]);
+  });
 }
 
 async function toNodeReqRes(request, env) {
@@ -85,22 +88,11 @@ export default {
     
     if (url.pathname.startsWith('/api/')) {
       const path = url.pathname.replace('/api/', '').replace(/\/$/, '');
-      
-      if (path === 'data' || path === 'tasks') {
-        if (!checkAuth(request, env)) {
-          return new Response('401 Unauthorized', { status: 401 });
-        }
-      }
-      
+
       try {
         if (path === 'data') {
           const { req, res, getResponse } = await toNodeReqRes(request, env);
-          process.env.AUTH_USER = env.AUTH_USER;
-          process.env.AUTH_PASS = env.AUTH_PASS;
-          process.env.MOODLE_TOKEN = env.MOODLE_TOKEN;
-          process.env.COMPOSIO_API_KEY = env.COMPOSIO_API_KEY;
-          process.env.COMPOSIO_USER_ID = env.COMPOSIO_USER_ID;
-          process.env.BLOB_READ_WRITE_TOKEN = env.BLOB_READ_WRITE_TOKEN;
+          copiarEnv(env);
           if (env.DATA) {
             process.env.DATA = env.DATA;
             process.env.__CF_KV_DATA__ = env.DATA;
@@ -118,21 +110,16 @@ export default {
         
         if (path === 'tasks') {
           const { req, res, getResponse } = await toNodeReqRes(request, env);
-          process.env.AUTH_USER = env.AUTH_USER;
-          process.env.AUTH_PASS = env.AUTH_PASS;
-          process.env.MOODLE_TOKEN = env.MOODLE_TOKEN;
-          
+          copiarEnv(env);
+
           await handlerTasks(req, res);
           return getResponse();
         }
-        
+
         if (path === 'emails') {
           const { req, res, getResponse } = await toNodeReqRes(request, env);
-          process.env.AUTH_USER = env.AUTH_USER;
-          process.env.AUTH_PASS = env.AUTH_PASS;
-          process.env.COMPOSIO_API_KEY = env.COMPOSIO_API_KEY;
-          process.env.COMPOSIO_USER_ID = env.COMPOSIO_USER_ID;
-          
+          copiarEnv(env);
+
           await handlerEmails(req, res);
           return getResponse();
         }
