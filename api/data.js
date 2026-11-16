@@ -7,7 +7,7 @@ try {
 
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {} };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '' };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 const CHART_KEYS = ['tasks', 'grades'];
@@ -24,6 +24,9 @@ function unauthorized(res) {
 }
 
 function checkAuth(req) {
+  // Acceso con token de Moodle en cabecera (pantalla de acceso de la app).
+  const own = String((req.headers || {})['x-moodle-token'] || '').trim();
+  if (/^[A-Za-z0-9]{16,128}$/.test(own)) return true;
   const user = process.env.AUTH_USER;
   const pass = process.env.AUTH_PASS;
   if (!user || !pass) return false;
@@ -46,7 +49,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {} };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {}, modules: {}, accent: '' };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -207,6 +210,26 @@ function sanitize(input) {
     CHART_KEYS.forEach(function (k) { if (seen.indexOf(k) === -1) seen.push(k); });
     out.chartOrder = seen;
   }
+  /* Personalización de módulos: nombre, abreviatura y color por asignatura. */
+  if (input.modules && typeof input.modules === 'object' && !Array.isArray(input.modules)) {
+    Object.keys(input.modules).slice(0, 100).forEach(function (k) {
+      const key = str(k, 250);
+      if (!key) return;
+      const v = input.modules[k];
+      if (!v || typeof v !== 'object') return;
+      const entry = {};
+      const nm = str(v.name, 120).trim();
+      const ab = str(v.abbr, 24).trim();
+      const co = str(v.color, 7).trim();
+      if (nm) entry.name = nm;
+      if (ab) entry.abbr = ab;
+      if (HEX_RE.test(co)) entry.color = co.toLowerCase();
+      if (entry.name || entry.abbr || entry.color) out.modules[key] = entry;
+    });
+  }
+  /* Color de acento del tema (personalizable desde Ajustes). */
+  const accent = str(input.accent, 7).trim();
+  if (HEX_RE.test(accent)) out.accent = accent.toLowerCase();
   out.global = str(input.global, 8000);
   out.showdone = input.showdone === true;
   return out;

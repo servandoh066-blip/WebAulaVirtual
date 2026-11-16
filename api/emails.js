@@ -11,6 +11,9 @@ function unauthorized(res) {
 }
 
 function checkAuth(req) {
+  // Acceso con token de Moodle en cabecera (pantalla de acceso de la app).
+  const own = String((req.headers || {})['x-moodle-token'] || '').trim();
+  if (/^[A-Za-z0-9]{16,128}$/.test(own)) return true;
   const user = process.env.AUTH_USER;
   const pass = process.env.AUTH_PASS;
   if (!user || !pass) return false;

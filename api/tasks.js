@@ -1,5 +1,9 @@
-const WS = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/webservice/rest/server.php';
-const BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+const DEFAULT_WS = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/webservice/rest/server.php';
+const DEFAULT_BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+// Token de Moodle: 32 caracteres alfanuméricos. Se acepta por cabecera
+// (X-Moodle-Token, lo introduce el usuario en la pantalla de acceso) con
+// respaldo en MOODLE_TOKEN del entorno.
+const TOKEN_RE = /^[A-Za-z0-9]{16,128}$/;
 
 function unauthorized(res) {
   // Sin cabecera 'WWW-Authenticate' a propósito (ver api/data.js): el reto
@@ -8,7 +12,37 @@ function unauthorized(res) {
   res.end('401 Unauthorized');
 }
 
+function headerValue(req, name) {
+  const h = req.headers || {};
+  const v = h[name] !== undefined ? h[name] : h[name.toUpperCase()];
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+// Token del cliente (cabecera) o, si no viene, el del servidor.
+function moodleToken(req) {
+  const own = headerValue(req, 'x-moodle-token');
+  if (own) return own;
+  return String(process.env.MOODLE_TOKEN || '').trim();
+}
+
+// URL base del aula virtual: la que introduce el usuario o la del entorno.
+function moodleBase(req) {
+  let base = headerValue(req, 'x-moodle-base') ||
+    String(process.env.MOODLE_BASE || '').trim() ||
+    DEFAULT_BASE;
+  if (!/^https?:\/\//i.test(base)) return null;
+  return base.replace(/\/+$/, '') + '/';
+}
+
+function moodleWs(base) {
+  if (!base) return DEFAULT_WS;
+  return base + 'webservice/rest/server.php';
+}
+
+// Autenticación: token de Moodle en cabecera (nuevo acceso) o Basic (legacy).
 function checkAuth(req) {
+  const token = headerValue(req, 'x-moodle-token');
+  if (token && TOKEN_RE.test(token)) return true;
   const user = process.env.AUTH_USER;
   const pass = process.env.AUTH_PASS;
   if (!user || !pass) return false;
@@ -36,15 +70,15 @@ function appendParams(body, prefix, v) {
   }
 }
 
-async function ws(fn, params) {
+async function ws(ctx, fn, params) {
   const body = new URLSearchParams();
-  body.set('wstoken', process.env.MOODLE_TOKEN);
+  body.set('wstoken', ctx.token);
   body.set('wsfunction', fn);
   body.set('moodlewsrestformat', 'json');
   Object.keys(params || {}).forEach(function (k) {
     appendParams(body, k, params[k]);
   });
-  const r = await fetch(WS, { method: 'POST', body, signal: AbortSignal.timeout(12000) });
+  const r = await fetch(ctx.ws, { method: 'POST', body, signal: AbortSignal.timeout(12000) });
   if (!r.ok) throw new Error('WS HTTP ' + r.status);
   const j = await r.json();
   if (j && j.exception) throw new Error((j.errorcode || 'error') + ': ' + (j.message || ''));
@@ -81,7 +115,7 @@ function isDelivered(st) {
   });
 }
 
-async function calendarEvents(nowSec, courseIds) {
+async function calendarEvents(ctx, nowSec, courseIds) {
   const params = {
     options: {
       userevents: 1,
@@ -91,16 +125,25 @@ async function calendarEvents(nowSec, courseIds) {
     }
   };
   if (courseIds.length) params.events = { courseids: courseIds };
-  const r = await ws('core_calendar_get_calendar_events', params);
+  const r = await ws(ctx, 'core_calendar_get_calendar_events', params);
   return (r && r.events) || [];
 }
 
-async function courseTeachers(courseIds) {
-  const byId = {};
+// Profesores + métricas de la tarjeta de módulo: participantes y último
+// acceso del alumno al curso (ambos salen de la misma llamada al WS).
+async function courseInfo(ctx, courseIds, me) {
+  const teach = {};
+  const size = {};
+  const seen = {};
   await mapLimit(courseIds, 4, async function (cid) {
     try {
-      const users = await ws('core_enrol_get_enrolled_users', { courseid: cid });
-      const names = (users || [])
+      const users = await ws(ctx, 'core_enrol_get_enrolled_users', { courseid: cid });
+      const list = users || [];
+      size[cid] = list.length;
+      list.forEach(function (u) {
+        if (me && u.id === me && u.lastaccess) seen[cid] = u.lastaccess;
+      });
+      const names = list
         .filter(function (u) {
           return (u.roles || []).some(function (r) {
             return /teacher|docen|profes|tutor/i.test(String(r.name || ''));
@@ -108,18 +151,18 @@ async function courseTeachers(courseIds) {
         })
         .map(function (u) { return String(u.fullname || '').trim(); })
         .filter(Boolean);
-      if (names.length) byId[cid] = names.slice(0, 3).join(', ');
+      if (names.length) teach[cid] = names.slice(0, 3).join(', ');
     } catch (e) {
-      /* el profesor es opcional */
+      /* el profesor y las métricas son opcionales */
     }
   });
-  return byId;
+  return { teach: teach, size: size, seen: seen };
 }
 
-function eventUrl(e) {
-  if (e.modulename && e.instance) return BASE + 'mod/' + e.modulename + '/view.php?id=' + e.instance;
-  if (e.courseid) return BASE + 'course/view.php?id=' + e.courseid;
-  return BASE;
+function eventUrl(base, e) {
+  if (e.modulename && e.instance) return base + 'mod/' + e.modulename + '/view.php?id=' + e.instance;
+  if (e.courseid) return base + 'course/view.php?id=' + e.courseid;
+  return base;
 }
 
 function isCandidate(a, nowSec) {
@@ -144,30 +187,52 @@ module.exports = async function (req, res) {
     return res.end('405');
   }
   if (!checkAuth(req)) return unauthorized(res);
-  if (!process.env.MOODLE_TOKEN) {
+
+  // Credenciales Moodle: cabeceras del navegador con respaldo en el entorno.
+  const base = moodleBase(req);
+  if (!base) {
+    res.statusCode = 400;
+    return res.json({ error: 'URL del aula virtual no válida' });
+  }
+  const token = moodleToken(req);
+  if (!token) {
     res.statusCode = 500;
     return res.json({ error: 'MOODLE_TOKEN no configurado' });
   }
+  const ctx = { token: token, base: base, ws: moodleWs(base) };
 
   try {
-    const info = await ws('core_webservice_get_site_info', {});
+    const info = await ws(ctx, 'core_webservice_get_site_info', {});
     const me = info.userid;
     const nowSec = Math.floor(Date.now() / 1000);
 
-    const courses = await ws('core_enrol_get_users_courses', { userid: me });
+    const courses = await ws(ctx, 'core_enrol_get_users_courses', { userid: me });
     const courseIds = courses.map(function (c) { return c.id; });
     const courseNames = {};
     courses.forEach(function (c) { courseNames[c.id] = c.fullname || c.shortname; });
-    const teachBy = await courseTeachers(courseIds);
+    const info2 = await courseInfo(ctx, courseIds, me);
+    const teachBy = info2.teach;
     const teachers = {};
     Object.keys(teachBy).forEach(function (cid) {
       if (courseNames[cid]) teachers[courseNames[cid]] = teachBy[cid];
+    });
+    /* Ficha de cada módulo para la vista «Módulos»: abreviatura, URL del
+       curso, participantes y tiempo desde el último acceso. */
+    const modules = courses.map(function (c) {
+      return {
+        id: c.id,
+        name: courseNames[c.id],
+        short: String(c.shortname || '').trim(),
+        url: ctx.base + 'course/view.php?id=' + c.id,
+        participants: typeof info2.size[c.id] === 'number' ? info2.size[c.id] : 0,
+        lastAccess: info2.seen[c.id] || 0
+      };
     });
 
     const tasks = [];
 
     if (courseIds.length) {
-      const byCourse = await ws('mod_assign_get_assignments', { courseids: courseIds });
+      const byCourse = await ws(ctx, 'mod_assign_get_assignments', { courseids: courseIds });
       const assignments = [];
       (byCourse.courses || []).forEach(function (c) {
         (c.assignments || []).forEach(function (a) {
@@ -181,7 +246,7 @@ module.exports = async function (req, res) {
 
       const delivered = await mapLimit(candidates, 6, async function (a) {
         try {
-          const st = await ws('mod_assign_get_submission_status', {
+          const st = await ws(ctx, 'mod_assign_get_submission_status', {
             assignid: a.id,
             userid: me
           });
@@ -199,7 +264,7 @@ module.exports = async function (req, res) {
           s: a._courseName,
           t: a.name,
           p: teachBy[a._courseId] || '',
-          u: BASE + 'mod/assign/view.php?id=' + a.cmid,
+          u: ctx.base + 'mod/assign/view.php?id=' + a.cmid,
           d: due > 0 ? new Date(due * 1000).toISOString() : null,
           done: delivered[i] ? 1 : 0
         });
@@ -207,7 +272,7 @@ module.exports = async function (req, res) {
     }
 
     try {
-      const events = await calendarEvents(nowSec, courseIds);
+      const events = await calendarEvents(ctx, nowSec, courseIds);
       const seen = {};
       tasks.forEach(function (t) { seen[t.t] = true; });
       events.forEach(function (e) {
@@ -220,7 +285,7 @@ module.exports = async function (req, res) {
           s: courseNames[e.courseid] || '',
           t: e.name,
           p: teachBy[e.courseid] || '',
-          u: eventUrl(e),
+          u: eventUrl(ctx.base, e),
           d: e.timestart > 0 ? new Date(e.timestart * 1000).toISOString() : null
         });
       });
@@ -236,7 +301,14 @@ module.exports = async function (req, res) {
     });
 
     res.statusCode = 200;
-    return res.json({ tasks: tasks, teachers: teachers, fetchedAt: nowSec, user: info.fullname });
+    return res.json({
+      tasks: tasks,
+      teachers: teachers,
+      modules: modules,
+      fetchedAt: nowSec,
+      user: info.fullname,
+      username: info.username || ''
+    });
   } catch (err) {
     res.statusCode = 502;
     return res.json({ error: String(err && err.message ? err.message : err) });
