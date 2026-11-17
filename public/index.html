@@ -128,7 +128,8 @@ button.del .ic{margin-right:0}
 .sw.n{background:rgba(128,138,150,.2);border-color:rgba(128,138,150,.5)}
 .ptitle{font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plab{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 5px}
-#cpalette{display:none;position:fixed;z-index:61;width:238px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.3);padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px) scale(.985);transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease)}
+/* Paleta de color: se inyecta como hijo directo del cuerpo y se posiciona en pageX / pageY. */
+#cpalette{display:none;position:absolute;z-index:61;width:246px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.4);padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px) scale(.985);transition:opacity .25s cubic-bezier(.16,1,.3,1), transform .25s cubic-bezier(.16,1,.3,1)}
 #cpalette.on{opacity:1;transform:none}
 #cp-swatches{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 #cp-swatches .cpsw{width:22px;height:22px;border-radius:8px;cursor:pointer;border:1px solid var(--line);display:inline-block;transition:transform var(--fast) var(--ease)}
@@ -137,6 +138,8 @@ button.del .ic{margin-right:0}
 .cp-row{display:flex;align-items:center;gap:8px;margin:8px 0}
 .cp-row label{flex:0 0 84px;color:var(--muted);font-size:12px}
 .cp-row input[type=color]{width:38px;height:26px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer}
+.cp-row input[type=text]{flex:1 1 auto;min-width:0;font:inherit;font-size:12.5px;padding:4px 8px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);text-transform:uppercase;font-variant-numeric:tabular-nums}
+.cp-row input[type=text]:focus{outline:none;border-color:var(--accent)}
 .cp-row input[type=range]{flex:1 1 auto;min-width:70px;accent-color:var(--accent)}
 .cp-row span{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
 .cp-prev{display:flex;align-items:center;gap:8px;margin:8px 0 10px;color:var(--muted);font-size:11.5px}
@@ -309,6 +312,10 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 
 #agenda-modal { display: none; position: fixed; inset: 0; background: rgba(15,17,21,.55); align-items: center; justify-content: center; padding: 16px; z-index: 70; }
 #agenda-modal.on { display: flex; }
+#planner-modal { display: none; position: fixed; inset: 0; background: rgba(15,17,21,.6); align-items: center; justify-content: center; padding: 16px; z-index: 70; }
+#planner-modal.on { display: flex; }
+#planner-modal .agenda-modal-card { animation: fadeIn .25s cubic-bezier(.16,1,.3,1); }
+#planner-modal input:disabled { opacity: .65; cursor: not-allowed; }
 .agenda-modal-card { width: min(420px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 18px 40px rgba(0,0,0,.28); display: flex; flex-direction: column; overflow: hidden; }
 .agenda-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); }
 .agenda-modal-title { font-weight: 600; }
@@ -323,6 +330,9 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .agenda-color-dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--line); cursor: pointer; }
 .agenda-color-dot.on { outline: 2px solid var(--accent); outline-offset: 2px; }
 .agenda-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.agenda-field textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); resize: vertical; min-height: 62px; }
+.agenda-field textarea:focus, .agenda-field input:focus { outline: none; border-color: var(--accent); }
+.pl-modal-del { margin-right: auto; color: var(--muted); }
 
 /* ---------- calendario mensual: celdas cuadradas e indicadores ---------- */
 .agenda-grid.month-view { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
@@ -600,8 +610,9 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 #app{display:none;min-height:100vh}
 #app.on{display:block}
 
-/* Contenedor maestro: centrado y con ancho máximo en cualquier monitor. */
-.content{min-width:0;width:100%;max-width:1320px;margin:0 auto;padding:16px 24px 64px;box-sizing:border-box}
+/* Contenedor maestro: ancho completo del monitor, sin márgenes negros.
+   El padding interior mantiene la lectura cómoda en pantallas muy anchas. */
+.content{min-width:0;width:100%;max-width:100%;margin:0;padding:16px 32px 64px;box-sizing:border-box}
 
 /* ==================== NAVBAR SUPERIOR EN CÁPSULA FLotante ==================== */
 .navbar{position:sticky;top:12px;z-index:60;display:flex;justify-content:center;margin:2px 0 18px}
@@ -638,13 +649,14 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .tb-sub{font-size:12.5px;color:var(--muted)}
 .tb-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
 .view{display:none}
-.view.on{display:block;animation:fadeIn .28s cubic-bezier(.16,1,.3,1)}
+.view.on{display:block;animation:fadeIn .25s cubic-bezier(.16,1,.3,1)}
 .sec-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .sec-acts{display:flex;gap:6px;flex:0 0 auto}
 .sec-acts button{font-size:11.5px;padding:3px 9px;border-radius:9999px;text-transform:none;letter-spacing:0}
 
 /* ==================== INICIO (RESUMEN Y CUENTA ATRÁS) ==================== */
-.dash-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:18px;align-items:start}
+/* Inicio: columna principal fluida (1fr) y columna derecha fija de 380px. */
+.dash-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
 .stat .sh{display:flex;align-items:center;gap:7px;margin-bottom:7px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -734,6 +746,15 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .bd-row b.ok{color:var(--ok)}
 .bd-row b.bad{color:var(--bad)}
 
+/* ---------- NOTAS: cabecera con el diagrama de notas de examen ---------- */
+.notas-top{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;align-items:stretch}
+.notas-chart,.notas-media{min-width:0;display:flex;flex-direction:column}
+.notas-chart .chart{max-width:250px;margin:6px auto 0}
+.notas-chart .cscale{margin-top:auto}
+.notas-top .bars{margin:0;background:transparent;border:0;padding:0;gap:10px}
+.notas-top .bar-row{grid-template-columns:140px minmax(0,1fr) 56px}
+@media (max-width:760px){ .notas-top{grid-template-columns:minmax(0,1fr)} .notas-top .bar-row{grid-template-columns:100px minmax(0,1fr) 48px} }
+
 /* ==================== MENSAJES (VISTA DIVIDIDA) ==================== */
 .split{display:grid;grid-template-columns:minmax(230px,310px) minmax(0,1fr);gap:16px;align-items:start}
 .msg-list{max-height:70vh;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:16px}
@@ -789,11 +810,54 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .solid{background:var(--accent-solid);border-color:var(--accent-solid);color:#fff;font-weight:600}
 .solid:hover{background:#5b63f4;border-color:#5b63f4;color:#fff}
 
-/* Tira de eventos en el calendario mensual: cada tarea es una píldora. */
-.agenda-grid.month-view .cal-chip{padding:2px 6px;gap:5px;border:1px solid var(--line);background:var(--bg);border-radius:999px}
-.agenda-grid.month-view .cal-chip-t{display:block;min-width:0}
-.agenda-grid.month-view .cal-chip:hover,
-.agenda-grid.month-view .cal-chip:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+/* ---------- CALENDARIO MENSUAL: celdas cuadradas y expansión al hover ----------
+   En reposo la celda solo muestra el número del día y los indicadores de color.
+   Al pasar el cursor la celda se amplía (transform + sombra, z-index 50) y una
+   tarjeta anclada despliega el listado completo sin empujar a las vecinas. */
+.agenda-grid.month-view .agenda-col{
+  transition:transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease, border-color .22s ease;
+}
+.agenda-grid.month-view .agenda-col:hover,
+.agenda-grid.month-view .agenda-col:focus-within{
+  z-index:50;
+  transform:scale(1.045);
+  box-shadow:0 16px 36px rgba(0,0,0,.45);
+  border-color:var(--accent-ring);
+}
+.agenda-grid.month-view .agenda-col:hover .agenda-col-day,
+.agenda-grid.month-view .agenda-col:focus-within .agenda-col-day{ color:var(--accent); }
+
+#day-pop{
+  position:fixed;
+  z-index:50;
+  width:272px;
+  max-width:calc(100vw - 16px);
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--card);
+  color:var(--fg);
+  box-shadow:0 14px 34px rgba(0,0,0,.3);
+  font-size:13px;
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(8px) scale(.96);
+  transform-origin:top left;
+  transition:transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease, opacity .22s ease, visibility .22s ease;
+  pointer-events:none;
+}
+#day-pop.on{ opacity:1; visibility:visible; transform:none; box-shadow:0 20px 46px rgba(0,0,0,.5); }
+.dp-head{ display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding-bottom:7px; margin-bottom:8px; border-bottom:1px solid var(--line); }
+.dp-day{ font-weight:650; color:var(--head); font-size:13px; overflow-wrap:anywhere; }
+.dp-n{ color:var(--muted); font-size:11px; white-space:nowrap; }
+.dp-list{ display:flex; flex-direction:column; gap:8px; }
+.dp-item{ display:flex; gap:8px; align-items:flex-start; min-width:0; }
+.dp-dot{ flex:0 0 auto; width:8px; height:8px; border-radius:50%; margin-top:5px; }
+.dp-main{ min-width:0; display:flex; flex-direction:column; gap:1px; }
+.dp-t{ font-size:12.5px; font-weight:600; color:var(--fg); overflow-wrap:anywhere; }
+.dp-m{ font-size:11.5px; color:var(--muted); overflow-wrap:anywhere; }
+.dp-h{ font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.dp-empty{ color:var(--muted); font-size:12.5px; text-align:center; padding:6px 0; }
 
 /* ==================== SUPERFICIES CON DESENFOQUE Y MOVIMIENTO SUAVE ==================== */
 .card,.stat,.cbox,.mod-card,.msg-list,.msg-pane,.q-card,.row-card,.bars,.set-block,.bd-card,.agenda-col,.chart-card,.grp{
@@ -807,11 +871,124 @@ button,input,select,textarea,.card,.stat,.cbox,.mod-card,.up-item,.dd-item,.row-
 button:hover{transform:translateY(-1px)}
 button:active{transform:translateY(0) scale(.98)}
 
+/* ==================== AGENDA: PLANIFICADOR PERSONAL ==================== */
+.planner{display:flex;flex-direction:column;gap:14px}
+.pl-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.pl-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.pl-label{margin-left:4px;font-size:14.5px;font-weight:650;color:var(--head);overflow-wrap:anywhere}
+.pl-modes{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:9999px;background:var(--card)}
+.pl-mode{padding:5px 14px;border:1px solid transparent;border-radius:9999px;background:transparent;color:var(--muted);font-size:12.5px;cursor:pointer}
+.pl-mode.on{background:var(--accent-soft);border-color:var(--accent-ring);color:var(--accent);font-weight:600}
+.pl-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pl-body{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.pl-main{min-width:0}
+.pl-side{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.pl-filters{display:flex;flex-wrap:wrap;gap:7px}
+.pl-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 10px;border:1px solid var(--line);border-radius:9999px;background:var(--card);color:var(--fg);font-size:12.5px;cursor:pointer}
+.pl-chip i{flex:0 0 auto;width:9px;height:9px;border-radius:50%}
+.pl-chip .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-chip .n{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.pl-chip.off{opacity:.45;background:transparent}
+.pl-chip.on{border-color:var(--accent);background:rgba(129,140,248,.08)}
+.pl-sum-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}
+.pl-sum-date{font-size:13.5px;font-weight:650;color:var(--head);overflow-wrap:anywhere}
+.pl-sum-n{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.pl-sum-list{display:flex;flex-direction:column;gap:8px}
+.pl-sum-item{display:flex;gap:9px;align-items:flex-start;width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:inherit;font:inherit;text-align:left;cursor:pointer}
+.pl-sum-item:hover{border-color:var(--accent)}
+.pl-sum-item i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:5px}
+.pl-sum-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pl-sum-t{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.pl-sum-m{font-size:11.5px;color:var(--muted);overflow-wrap:anywhere}
+.pl-sum-h{flex:0 0 auto;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:14px 6px;border:1px dashed var(--line);border-radius:12px}
+
+/* --- rejilla horaria (día y semana): 00:00 a 23:00 en filas uniformes --- */
+.pl-grid{--gut:64px;--pl-days:7;position:relative;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.pl-grid-head{display:grid;grid-template-columns:var(--gut) repeat(var(--pl-days),minmax(0,1fr));border-bottom:1px solid var(--line);background:rgba(13,14,20,.55)}
+.pl-gh{padding:8px 6px;text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-left:1px solid var(--line)}
+.pl-gh:first-child{border-left:0}
+.pl-gh b{display:block;font-size:14px;color:var(--head);font-weight:650;text-transform:none;letter-spacing:0}
+.pl-gh.is-today b{color:var(--accent)}
+/* Actividades sin hora de inicio: franja superior por día. */
+.pl-allday{display:grid;grid-template-columns:var(--gut) repeat(var(--pl-days,7),minmax(0,1fr));border-bottom:1px solid var(--line);background:rgba(13,14,20,.35)}
+.pl-adh{padding:5px 8px 5px 0;text-align:right;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pl-ad{border-left:1px solid var(--line);padding:3px 4px;display:flex;flex-direction:column;gap:3px;min-width:0;cursor:pointer;transition:background-color .25s cubic-bezier(.16,1,.3,1)}
+.pl-ad:hover{background:rgba(129,140,248,.1)}
+.pl-adev{display:flex;align-items:center;gap:4px;min-width:0;width:100%;padding:1px 5px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;font:inherit;font-size:10.5px;text-align:left;cursor:pointer}
+.pl-adev:hover{border-color:var(--accent)}
+.pl-adev i{flex:0 0 auto;width:6px;height:6px;border-radius:50%}
+.pl-adev span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-scroll{max-height:64vh;overflow-y:auto;overscroll-behavior:contain}
+.pl-inner{position:relative}
+.pl-rows{display:grid;grid-template-columns:var(--gut) repeat(var(--pl-days),minmax(0,1fr));grid-template-rows:repeat(24,minmax(56px,1fr))}
+.pl-hlab{grid-column:1;font-size:10.5px;color:var(--muted);text-align:right;padding:3px 8px 0 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.pl-slot{border-top:1px solid var(--line);border-left:1px solid var(--line);cursor:pointer;transition:background-color .25s cubic-bezier(.16,1,.3,1)}
+.pl-slot:hover{background:rgba(129,140,248,.1)}
+.pl-over{position:absolute;inset:0;display:grid;grid-template-columns:var(--gut) repeat(var(--pl-days),minmax(0,1fr));grid-template-rows:100%;pointer-events:none}
+.pl-col{position:relative;grid-row:1;border-left:1px solid var(--line);pointer-events:none}
+.pl-ev{position:absolute;display:flex;flex-direction:column;gap:1px;overflow:hidden;padding:4px 7px;border:1px solid var(--line);border-left-width:3px;border-radius:9px;background:var(--bg);color:inherit;font:inherit;text-align:left;cursor:pointer;pointer-events:auto;transition:transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease, opacity .25s cubic-bezier(.16,1,.3,1)}
+.pl-ev:hover{z-index:6;transform:translateY(-1px);box-shadow:0 12px 26px rgba(0,0,0,.45)}
+.pl-ev-t{font-size:11.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-ev-h{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pl-ev-c{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-now{position:absolute;left:var(--gut);right:0;height:0;border-top:2px solid var(--redb);pointer-events:none;z-index:5}
+.pl-now::before{content:'';position:absolute;left:-5px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--redb)}
+
+/* --- vista de mes --- */
+.pl-month{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.pl-mhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid var(--line);background:rgba(13,14,20,.55)}
+.pl-mhead span{padding:9px 4px;text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.pl-mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.pl-mcell{position:relative;min-width:0;aspect-ratio:1 / 1;display:flex;flex-direction:column;gap:5px;padding:8px;border-top:1px solid var(--line);border-left:1px solid var(--line);cursor:pointer;transition:transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease, background-color .25s cubic-bezier(.16,1,.3,1)}
+.pl-mcell:nth-child(7n+1){border-left:0}
+.pl-mcell:hover{z-index:50;transform:scale(1.035);background:rgba(128,138,150,.1);box-shadow:0 16px 36px rgba(0,0,0,.45)}
+.pl-mcell.out{opacity:.42}
+.pl-mnum{align-self:flex-start;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;font-size:12px;font-weight:600;color:var(--fg);border:1px solid transparent;border-radius:7px;font-variant-numeric:tabular-nums}
+.pl-mcell.today .pl-mnum{color:var(--accent);border-color:var(--accent);font-weight:700}
+.pl-mevs{display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden}
+.pl-mev{display:flex;align-items:center;gap:5px;min-width:0;padding:1px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit;font:inherit;text-align:left;cursor:pointer;transition:border-color .25s cubic-bezier(.16,1,.3,1)}
+.pl-mev:hover{border-color:var(--accent)}
+.pl-mev i{flex:0 0 auto;width:6px;height:6px;border-radius:50%}
+.pl-mev span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;color:var(--fg)}
+.pl-mmore{font-size:10px;color:var(--muted)}
+@media (max-width:720px){
+  .pl-mcell{padding:4px;gap:3px;border-radius:8px}
+  .pl-mnum{min-width:16px;height:15px;font-size:10px;padding:0 2px}
+  .pl-mev span{display:none}
+  .pl-mev{padding:0;justify-content:center}
+  .pl-mev i{width:100%;height:4px;border-radius:2px}
+}
+
+/* --- vista de año --- */
+.pl-year{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.pl-ym{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 13px;transition:transform .25s cubic-bezier(.16,1,.3,1), border-color .25s cubic-bezier(.16,1,.3,1), box-shadow .25s cubic-bezier(.16,1,.3,1)}
+.pl-ym:hover{transform:translateY(-2px);border-color:var(--accent-ring);box-shadow:var(--shadow)}
+.pl-ym-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px;cursor:pointer}
+.pl-ym-t{font-size:13.5px;font-weight:650;color:var(--head);text-transform:capitalize}
+.pl-ym:hover .pl-ym-t{color:var(--accent)}
+.pl-ym-n{font-size:11px;color:var(--muted);white-space:nowrap}
+.pl-ym-w{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:4px}
+.pl-ym-w span{text-align:center;font-size:9.5px;color:var(--muted);text-transform:uppercase}
+.pl-ym-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.pl-ym-d{position:relative;aspect-ratio:1 / 1;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font:inherit;font-size:10.5px;cursor:pointer;transition:background-color .25s cubic-bezier(.16,1,.3,1), color .25s cubic-bezier(.16,1,.3,1)}
+.pl-ym-d:hover{background:rgba(128,138,150,.16);color:var(--fg)}
+.pl-ym-d.has{background:var(--accent-soft);border-color:var(--accent-ring);color:var(--accent);font-weight:700}
+.pl-ym-d.today{border-color:var(--accent)}
+.pl-ym-d.out{opacity:.35}
+
 /* ==================== RESPONSIVE ==================== */
-@media (max-width:1180px){
+@media (max-width:1320px){
   .dash-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:1180px){
   .cal-layout{grid-template-columns:minmax(0,1fr)}
   .cal-right{position:static}
+}
+@media (max-width:1040px){
+  .pl-body{grid-template-columns:minmax(0,1fr)}
+  .pl-side{position:static}
+  .notas-top{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:900px){
   .content{padding:14px 16px 56px}
@@ -820,11 +997,15 @@ button:active{transform:translateY(0) scale(.98)}
   .nav-links{order:3;flex:1 1 100%;padding-top:6px;border-top:1px solid var(--line)}
   .split{grid-template-columns:minmax(0,1fr)}
   .bar-row{grid-template-columns:110px minmax(0,1fr) 48px}
+  .pl-toolbar{flex-direction:column;align-items:stretch}
+  .pl-modes{align-self:flex-start;flex-wrap:wrap}
 }
 @media (max-width:640px){
   .content{padding:12px 14px 48px}
   .nav-capsule{padding:8px 10px}
   .stat .sv{font-size:22px}
+  .pl-grid{--gut:46px}
+  .pl-hlab{font-size:9.5px;padding-right:5px}
 }
 </style>
 </head>
@@ -836,7 +1017,6 @@ button:active{transform:translateY(0) scale(.98)}
   </div>
   <button type="button" class="cm-btn" id="cm-edit" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Editar</button>
   <button type="button" class="cm-btn" id="cm-note" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"></use></svg>Añadir anotación</button>
-  <button type="button" class="cm-btn" id="cm-color" role="menuitem" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-palette"></use></svg>Cambiar color</button>
 </div>
 
 <div id="day-menu" role="menu" aria-label="Acciones del día">
@@ -846,6 +1026,19 @@ button:active{transform:translateY(0) scale(.98)}
   </div>
   <button type="button" class="cm-btn" id="dm-create" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"></use></svg>Crear tarea</button>
 </div>
+
+<!-- Selector de color de asignatura: va como hijo directo del cuerpo del documento, posicionado en pageX / pageY -->
+<div id="cpalette" role="dialog" aria-label="Color de la asignatura">
+  <div class="ptitle" id="cp-title"></div>
+  <div class="plab">Color de la asignatura</div>
+  <div id="cp-swatches"></div>
+  <div class="cp-row"><label for="cp-custom">Personalizado</label><input type="color" id="cp-custom"></div>
+  <div class="cp-row"><label for="cp-hex">Hexadecimal</label><input type="text" id="cp-hex" maxlength="7" spellcheck="false" placeholder="#818CF8" autocomplete="off"></div>
+  <div class="cp-row"><label for="cp-alpha">Opacidad</label><input type="range" id="cp-alpha" min="0" max="80" step="5"><span id="cp-alpha-val">80%</span></div>
+  <div class="cp-prev"><i id="cp-prev"></i><span id="cp-prev-tx">Color automático</span></div>
+  <button type="button" id="cp-reset">Restablecer color automático</button>
+</div>
+
 <div id="login">
   <form id="login-form" autocomplete="off">
     <div class="lside">
@@ -895,6 +1088,7 @@ button:active{transform:translateY(0) scale(.98)}
           <button type="button" class="nav-item on" data-nav="inicio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-home"></use></svg>Inicio</button>
           <button type="button" class="nav-item" data-nav="modulos"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"></use></svg>Módulos</button>
           <button type="button" class="nav-item" data-nav="calendario"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Calendario</button>
+          <button type="button" class="nav-item" data-nav="agenda"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"></use></svg>Agenda</button>
           <button type="button" class="nav-item" data-nav="tareas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-list"></use></svg>Tareas<span class="nav-badge" id="nav-pend"></span></button>
           <button type="button" class="nav-item" data-nav="notas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"></use></svg>Notas</button>
           <button type="button" class="nav-item" data-nav="mensajes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chat"></use></svg>Mensajes y Avisos<span class="nav-badge" id="nav-msgs"></span></button>
@@ -957,25 +1151,11 @@ button:active{transform:translateY(0) scale(.98)}
         <button type="button" class="mini-cal-clear" id="mini-cal-clear">Ver todas las fechas</button>
       </div>
     </section>
-    <section class="cbox" data-mod="agendas">
-      <h3 class="ctitle">Agendas <span class="csub" id="agendas-count"></span><button type="button" class="mdrag" title="Arrastra para mover este módulo" aria-label="Reordenar el módulo de agendas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grip"></use></svg></button></h3>
-      <div id="agendas-toggles"></div>
-      <div id="agendas-actions">
-        <button type="button" id="agenda-new">+ Nueva agenda</button>
-      </div>
-    </section>
     <section class="cbox chart-card" data-chart="tasks" data-mod="chart-tasks">
       <h3 class="ctitle"><span>Tareas por asignatura</span> <span class="csub" id="tasks-total"></span><button type="button" class="mdrag" title="Arrastra para mover este módulo" aria-label="Reordenar el diagrama de tareas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grip"></use></svg></button></h3>
       <div class="chart" id="chart-tasks"></div>
-    </section>
-    <section class="cbox chart-card" data-chart="grades" data-mod="chart-grades">
-      <h3 class="ctitle"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span><button type="button" class="mdrag" title="Arrastra para mover este módulo" aria-label="Reordenar el diagrama de notas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grip"></use></svg></button></h3>
-      <div class="chart" id="chart-grades"></div>
-      <div class="cscale" title="Con 5 o más se aprueba. Si eliges un color propio para una asignatura, su slice usará ese color.">
-        <span><i class="cdot" style="background:#d62828"></i>suspenso (menos de 5)</span>
-        <span><i class="cdot" style="background:#e07a1f"></i>aprobado (5 – 6,9)</span>
-        <span><i class="cdot" style="background:#d4a017"></i>bien (7 – 8,9)</span>
-        <span><i class="cdot" style="background:#2a9d8f"></i>notable (9 – 10)</span>
+      <div class="cscale" title="Clic derecho sobre un tramo o sobre el nombre del centro para elegir el color de la asignatura.">
+        <span><i class="cdot" style="background:var(--accent)"></i>clic derecho: color de asignatura</span>
       </div>
     </section>
         </aside>
@@ -1017,7 +1197,7 @@ button:active{transform:translateY(0) scale(.98)}
   </details>
 
   <main id="list"></main>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b>, <b>Añadir anotación</b> y <b>Cambiar color</b> (una nota propia por tarea que se muestra en la tarjeta y al pasar el cursor). En <b>Agenda</b>, las celdas de los días son cuadradas y más amplias: el <b>clic derecho</b> sobre el espacio libre de un día abre un menú con <b>Crear tarea</b> para ese día, y las tareas aparecen como pequeños indicadores que se despliegan completos al pasar el cursor. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) sin depender de las asignaturas, y el conmutador situado bajo la barra de herramientas alterna visualmente entre ellas; el módulo <b>Agendas</b> de la columna de Inicio también permite crearlas y activar o desactivar cuáles se superponen en el calendario, con un color por agenda. Los módulos de esa columna se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En la columna derecha de Inicio tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b> y <b>Añadir anotación</b>. La pestaña <b>Agenda</b> es tu planificador personal, independiente de las asignaturas: con los modos <b>Día</b> (de 00:00 a 23:00), <b>Semana</b>, <b>Mes</b> y <b>Año</b>, pulsa <b>Nueva actividad</b> o haz <b>clic directo</b> en cualquier franja horaria o día para crear, editar o eliminar actividades con título, descripción, fecha, horas de inicio y fin, categoría y color; el panel lateral filtra por categorías y resume el día seleccionado, y todo se guarda en la nube con copia local. En <b>Calendario</b>, las celdas de los días son cuadradas y uniformes: en reposo muestran solo el número y los indicadores de color, y al pasar el cursor la celda se amplía y una tarjeta anclada despliega el listado completo con título, asignatura y hora límite, sin empujar a las celdas vecinas; el <b>clic derecho</b> sobre el espacio libre de un día sigue abriendo el menú con <b>Crear tarea</b> para esa fecha. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) que se superponen en Calendario con un color por agenda, y el conmutador de la barra de herramientas alterna entre ellas. Los módulos de la columna de Inicio se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En la columna derecha de Inicio tienes el reparto de tareas por asignatura y en la pestaña <b>Notas</b> el diagrama de notas de examen junto a la media por módulo y el desglose: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> sobre un tramo del diagrama de tareas por asignatura o sobre el nombre que aparece en el centro del anillo se abre el selector de color de esa asignatura: paleta predefinida, hexadecimal libre, opacidad del 0 % al 80 % y botón para restablecer el color automático; el cambio se aplica al instante a los diagramas, a los puntos del calendario y al borde de sus tarjetas.</div>
     </section>
 
     <section class="view" id="view-calendario">
@@ -1026,7 +1206,7 @@ button:active{transform:translateY(0) scale(.98)}
   <div id="agenda-view">
     <div id="agenda-toolbar">
       <div class="agenda-title-group">
-        <div class="agenda-title">Agenda</div>
+        <div class="agenda-title">Calendario mensual</div>
         <div class="agenda-sub" id="agenda-month-label"></div>
       </div>
       <div class="agenda-actions">
@@ -1060,13 +1240,66 @@ button:active{transform:translateY(0) scale(.98)}
       </div>
     </section>
 
+    <section class="view" id="view-agenda">
+      <div class="planner">
+        <div class="pl-toolbar">
+          <div class="pl-nav">
+            <button type="button" id="pl-prev" aria-label="Anterior"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button type="button" id="pl-today">Hoy</button>
+            <button type="button" id="pl-next" aria-label="Siguiente"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+            <span class="pl-label" id="pl-label"></span>
+          </div>
+          <div class="pl-modes" id="pl-modes" role="tablist" aria-label="Modos de visualización">
+            <button type="button" class="pl-mode on" data-pl-mode="day" role="tab">Día</button>
+            <button type="button" class="pl-mode" data-pl-mode="week" role="tab">Semana</button>
+            <button type="button" class="pl-mode" data-pl-mode="month" role="tab">Mes</button>
+            <button type="button" class="pl-mode" data-pl-mode="year" role="tab">Año</button>
+          </div>
+          <div class="pl-actions">
+            <button type="button" class="solid" id="pl-new"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"></use></svg>Nueva actividad</button>
+          </div>
+        </div>
+        <div class="pl-body">
+          <div class="pl-main" id="pl-canvas"></div>
+          <aside class="pl-side">
+            <section class="cbox">
+              <h3 class="ctitle">Categorías <span class="csub" id="pl-cats-n"></span></h3>
+              <div class="pl-filters" id="pl-filters"></div>
+            </section>
+            <section class="cbox">
+              <h3 class="ctitle">Resumen del día</h3>
+              <div class="pl-sum-head">
+                <span class="pl-sum-date" id="pl-day-label"></span>
+                <span class="pl-sum-n" id="pl-day-n"></span>
+              </div>
+              <div id="pl-summary"></div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="view-cuestionarios">
       <div class="q-grid" id="quiz-grid"></div>
     </section>
 
     <section class="view" id="view-notas">
-      <div class="sec-title">Media por módulo</div>
-      <div class="bars" id="notes-bars"></div>
+      <div class="notas-top">
+        <section class="cbox notas-chart" data-chart="grades">
+          <h3 class="ctitle"><span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Notas de examen</span> <span class="csub" id="grades-avg"></span></h3>
+          <div class="chart" id="chart-grades"></div>
+          <div class="cscale" title="Con 5 o más se aprueba. Si eliges un color propio para una asignatura, su tramo usará ese color (clic derecho sobre el diagrama).">
+            <span><i class="cdot" style="background:#d62828"></i>suspenso (menos de 5)</span>
+            <span><i class="cdot" style="background:#e07a1f"></i>aprobado (5 – 6,9)</span>
+            <span><i class="cdot" style="background:#d4a017"></i>bien (7 – 8,9)</span>
+            <span><i class="cdot" style="background:#2a9d8f"></i>notable (9 – 10)</span>
+          </div>
+        </section>
+        <section class="cbox notas-media">
+          <h3 class="ctitle"><span>Media por módulo</span> <span class="csub">desglose completo</span></h3>
+          <div class="bars" id="notes-bars"></div>
+        </section>
+      </div>
       <div class="sec-title" style="margin-top:18px">Desglose por módulo</div>
       <div class="breakdown" id="notes-break"></div>
     </section>
@@ -1139,6 +1372,7 @@ button:active{transform:translateY(0) scale(.98)}
     <g id="i-trash"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></g>
     <g id="i-undo"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></g>
     <g id="i-cal"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M3 11h18"/></g>
+    <g id="i-clock"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2"/></g>
     <g id="i-az"><path d="M4 20V5a2 2 0 0 1 2-2h13"/><path d="M4 20h15a2 2 0 0 0 2-2V6"/><path d="M8 9h6"/><path d="M8 13h6"/></g>
     <g id="i-info"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></g>
     <g id="i-pencil"><path d="M4 20h4L20 8a2.83 2.83 0 0 0-4-4L4 16v4z"/><path d="M14 6l4 4"/></g>
@@ -1162,15 +1396,6 @@ button:active{transform:translateY(0) scale(.98)}
     <g id="i-eye"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></g>
     <g id="i-eye-off"><path d="M4 5l16 14"/><path d="M9.6 6.4A8.6 8.6 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.3 3.9"/><path d="M6.3 8.1A16.7 16.7 0 0 0 2.5 12S6 18 12 18a8.9 8.9 0 0 0 3.4-.7"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></g>
   </defs></svg>
-  <div id="cpalette">
-    <div class="ptitle" id="cp-title"></div>
-    <div class="plab">Color de la asignatura</div>
-    <div id="cp-swatches"></div>
-    <div class="cp-row"><label for="cp-custom">Personalizado</label><input type="color" id="cp-custom"></div>
-    <div class="cp-row"><label for="cp-alpha">Transparencia</label><input type="range" id="cp-alpha" min="0" max="80" step="5"><span id="cp-alpha-val">0%</span></div>
-    <div class="cp-prev"><i id="cp-prev"></i><span id="cp-prev-tx">Color automático</span></div>
-    <button type="button" id="cp-reset">Restablecer color automático</button>
-  </div>
   <div id="agenda-modal">
     <div class="agenda-modal-card">
       <div class="agenda-modal-head">
@@ -1209,6 +1434,57 @@ button:active{transform:translateY(0) scale(.98)}
   </div>
 
   <div id="cal-tip" role="tooltip" aria-hidden="true"></div>
+  <div id="day-pop" role="tooltip" aria-hidden="true"></div>
+
+  <!-- Modal del planificador: crear, editar y eliminar actividades de la Agenda -->
+  <div id="planner-modal" role="dialog" aria-modal="true" aria-labelledby="pl-modal-title">
+    <div class="agenda-modal-card">
+      <div class="agenda-modal-head">
+        <div class="agenda-modal-title" id="pl-modal-title">Nueva actividad</div>
+        <button type="button" id="pl-modal-close">Cerrar</button>
+      </div>
+      <div class="agenda-modal-body">
+        <label class="agenda-field">
+          <span>Título</span>
+          <input type="text" id="pl-title" maxlength="160" placeholder="Ej. Entrenamiento, Estudio, Cita…" autocomplete="off">
+        </label>
+        <label class="agenda-field">
+          <span>Descripción</span>
+          <textarea id="pl-desc" rows="3" maxlength="2000" placeholder="Notas, lugar, quién va…"></textarea>
+        </label>
+        <div class="agenda-field-row">
+          <label class="agenda-field">
+            <span>Fecha</span>
+            <input type="date" id="pl-date">
+          </label>
+          <label class="agenda-field">
+            <span>Categoría</span>
+            <input type="text" id="pl-cat" list="pl-cat-list" maxlength="60" placeholder="Personal" autocomplete="off">
+            <datalist id="pl-cat-list"></datalist>
+          </label>
+        </div>
+        <div class="agenda-field-row">
+          <label class="agenda-field">
+            <span>Hora de inicio</span>
+            <input type="time" id="pl-start" step="300">
+          </label>
+          <label class="agenda-field">
+            <span>Hora de fin</span>
+            <input type="time" id="pl-end" step="300">
+          </label>
+        </div>
+        <div class="agenda-field">
+          <span>Color de la actividad</span>
+          <div class="agenda-color-row" id="pl-colors"></div>
+        </div>
+      </div>
+      <div class="agenda-modal-foot">
+        <button type="button" id="pl-delete" class="del pl-modal-del" hidden>Eliminar</button>
+        <button type="button" id="pl-cancel">Cancelar</button>
+        <button type="button" class="solid" id="pl-save">Guardar</button>
+      </div>
+    </div>
+  </div>
 
   <div id="edit-modal">
     <div class="agenda-modal-card">
@@ -1291,7 +1567,7 @@ var SUBJECT_TEACHERS = {
   'Dixitalización': 'Marcos Alonso'
 };
 var TASKS = [], EMAILS = [], MESSAGES = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: ''},
+  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', customAgenda: []},
   NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false,
   CP_SUBJ = null, CP_OPEN = false;
 
@@ -1786,8 +2062,16 @@ function loadData(){
           agendas: (Array.isArray(j.agendas) && j.agendas.length) ? j.agendas : [],
           taskNotes: (j.taskNotes && typeof j.taskNotes === 'object' && !Array.isArray(j.taskNotes)) ? j.taskNotes : {},
           modules: (j.modules && typeof j.modules === 'object' && !Array.isArray(j.modules)) ? j.modules : {},
-          accent: typeof j.accent === 'string' ? j.accent : ''
+          accent: typeof j.accent === 'string' ? j.accent : '',
+          customAgenda: Array.isArray(j.customAgenda) ? j.customAgenda : []
         };
+        /* Si el servidor aún no conoce la Agenda, se recupera la copia local
+           que escribe el planificador mientras no hay datos en la nube. */
+        if (!DATA.customAgenda.length){
+          var plLocal = readPlannerBackup();
+          if (plLocal.length) DATA.customAgenda = plLocal;
+        }
+        try { writePlannerBackup(); } catch(e){}
         SHOW_DONE = !!DATA.showdone;
         try { applyAccent(); } catch(e){}
         var db = document.getElementById('donetoggle');
@@ -2295,6 +2579,7 @@ function clearAgendaFilter(){
 var VIEW_TITLES = {
   inicio: ['Inicio', 'Resumen del aula virtual'],
   calendario: ['Calendario', 'Mes en curso y próximos eventos'],
+  agenda: ['Agenda', 'Planificador personal de actividades'],
   tareas: ['Tareas', 'Pendientes de Moodle y tareas propias'],
   cuestionarios: ['Cuestionarios', 'Pruebas y exámenes próximos'],
   notas: ['Notas', 'Media por módulo y desglose de exámenes'],
@@ -2313,6 +2598,7 @@ var NAV_OF = {
   inicio: 'inicio',
   tareas: 'tareas', lista: 'tareas',
   calendario: 'calendario',
+  agenda: 'agenda',
   notas: 'notas',
   modulos: 'modulos', materiales: 'modulos', cuestionarios: 'modulos',
   mensajes: 'mensajes', avisos: 'mensajes', anuncios: 'mensajes',
@@ -2342,6 +2628,7 @@ function navigate(view){
   var ag = document.getElementById('agenda-view');
   if (ag) ag.classList.toggle('on', toAgenda);
   if (toAgenda){ try { renderAgenda(); } catch(e){} }
+  if (view === 'agenda'){ try { renderPlanner(); } catch(e){} }
   try { renderMiniCalendar(); } catch(e){}
   try { refreshViews(); } catch(e){}
   try { window.scrollTo({top: 0, behavior: 'smooth'}); } catch(e){ window.scrollTo(0, 0); }
@@ -2454,25 +2741,94 @@ function hideCalTip(){
   tip.classList.remove('on');
   tip.setAttribute('aria-hidden', 'true');
 }
+/* ---------- tarjeta anclada de una celda del calendario mensual ----------
+   En reposo la celda solo muestra el número y los indicadores; al pasar el
+   cursor se despliega el listado completo (título, asignatura y hora límite)
+   sobre las celdas vecinas, sin alterar su tamaño. */
+function hideDayPop(){
+  var pop = document.getElementById('day-pop');
+  if (!pop) return;
+  pop.classList.remove('on');
+  pop.setAttribute('aria-hidden', 'true');
+}
+function showDayPop(col){
+  var pop = document.getElementById('day-pop');
+  if (!col || !pop) return;
+  var iso = col.getAttribute('data-iso');
+  if (!iso) return;
+  var d = parseISODate(iso);
+  var evs = [];
+  try { evs = eventsByDate()[iso] || []; } catch(e){ evs = []; }
+
+  var head = d ? d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : iso;
+  var html = '<div class="dp-head"><span class="dp-day">' + esc(head) + '</span>' +
+    '<span class="dp-n">' + evs.length + (evs.length === 1 ? ' actividad' : ' actividades') + '</span></div>';
+  if (!evs.length){
+    html += '<div class="dp-empty">Sin actividades este día</div>';
+  } else {
+    html += '<div class="dp-list">' + evs.map(function(ev){
+      var color = eventDotColor(ev);
+      var subject = ev.subject || '';
+      var when = '';
+      if (ev.datetime !== null && ev.datetime !== undefined && isFinite(ev.datetime)){
+        var td = new Date(ev.datetime);
+        var hh = td.getHours(), mm = td.getMinutes();
+        var clock = (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+        when = (ev.type === 'own' || ev.type === 'moodle') ? 'hora límite ' + clock : clock;
+      }
+      return '<div class="dp-item"><i class="dp-dot" style="background:' + escapeAttr(color) + '"></i>' +
+        '<span class="dp-main"><span class="dp-t">' + esc(ev.title) + '</span>' +
+        (subject ? '<span class="dp-m">' + esc(subject) + '</span>' : '') +
+        (when ? '<span class="dp-h">' + esc(when) + '</span>' : '') +
+        '</span></div>';
+    }).join('') + '</div>';
+  }
+  pop.innerHTML = html;
+  pop.setAttribute('aria-hidden', 'false');
+  pop.classList.add('on');
+
+  var r = col.getBoundingClientRect();
+  var pw = pop.offsetWidth, ph = pop.offsetHeight;
+  var vw = document.documentElement.clientWidth || window.innerWidth;
+  var vh = document.documentElement.clientHeight || window.innerHeight;
+  var left = Math.max(8, Math.min(r.left, vw - pw - 8));
+  var top = r.bottom + 8;
+  if (top + ph > vh - 8) top = r.top - ph - 8;
+  if (top < 8) top = 8;
+  pop.style.left = Math.round(left) + 'px';
+  pop.style.top = Math.round(top) + 'px';
+}
 function bindCalendarHover(){
   var grid = document.getElementById('agenda-grid');
   if (!grid || grid.__calHoverBound) return;
   grid.__calHoverBound = true;
   grid.addEventListener('mouseover', function(e){
     var chip = e.target.closest ? e.target.closest('.cal-chip[data-evk]') : null;
-    if (chip && !chip.contains(e.relatedTarget)) showCalTip(chip);
+    if (chip){
+      if (!chip.contains(e.relatedTarget)) showCalTip(chip);
+      hideDayPop();
+      return;
+    }
+    var col = e.target.closest ? e.target.closest('.agenda-col[data-iso]') : null;
+    if (col && grid.classList.contains('month-view') && !col.contains(e.relatedTarget)) showDayPop(col);
   });
   grid.addEventListener('mouseout', function(e){
     var chip = e.target.closest ? e.target.closest('.cal-chip[data-evk]') : null;
-    if (chip && !chip.contains(e.relatedTarget)) hideCalTip();
+    if (chip){
+      if (!chip.contains(e.relatedTarget)) hideCalTip();
+      return;
+    }
+    var col = e.target.closest ? e.target.closest('.agenda-col[data-iso]') : null;
+    if (col && !col.contains(e.relatedTarget)) hideDayPop();
   });
   grid.addEventListener('focusin', function(e){
     var chip = e.target.closest ? e.target.closest('.cal-chip[data-evk]') : null;
-    if (chip) showCalTip(chip);
+    if (chip){ showCalTip(chip); hideDayPop(); }
   });
   grid.addEventListener('focusout', function(e){
     var chip = e.target.closest ? e.target.closest('.cal-chip[data-evk]') : null;
     if (chip) hideCalTip();
+    hideDayPop();
   });
 }
 
@@ -2482,7 +2838,7 @@ function closeCtxMenu(){
   var m = document.getElementById('ctx-menu');
   if (m) m.classList.remove('on');
 }
-function openCtxMenu(key, x, y, withColor){
+function openCtxMenu(key, x, y){
   var ev = CTX_EVENTS[key];
   if (!ev) return;
   hideCalTip();
@@ -2492,10 +2848,6 @@ function openCtxMenu(key, x, y, withColor){
   var kind = ev.type === 'custom' ? 'Evento' : (ev.type === 'own' ? 'Tarea propia' : (ev.type === 'mail' ? 'Correo' : 'Moodle'));
   document.getElementById('cm-title').textContent = ev.title;
   document.getElementById('cm-sub').textContent = (ev.subject ? ev.subject + ' · ' : '') + kind;
-
-  /* La opcion «Cambiar color» solo se muestra en la vista de lista. */
-  var colorBtn = document.getElementById('cm-color');
-  if (colorBtn) colorBtn.hidden = !withColor;
 
   var m = document.getElementById('ctx-menu');
   m.classList.add('on');
@@ -2666,6 +3018,7 @@ function renderAgenda(){
   var clearBtn = document.getElementById('agenda-clear');
   if (!grid) return;
   hideCalTip();
+  hideDayPop();
 
   var map = eventsByDate();
   if (clearBtn) clearBtn.hidden = !AGENDA_FILTER_DATE;
@@ -3033,6 +3386,611 @@ function initAgendaUI(){
     renderMiniCalendar();
     if (VIEW_MODE === 'agenda') renderAgenda();
     try { render(); } catch(e){}
+  });
+}
+
+/* ==================== AGENDA: PLANIFICADOR PERSONAL ====================
+   Actividades propias guardadas en DATA.customAgenda (servidor) con copia
+   de seguridad en localStorage. Cuatro visores: Día, Semana, Mes y Año. */
+var PLANNER_LS = 'av-planner';
+var PLANNER_MODE_LS = 'av-planner-mode';
+var PLANNER_MODES = ['day', 'week', 'month', 'year'];
+var PL_COLORS = ['#0b57d0', '#2a9d8f', '#e07a1f', '#6a4c93', '#457b9d', '#b5651d', '#8ab17d', '#9d4edd', '#c1121f', '#d62828', '#ef4444', '#64748b'];
+var PL = { mode: 'day', cursor: null, filters: {}, editId: null, color: '' };
+
+function plannerActs(){
+  if (!Array.isArray(DATA.customAgenda)) DATA.customAgenda = [];
+  return DATA.customAgenda;
+}
+function readPlannerBackup(){
+  try {
+    var raw = localStorage.getItem(PLANNER_LS);
+    var arr = raw ? JSON.parse(raw) : null;
+    return Array.isArray(arr) ? arr : [];
+  } catch(e){ return []; }
+}
+function writePlannerBackup(){
+  try { localStorage.setItem(PLANNER_LS, JSON.stringify(plannerActs())); } catch(e){}
+}
+function plannerSave(){
+  writePlannerBackup();
+  try { scheduleSave(); } catch(e){}
+}
+function initPlanner(){
+  plannerActs();
+  if (!DATA.customAgenda.length){
+    var bak = readPlannerBackup();
+    if (bak.length) DATA.customAgenda = bak;
+  }
+  var m = 'day';
+  try {
+    var st = localStorage.getItem(PLANNER_MODE_LS);
+    if (st && PLANNER_MODES.indexOf(st) >= 0) m = st;
+  } catch(e){}
+  PL.mode = m;
+  if (!PL.cursor) PL.cursor = new Date();
+}
+
+/* ---------- utilidades ---------- */
+function plPad(n){ return (n < 10 ? '0' : '') + n; }
+function plMin(t){
+  var p = String(t || '').split(':');
+  var h = Number(p[0]), m = Number(p[1]);
+  if (!isFinite(h)) h = 0;
+  if (!isFinite(m)) m = 0;
+  return Math.max(0, Math.min(1439, Math.round(h * 60 + m)));
+}
+function plAddDays(d, n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+function plStartOfWeek(d){
+  var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x = plAddDays(x, -calMondayIndex(x));
+  return x;
+}
+function plDefaultStart(){
+  var n = new Date();
+  var m = n.getHours() * 60 + n.getMinutes();
+  m = Math.min(1410, Math.ceil(m / 30) * 30);
+  return plPad(Math.floor(m / 60)) + ':' + plPad(m % 60);
+}
+function plDefaultEnd(){
+  var p = plDefaultStart().split(':');
+  var m = Math.min(1439, Number(p[0]) * 60 + Number(p[1]) + 60);
+  return plPad(Math.floor(m / 60)) + ':' + plPad(m % 60);
+}
+function plSlotRange(hour){
+  var h = Math.max(0, Math.min(23, Number(hour) || 0));
+  var s = plPad(h) + ':00';
+  var e = (h >= 23) ? '23:59' : plPad(h + 1) + ':00';
+  return { start: s, end: e };
+}
+function plCatColor(name){
+  var s = String(name || '');
+  var h = 0;
+  for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return PL_COLORS[h % PL_COLORS.length];
+}
+function plActColor(a){
+  if (a && a.color) return a.color;
+  return plCatColor(a ? a.category : '');
+}
+function plCategoryOf(a){
+  return (a && a.category) ? String(a.category) : 'Personal';
+}
+function plannerCategories(){
+  var out = [];
+  plannerActs().forEach(function(a){
+    var c = plCategoryOf(a);
+    if (out.indexOf(c) === -1) out.push(c);
+  });
+  out.sort(function(a, b){ return a.localeCompare(b, 'es'); });
+  return out;
+}
+function plActiveCats(){
+  var out = [];
+  plannerCategories().forEach(function(c){ if (PL.filters[c] !== false) out.push(c); });
+  return out;
+}
+function plannerVisible(){
+  var on = {};
+  plActiveCats().forEach(function(c){ on[c] = 1; });
+  return plannerActs().filter(function(a){ return on[plCategoryOf(a)]; });
+}
+function plSort(a, b){
+  var d = plMin(a.start) - plMin(b.start);
+  if (d) return d;
+  return String(a.title || '').localeCompare(String(b.title || ''), 'es');
+}
+function plannerByDate(iso){
+  return plannerVisible().filter(function(a){ return a && a.date === iso; }).sort(plSort);
+}
+function plannerMap(){
+  var map = {};
+  plannerVisible().forEach(function(a){
+    if (!a || !a.date) return;
+    (map[a.date] = map[a.date] || []).push(a);
+  });
+  Object.keys(map).forEach(function(k){ map[k].sort(plSort); });
+  return map;
+}
+function plannerCount(cat){
+  var n = 0;
+  plannerActs().forEach(function(a){ if (plCategoryOf(a) === cat) n++; });
+  return n;
+}
+
+/* Reparte las actividades de un día en carriles para que no se solapen. */
+function plLayout(list){
+  var evs = list.slice().sort(plSort);
+  var groups = [], cur = [], curEnd = -1;
+  evs.forEach(function(ev){
+    var s = plMin(ev.start);
+    var e = ev.end ? plMin(ev.end) : s + 60;
+    if (e <= s) e = Math.min(1439, s + 30);
+    if (cur.length && s >= curEnd){ groups.push(cur); cur = []; curEnd = -1; }
+    cur.push({ a: ev, s: s, e: e });
+    curEnd = Math.max(curEnd, e);
+  });
+  if (cur.length) groups.push(cur);
+  var out = [];
+  groups.forEach(function(g){
+    var laneEnd = [];
+    g.forEach(function(x){
+      var i = 0;
+      while (i < laneEnd.length && laneEnd[i] > x.s) i++;
+      laneEnd[i] = x.e;
+      x.lane = i;
+    });
+    g.forEach(function(x){ out.push({ a: x.a, lane: x.lane, lanes: laneEnd.length }); });
+  });
+  return out;
+}
+
+/* ---------- etiquetas de la barra de herramientas ---------- */
+function plLabel(){
+  var c = PL.cursor;
+  if (PL.mode === 'day'){
+    return c.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }  if (PL.mode === 'week'){
+    var s = plStartOfWeek(c), e = plAddDays(s, 6);
+    if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()){
+      return s.getDate() + ' – ' + e.getDate() + ' de ' + e.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    }
+    return s.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ' – ' +
+      e.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  if (PL.mode === 'month') return c.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  return String(c.getFullYear());
+}
+/* Mayúscula inicial: los localizadores en español devuelven la fecha en minúscula. */
+function plCap(s){
+  s = String(s == null ? '' : s);
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+function plStep(delta){
+  var c = PL.cursor;
+  if (PL.mode === 'day') PL.cursor = plAddDays(c, delta);
+  else if (PL.mode === 'week') PL.cursor = plAddDays(c, 7 * delta);
+  else if (PL.mode === 'month') PL.cursor = new Date(c.getFullYear(), c.getMonth() + delta, 1);
+  else PL.cursor = new Date(c.getFullYear() + delta, 0, 1);
+  renderPlanner();
+}
+
+/* ---------- visores ---------- */
+function plTimeGrid(days){
+  var n = days.length;
+  var todayIso = toISODate(new Date());
+  var head = '<div class="pl-grid-head" style="--pl-days:' + n + '"><div class="pl-gh"></div>' +
+    days.map(function(d){
+      var iso = toISODate(d);
+      return '<div class="pl-gh' + (iso === todayIso ? ' is-today' : '') + '">' +
+        d.toLocaleDateString('es-ES', { weekday: 'short' }) + '<b>' + d.getDate() + '</b></div>';
+    }).join('') + '</div>';
+
+  /* Actividades sin hora de inicio: franja superior, solo si hay alguna. */
+  var amap = plannerMap();
+  var alldayList = days.map(function(d){
+    var iso = toISODate(d);
+    return (amap[iso] || []).filter(function(a){ return !a.start; });
+  });
+  var allday = '';
+  if (alldayList.some(function(l){ return l.length; })){
+    allday = '<div class="pl-allday" style="--pl-days:' + n + '"><div class="pl-adh">Día</div>' +
+      days.map(function(d, di){
+        var iso = toISODate(d);
+        return '<div class="pl-ad" data-pl-day="' + iso + '" data-pl-hour="9">' + alldayList[di].map(function(a){
+          return '<button type="button" class="pl-adev" data-pl-id="' + escapeAttr(a.id) + '">' +
+            '<i style="background:' + escapeAttr(plActColor(a)) + '"></i>' +
+            '<span>' + esc(a.title) + '</span></button>';
+        }).join('') + '</div>';
+      }).join('') + '</div>';
+  }
+
+  var rows = '';
+  for (var h = 0; h < 24; h++){
+    rows += '<div class="pl-hlab" style="grid-row:' + (h + 1) + ';grid-column:1">' + plPad(h) + ':00</div>';
+    for (var i = 0; i < n; i++){
+      rows += '<div class="pl-slot" style="grid-row:' + (h + 1) + ';grid-column:' + (i + 2) +
+        '" data-pl-day="' + toISODate(days[i]) + '" data-pl-hour="' + h + '"></div>';
+    }
+  }
+
+  var over = '<div class="pl-over" style="--pl-days:' + n + '">' + days.map(function(d, i){
+    var iso = toISODate(d);
+    var lays = plLayout((amap[iso] || []).filter(function(a){ return !!a.start; }));
+    return '<div class="pl-col" style="grid-column:' + (i + 2) + '">' + lays.map(function(x){
+      var a = x.a;
+      var s = plMin(a.start);
+      var e = a.end ? plMin(a.end) : s + 60;
+      if (e <= s) e = Math.min(1439, s + 30);
+      var w = 100 / x.lanes;
+      var c = plActColor(a);
+      return '<button type="button" class="pl-ev" data-pl-id="' + escapeAttr(a.id) + '" style="' +
+        'top:' + (s / 14.4).toFixed(3) + '%;height:' + ((e - s) / 14.4).toFixed(3) + '%;' +
+        'left:calc(' + (x.lane * w).toFixed(3) + '% + 3px);width:calc(' + w.toFixed(3) + '% - 6px);' +
+        'border-left-color:' + escapeAttr(c) + '">' +
+        '<span class="pl-ev-t">' + esc(a.title) + '</span>' +
+        '<span class="pl-ev-h">' + esc(a.start) + (a.end ? ' – ' + esc(a.end) : '') + '</span>' +
+        '<span class="pl-ev-c">' + esc(plCategoryOf(a)) + '</span></button>';
+    }).join('') + '</div>';
+  }).join('') + '</div>';
+
+  var nowLine = '';
+  days.forEach(function(d, i){
+    if (toISODate(d) !== todayIso) return;
+    var nd = new Date();
+    nowLine = '<div class="pl-now" style="top:' + ((nd.getHours() * 60 + nd.getMinutes()) / 14.4).toFixed(3) + '%"></div>';
+  });
+
+  return '<div class="pl-grid" style="--pl-days:' + n + '">' + head + allday +
+    '<div class="pl-scroll"><div class="pl-inner">' +
+    '<div class="pl-rows" style="--pl-days:' + n + '">' + rows + '</div>' + over + nowLine +
+    '</div></div></div>';
+}
+function renderPlDay(){ return plTimeGrid([new Date(PL.cursor.getFullYear(), PL.cursor.getMonth(), PL.cursor.getDate())]); }
+function renderPlWeek(){
+  var s = plStartOfWeek(PL.cursor);
+  var days = [];
+  for (var i = 0; i < 7; i++) days.push(plAddDays(s, i));
+  return plTimeGrid(days);
+}
+function renderPlMonth(){
+  var base = calMonthStart(PL.cursor);
+  var offset = calMondayIndex(base);
+  var cells = Math.ceil((offset + calDaysInMonth(base.getFullYear(), base.getMonth())) / 7) * 7;
+  var start = new Date(base.getFullYear(), base.getMonth(), 1 - offset);
+  var todayIso = toISODate(new Date());
+  var amap = plannerMap();
+  var head = '<div class="pl-mhead">' +
+    ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'].map(function(w){ return '<span>' + w + '</span>'; }).join('') +
+    '</div>';
+  var body = '';
+  for (var i = 0; i < cells; i++){
+    var d = plAddDays(start, i);
+    var iso = toISODate(d);
+    var list = amap[iso] || [];
+    var cls = 'pl-mcell';
+    if (d.getMonth() !== base.getMonth()) cls += ' out';
+    if (iso === todayIso) cls += ' today';
+    body += '<div class="' + cls + '" data-pl-day="' + iso + '" data-pl-hour="9">' +
+      '<span class="pl-mnum">' + d.getDate() + '</span><span class="pl-mevs">' +
+      list.slice(0, 3).map(function(a){
+        return '<button type="button" class="pl-mev" data-pl-id="' + escapeAttr(a.id) + '">' +
+          '<i style="background:' + escapeAttr(plActColor(a)) + '"></i>' +
+          '<span>' + esc(a.title) + '</span></button>';
+      }).join('') +
+      (list.length > 3 ? '<span class="pl-mmore">+' + (list.length - 3) + ' más</span>' : '') +
+      '</span></div>';
+  }
+  return '<div class="pl-month">' + head + '<div class="pl-mgrid">' + body + '</div></div>';
+}
+function renderPlYear(){
+  var y = PL.cursor.getFullYear();
+  var todayIso = toISODate(new Date());
+  var amap = plannerMap();
+  var letters = ['l', 'm', 'x', 'j', 'v', 's', 'd'];
+  var out = '<div class="pl-year">';
+  for (var m = 0; m < 12; m++){
+    var first = new Date(y, m, 1);
+    var offset = calMondayIndex(first);
+    var cells = Math.ceil((offset + calDaysInMonth(y, m)) / 7) * 7;
+    var start = new Date(y, m, 1 - offset);
+    var count = 0, days = '';
+    for (var i = 0; i < cells; i++){
+      var d = plAddDays(start, i);
+      var iso = toISODate(d);
+      var has = (amap[iso] || []).length > 0;
+      if (has && d.getMonth() === m) count++;
+      var cls = 'pl-ym-d';
+      if (has) cls += ' has';
+      if (iso === todayIso) cls += ' today';
+      if (d.getMonth() !== m) cls += ' out';
+      days += '<button type="button" class="' + cls + '" data-pl-day="' + iso + '" data-pl-hour="9">' + d.getDate() + '</button>';
+    }
+    out += '<section class="pl-ym"><div class="pl-ym-head" data-pl-month="' + m + '">' +
+      '<span class="pl-ym-t">' + first.toLocaleDateString('es-ES', { month: 'long' }) + '</span>' +
+      '<span class="pl-ym-n">' + count + (count === 1 ? ' día' : ' días') + '</span></div>' +
+      '<div class="pl-ym-w">' + letters.map(function(w){ return '<span>' + w + '</span>'; }).join('') + '</div>' +
+      '<div class="pl-ym-g">' + days + '</div></section>';
+  }
+  return out + '</div>';
+}
+
+/* ---------- panel lateral: filtros y resumen ---------- */
+function renderPlFilters(){
+  var box = document.getElementById('pl-filters');
+  if (!box) return;
+  var cats = plannerCategories();
+  var on = cats.filter(function(c){ return PL.filters[c] !== false; });
+  var cnt = document.getElementById('pl-cats-n');
+  if (cnt) cnt.textContent = cats.length ? (on.length + '/' + cats.length) : '';
+  if (!cats.length){
+    box.innerHTML = '<div class="pl-empty">Sin categorías todavía. Crea una actividad y aparecerá aquí.</div>';
+    return;
+  }
+  box.innerHTML = cats.map(function(c){
+    var act = PL.filters[c] !== false;
+    return '<button type="button" class="pl-chip ' + (act ? 'on' : 'off') + '" data-pl-cat="' + escapeAttr(c) +
+      '" aria-pressed="' + (act ? 'true' : 'false') + '" title="Mostrar u ocultar la categoría ' + escapeAttr(c) + '">' +
+      '<i style="background:' + escapeAttr(plCatColor(c)) + '"></i>' +
+      '<span class="nm">' + esc(c) + '</span><span class="n">' + plannerCount(c) + '</span></button>';
+  }).join('');
+}
+function plSummaryDate(){
+  var n = new Date();
+  var today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (PL.mode === 'day') return new Date(PL.cursor.getFullYear(), PL.cursor.getMonth(), PL.cursor.getDate());
+  if (PL.mode === 'week'){
+    var s = plStartOfWeek(PL.cursor), e = plAddDays(s, 6);
+    return (today >= s && today <= e) ? today : s;
+  }
+  if (PL.mode === 'month'){
+    if (PL.cursor.getFullYear() === n.getFullYear() && PL.cursor.getMonth() === n.getMonth()) return today;
+    return calMonthStart(PL.cursor);
+  }
+  return today;
+}
+function renderPlSummary(){
+  var d = plSummaryDate();
+  var iso = toISODate(d);
+  var list = plannerByDate(iso);
+  var lab = document.getElementById('pl-day-label');
+  if (lab) lab.textContent = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+  var n = document.getElementById('pl-day-n');
+  if (n) n.textContent = list.length + (list.length === 1 ? ' actividad' : ' actividades');
+  var box = document.getElementById('pl-summary');
+  if (!box) return;
+  if (!list.length){
+    box.innerHTML = '<div class="pl-empty">Sin actividades este día.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="pl-sum-list">' + list.map(function(a){
+    var time = a.start ? (a.start + (a.end ? ' – ' + a.end : '')) : 'Todo el día';
+    var meta = plCategoryOf(a) + (a.desc ? ' · ' + shortTxt(a.desc, 42) : '');
+    return '<button type="button" class="pl-sum-item" data-pl-id="' + escapeAttr(a.id) + '">' +
+      '<i style="background:' + escapeAttr(plActColor(a)) + '"></i>' +
+      '<span class="pl-sum-main"><span class="pl-sum-t">' + esc(a.title) + '</span>' +
+      '<span class="pl-sum-m">' + esc(meta) + '</span></span>' +
+      '<span class="pl-sum-h">' + esc(time) + '</span></button>';
+  }).join('') + '</div>';
+}
+
+/* ---------- render principal ---------- */
+function renderPlanner(){
+  var canvas = document.getElementById('pl-canvas');
+  if (!canvas) return;
+  initPlanner();
+  var before = canvas.querySelector('.pl-scroll');
+  var top = before ? before.scrollTop : 0;
+
+  document.querySelectorAll('#pl-modes .pl-mode').forEach(function(b){
+    var on = b.getAttribute('data-pl-mode') === PL.mode;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+
+  var html = '';
+  if (PL.mode === 'week') html = renderPlWeek();
+  else if (PL.mode === 'month') html = renderPlMonth();
+  else if (PL.mode === 'year') html = renderPlYear();
+  else html = renderPlDay();
+  canvas.innerHTML = html;
+
+  var lbl = document.getElementById('pl-label');
+  if (lbl) lbl.textContent = plCap(plLabel());
+  renderPlFilters();
+  renderPlSummary();
+
+  var after = canvas.querySelector('.pl-scroll');
+  if (after) after.scrollTop = top;
+}
+
+/* ---------- modal: crear, editar y eliminar ---------- */
+function plBuildColors(){
+  var row = document.getElementById('pl-colors');
+  if (!row) return;
+  var html = '<button type="button" class="agenda-color-dot' + (PL.color ? '' : ' on') +
+    '" data-pl-color="" title="Color automático" style="background:var(--bg)"></button>';
+  html += PL_COLORS.map(function(c){
+    return '<button type="button" class="agenda-color-dot' + (PL.color === c ? ' on' : '') +
+      '" data-pl-color="' + c + '" title="' + c + '" style="background:' + c + '"></button>';
+  }).join('');
+  row.innerHTML = html;
+}
+function openPlannerModal(opts){
+  opts = opts || {};
+  var m = document.getElementById('planner-modal');
+  if (!m) return;
+  initPlanner();
+  PL.editId = opts.id || null;
+  var act = null;
+  if (PL.editId){
+    plannerActs().forEach(function(a){ if (a && a.id === PL.editId) act = a; });
+    if (!act) PL.editId = null;
+  }
+  var head = document.getElementById('pl-modal-title');
+  if (head) head.textContent = act ? 'Editar actividad' : 'Nueva actividad';
+  var del = document.getElementById('pl-delete');
+  if (del) del.hidden = !act;
+
+  var d = (act && parseISODate(act.date)) || (opts.date ? parseISODate(opts.date) : null) || plSummaryDate();
+  var title = document.getElementById('pl-title');
+  var desc = document.getElementById('pl-desc');
+  var date = document.getElementById('pl-date');
+  var cat = document.getElementById('pl-cat');
+  var st = document.getElementById('pl-start');
+  var en = document.getElementById('pl-end');
+  if (title) title.value = act ? act.title : '';
+  if (desc) desc.value = act ? (act.desc || '') : '';
+  if (date) date.value = act ? act.date : toISODate(d);
+  if (cat) cat.value = act ? plCategoryOf(act) : '';
+  if (st) st.value = act ? (act.start || '') : (opts.start || '');
+  if (en) en.value = act ? (act.end || '') : (opts.end || '');
+  PL.color = act ? (act.color || '') : '';
+
+  var dl = document.getElementById('pl-cat-list');
+  if (dl) dl.innerHTML = plannerCategories().map(function(c){ return '<option value="' + escapeAttr(c) + '"></option>'; }).join('');
+  plBuildColors();
+  m.classList.add('on');
+  if (title) setTimeout(function(){ title.focus(); }, 0);
+}
+function closePlannerModal(){
+  var m = document.getElementById('planner-modal');
+  if (m) m.classList.remove('on');
+  PL.editId = null;
+}
+function plSaveModal(){
+  var title = document.getElementById('pl-title');
+  var date = document.getElementById('pl-date');
+  var t = title ? title.value.trim() : '';
+  var dv = date ? date.value : '';
+  if (!t){ if (title) title.focus(); return; }
+  if (!dv){ if (date) date.focus(); return; }
+  var desc = document.getElementById('pl-desc');
+  var cat = document.getElementById('pl-cat');
+  var st = document.getElementById('pl-start');
+  var en = document.getElementById('pl-end');
+  var start = st ? st.value : '';
+  var end = en ? en.value : '';
+  if (start && end && end <= start) end = '';
+  var data = {
+    id: PL.editId || ('pl' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+    title: t,
+    desc: desc ? desc.value : '',
+    date: dv,
+    start: start,
+    end: end,
+    category: (cat && cat.value.trim()) ? cat.value.trim() : 'Personal',
+    color: PL.color || ''
+  };
+  var list = plannerActs();
+  var replaced = false;
+  for (var i = 0; i < list.length; i++){
+    if (list[i] && list[i].id === data.id){ list[i] = data; replaced = true; break; }
+  }
+  if (!replaced) list.push(data);
+  closePlannerModal();
+  plannerSave();
+  renderPlanner();
+}
+function plDeleteModal(){
+  if (!PL.editId) return;
+  var list = plannerActs();
+  var act = null;
+  list.forEach(function(a){ if (a && a.id === PL.editId) act = a; });
+  if (!act){ closePlannerModal(); return; }
+  if (!confirm('¿Eliminar la actividad "' + act.title + '"?')) return;
+  DATA.customAgenda = list.filter(function(a){ return a && a.id !== PL.editId; });
+  closePlannerModal();
+  plannerSave();
+  renderPlanner();
+}
+
+/* ---------- enlaces de interfaz ---------- */
+function initPlannerUI(){
+  if (document.__plUIBound) return;
+  document.__plUIBound = true;
+  initPlanner();
+
+  var prev = document.getElementById('pl-prev');
+  var next = document.getElementById('pl-next');
+  var today = document.getElementById('pl-today');
+  var nw = document.getElementById('pl-new');
+  if (prev) prev.addEventListener('click', function(){ plStep(-1); });
+  if (next) next.addEventListener('click', function(){ plStep(1); });
+  if (today) today.addEventListener('click', function(){ PL.cursor = new Date(); renderPlanner(); });
+  if (nw) nw.addEventListener('click', function(){
+    openPlannerModal({ date: toISODate(plSummaryDate()), start: plDefaultStart(), end: plDefaultEnd() });
+  });
+
+  var modes = document.getElementById('pl-modes');
+  if (modes) modes.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('[data-pl-mode]') : null;
+    if (!b) return;
+    var m = b.getAttribute('data-pl-mode');
+    if (PLANNER_MODES.indexOf(m) === -1 || m === PL.mode) return;
+    PL.mode = m;
+    try { localStorage.setItem(PLANNER_MODE_LS, m); } catch(err){}
+    renderPlanner();
+  });
+
+  /* Clic en una franja o en un día: crear. Clic en una actividad: editar. */
+  var canvas = document.getElementById('pl-canvas');
+  if (canvas) canvas.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('[data-pl-id],[data-pl-month],[data-pl-day]') : null;
+    if (!t) return;
+    var id = t.getAttribute('data-pl-id');
+    if (id){ openPlannerModal({ id: id }); return; }
+    if (t.classList.contains('pl-ym-head')){
+      PL.cursor = new Date(PL.cursor.getFullYear(), Number(t.getAttribute('data-pl-month')) || 0, 1);
+      PL.mode = 'month';
+      try { localStorage.setItem(PLANNER_MODE_LS, 'month'); } catch(err){}
+      renderPlanner();
+      return;
+    }
+    var iso = t.getAttribute('data-pl-day');
+    if (!iso) return;
+    var hour = t.getAttribute('data-pl-hour');
+    var range = hour !== null ? plSlotRange(hour) : { start: plDefaultStart(), end: plDefaultEnd() };
+    openPlannerModal({ date: iso, start: range.start, end: range.end });
+  });
+
+  var filters = document.getElementById('pl-filters');
+  if (filters) filters.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('[data-pl-cat]') : null;
+    if (!b) return;
+    var c = b.getAttribute('data-pl-cat');
+    PL.filters[c] = !(PL.filters[c] !== false);
+    renderPlanner();
+  });
+
+  var summary = document.getElementById('pl-summary');
+  if (summary) summary.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('[data-pl-id]') : null;
+    if (b) openPlannerModal({ id: b.getAttribute('data-pl-id') });
+  });
+
+  var modal = document.getElementById('planner-modal');
+  if (modal){
+    modal.addEventListener('click', function(e){
+      if (e.target === modal) closePlannerModal();
+      var sw = e.target && e.target.closest ? e.target.closest('[data-pl-color]') : null;
+      if (sw){
+        PL.color = sw.getAttribute('data-pl-color') || '';
+        plBuildColors();
+      }
+    });
+  }
+  var save = document.getElementById('pl-save');
+  if (save) save.addEventListener('click', plSaveModal);
+  var cancel = document.getElementById('pl-cancel');
+  if (cancel) cancel.addEventListener('click', closePlannerModal);
+  var close = document.getElementById('pl-modal-close');
+  if (close) close.addEventListener('click', closePlannerModal);
+  var del = document.getElementById('pl-delete');
+  if (del) del.addEventListener('click', plDeleteModal);
+  var title = document.getElementById('pl-title');
+  if (title) title.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); plSaveModal(); }
   });
 }
 
@@ -3459,8 +4417,8 @@ function openDayMenu(iso, x, y){
 
 /* Delegado y en fase de captura: se ejecuta antes que cualquier otro handler
    y sigue funcionando aunque #list se vuelva a pintar (render()).
-   Gestiona los chips de la agenda, la cabecera de asignatura y las zonas
-   neutras; las tareas de la lista tienen su propio listener más abajo. */
+   Gestiona los chips de la agenda y las zonas neutras; las tareas de la lista
+   y los diagramas tienen sus propios listeners. */
 document.addEventListener('contextmenu', function(e){
   if (e.target.closest && e.target.closest('#list .card')) return;
   var evEl = e.target.closest ? e.target.closest('[data-evk]') : null;
@@ -3468,7 +4426,7 @@ document.addEventListener('contextmenu', function(e){
     e.preventDefault();
     e.stopPropagation();
     var evk = evEl.getAttribute('data-evk');
-    if (evk) openCtxMenu(evk, e.pageX, e.pageY, false);
+    if (evk) openCtxMenu(evk, e.pageX, e.pageY);
     return;
   }
   var inCpal = e.target.closest('#cpalette');
@@ -3476,23 +4434,11 @@ document.addEventListener('contextmenu', function(e){
     e.preventDefault();
     return;
   }
-  var head = e.target.closest('.ghead');
-  if (head){
-    var grp = head.closest('[data-grp]');
-    if (grp){
-      e.preventDefault();
-      e.stopPropagation();
-      closeCtxMenu();
-      closeDayMenu();
-      openCPalette(grp.getAttribute('data-grp'), e.clientX, e.clientY);
-      return;
-    }
-  }
   if (e.target.closest('#list')) e.preventDefault();
 }, true);
 
-/* Clic derecho SOLO sobre las tareas de la vista de lista: panel flotante
-   posicionado en el ratón (pageX / pageY) con la opción «Cambiar color». */
+/* Clic derecho SOLO sobre las tareas de la vista de lista: menú con
+   «Editar» y «Añadir anotación», posicionado en el ratón (pageX / pageY). */
 var _listEl = document.getElementById('list');
 if (_listEl) _listEl.addEventListener('contextmenu', function(e){
   var card = e.target.closest ? e.target.closest('.card') : null;
@@ -3501,7 +4447,7 @@ if (_listEl) _listEl.addEventListener('contextmenu', function(e){
   if (!evk) return;
   e.preventDefault();
   e.stopPropagation();
-  openCtxMenu(evk, e.pageX, e.pageY, true);
+  openCtxMenu(evk, e.pageX, e.pageY);
 });
 
 /* Clic derecho sobre el espacio libre de una celda de la agenda. */
@@ -3518,9 +4464,8 @@ if (_agendaGrid) _agendaGrid.addEventListener('contextmenu', function(e){
 });
 
 document.addEventListener('click', function(e){
-  /* Al pulsar «Cambiar color» del menú contextual la paleta se abre en el mismo
-     ciclo de clic: no se cierra si el origen sigue dentro del menú. */
-  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('.ghead') && !e.target.closest('#ctx-menu')) closeCPalette();
+  /* La paleta solo se cierra si el clic cae fuera de ella. */
+  if (CP_OPEN && !e.target.closest('#cpalette') && !e.target.closest('#ctx-menu')) closeCPalette();
   if (CTX_MENU_KEY && !e.target.closest('#ctx-menu')) closeCtxMenu();
   if (DAY_MENU_ISO && !e.target.closest('#day-menu')) closeDayMenu();
 });
@@ -3530,8 +4475,10 @@ document.addEventListener('keydown', function(e){
     if (CTX_MENU_KEY) closeCtxMenu();
     if (DAY_MENU_ISO) closeDayMenu();
     hideCalTip();
+    hideDayPop();
     if (CTX_EDIT_KEY) closeEditModal();
     if (CTX_NOTE_KEY) closeCtxNote();
+    closePlannerModal();
   }
 });
 window.addEventListener('scroll', function(){
@@ -3539,11 +4486,13 @@ window.addEventListener('scroll', function(){
   if (CTX_MENU_KEY) closeCtxMenu();
   if (DAY_MENU_ISO) closeDayMenu();
   hideCalTip();
+  hideDayPop();
 });
 window.addEventListener('resize', function(){
   if (CTX_MENU_KEY) closeCtxMenu();
   if (DAY_MENU_ISO) closeDayMenu();
   hideCalTip();
+  hideDayPop();
 });
 
 document.getElementById('ctx-menu').addEventListener('click', function(e){
@@ -3559,24 +4508,7 @@ document.getElementById('ctx-menu').addEventListener('click', function(e){
     if (nkey) openCtxNote(nkey);
     return;
   }
-  if (e.target.closest('#cm-color')){
-    var ckey = CTX_MENU_KEY;
-    var cbtn = document.getElementById('cm-color');
-    var crect = cbtn ? cbtn.getBoundingClientRect() : null;
-    closeCtxMenu();
-    if (ckey) openTaskColor(ckey, crect);
-  }
 });
-
-/* Abre la paleta de color de la asignatura de la tarea elegida. */
-function openTaskColor(key, rect){
-  var ev = CTX_EVENTS[key];
-  if (!ev) return;
-  var subj = ev.subject || 'Sin asignatura';
-  var x = rect ? Math.round(rect.left) : 24;
-  var y = rect ? Math.round(rect.bottom + 6) : 24;
-  openCPalette(subj, x, y);
-}
 
 document.getElementById('day-menu').addEventListener('click', function(e){
   if (!e.target.closest('#dm-create')) return;
@@ -3983,14 +4915,18 @@ function arcPath(cx, cy, r, a0, a1){
   var large = (a1 - a0) > Math.PI ? 1 : 0;
   return 'M' + x0.toFixed(2) + ' ' + y0.toFixed(2) + 'A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2);
 }
-/* ---------- color por asignatura (click derecho en la cabecera) ---------- */
-/* ---------- color por asignatura (clic derecho en la cabecera) ---------- */
+/* ---------- color por asignatura (clic derecho en los diagramas) ---------- */
+/* Rango de opacidad que expone la interfaz: de 0 % a 80 %. */
+var CP_MIN_A = 0, CP_MAX_A = 0.8, CP_DEF_A = 0.8;
+function clampAlpha(a){
+  a = (typeof a === 'number' && isFinite(a)) ? a : CP_DEF_A;
+  return Math.min(CP_MAX_A, Math.max(CP_MIN_A, a));
+}
 function subjectColor(k){
   var sc = DATA.subjectColors || {};
   var v = sc[k];
   if (!v || !v.c || !/^#[0-9a-fA-F]{6}$/.test(String(v.c))) return null;
-  var a = (typeof v.a === 'number' && isFinite(v.a)) ? v.a : 1;
-  return {c: String(v.c), a: Math.min(1, Math.max(0.05, a))};
+  return {c: String(v.c), a: clampAlpha(v.a)};
 }
 function hexToRgba(hex, a){
   var h = String(hex == null ? '' : hex).replace('#', '').trim();
@@ -4002,7 +4938,7 @@ function hexToRgba(hex, a){
 function setSubjectColor(k, color, alpha){
   DATA.subjectColors = DATA.subjectColors || {};
   if (!color) delete DATA.subjectColors[k];
-  else DATA.subjectColors[k] = {c: color, a: alpha};
+  else DATA.subjectColors[k] = {c: color, a: clampAlpha(alpha)};
   try { render(); } catch(e){ try { drawCharts(); } catch(er){} }  /* lista + diagramas */
   try { renderMiniCalendar(); } catch(e){}   /* puntos del calendario */
   if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
@@ -4012,17 +4948,24 @@ function cpRefresh(){
   if (!CP_SUBJ) return;
   var sc = subjectColor(CP_SUBJ);
   var color = sc ? sc.c : '#0b57d0';
-  var tr = sc ? Math.round((1 - sc.a) * 100) : 0;
-  document.getElementById('cp-custom').value = color;
-  document.getElementById('cp-alpha').value = tr;
-  document.getElementById('cp-alpha-val').textContent = tr + '%';
+  var op = sc ? Math.round(sc.a * 100) : Math.round(CP_DEF_A * 100);
+  var custom = document.getElementById('cp-custom');
+  if (custom) custom.value = color;
+  var hx = document.getElementById('cp-hex');
+  if (hx && document.activeElement !== hx) hx.value = color.toUpperCase();
+  var al = document.getElementById('cp-alpha');
+  if (al) al.value = op;
+  var alv = document.getElementById('cp-alpha-val');
+  if (alv) alv.textContent = op + '%';
   document.querySelectorAll('#cp-swatches .cpsw').forEach(function(el){
     el.classList.toggle('on', !!sc && el.getAttribute('data-cpcolor').toLowerCase() === color.toLowerCase());
   });
   var prev = document.getElementById('cp-prev');
-  prev.style.background = hexToRgba(color, sc ? sc.a : 1);
-  document.getElementById('cp-prev-tx').textContent = sc ? (color + ' · ' + tr + '% transparente') : 'Color automático';
+  if (prev) prev.style.background = hexToRgba(color, sc ? sc.a : CP_DEF_A);
+  var ptx = document.getElementById('cp-prev-tx');
+  if (ptx) ptx.textContent = sc ? (color.toUpperCase() + ' · ' + op + '% de opacidad') : 'Color automático';
 }
+/* x / y son coordenadas de documento (pageX / pageY): el panel es absoluto. */
 function openCPalette(k, x, y){  /* definida antes de usarla se hoistea; CP_OPEN ya existe */
   CP_SUBJ = k;
   CP_OPEN = true;
@@ -4030,14 +4973,19 @@ function openCPalette(k, x, y){  /* definida antes de usarla se hoistea; CP_OPEN
   var p = document.getElementById('cpalette');
   p.style.display = 'block';
   var w = p.offsetWidth, h = p.offsetHeight;
-  p.style.left = Math.max(8, Math.min(x, window.innerWidth - w - 8)) + 'px';
-  p.style.top = Math.max(8, Math.min(y, window.innerHeight - h - 8)) + 'px';
+  var sx = window.pageXOffset || document.documentElement.scrollLeft || 0;
+  var sy = window.pageYOffset || document.documentElement.scrollTop || 0;
+  var vw = document.documentElement.clientWidth || window.innerWidth;
+  var vh = document.documentElement.clientHeight || window.innerHeight;
+  p.style.left = Math.max(sx + 8, Math.min(x, sx + vw - w - 8)) + 'px';
+  p.style.top = Math.max(sy + 8, Math.min(y, sy + vh - h - 8)) + 'px';
   cpRefresh();
 }
 function closeCPalette(){
   CP_SUBJ = null;
   CP_OPEN = false;
-  document.getElementById('cpalette').style.display = 'none';
+  var p = document.getElementById('cpalette');
+  if (p) p.style.display = 'none';
 }
 function buildSwatches(){
   var pal = CHART_COLORS.concat(['#264653', '#e9c46a', '#f4a261', '#8ecae6']);
@@ -4049,26 +4997,41 @@ document.getElementById('cpalette').addEventListener('click', function(e){
   var sw = e.target.closest('[data-cpcolor]');
   if (sw && CP_SUBJ){
     var sc = subjectColor(CP_SUBJ);
-    setSubjectColor(CP_SUBJ, sw.getAttribute('data-cpcolor'), sc ? sc.a : 1);
+    setSubjectColor(CP_SUBJ, sw.getAttribute('data-cpcolor'), sc ? sc.a : CP_DEF_A);
     cpRefresh();
     return;
   }
   if (e.target.closest('#cp-reset') && CP_SUBJ){
-    setSubjectColor(CP_SUBJ, null, 1);
+    setSubjectColor(CP_SUBJ, null, CP_DEF_A);
     cpRefresh();
   }
 });
 document.getElementById('cp-custom').addEventListener('input', function(){
   if (!CP_SUBJ) return;
   var sc = subjectColor(CP_SUBJ);
-  setSubjectColor(CP_SUBJ, this.value, sc ? sc.a : 1);
+  setSubjectColor(CP_SUBJ, this.value, sc ? sc.a : CP_DEF_A);
   cpRefresh();
 });
+/* Hexadecimal libre: se acepta con o sin almohadilla y con3 dígitos. */
+document.getElementById('cp-hex').addEventListener('input', function(){
+  if (!CP_SUBJ) return;
+  var v = String(this.value || '').trim();
+  if (v && v[0] !== '#') v = '#' + v;
+  if (v.length === 4 && v[0] === '#'){
+    v = '#' + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+  var sc = subjectColor(CP_SUBJ);
+  setSubjectColor(CP_SUBJ, v.toLowerCase(), sc ? sc.a : CP_DEF_A);
+  cpRefresh();
+});
+/* Opacidad en tanto por ciento (0 – 80): se guarda como fracción. */
 document.getElementById('cp-alpha').addEventListener('input', function(){
   if (!CP_SUBJ) return;
   var sc = subjectColor(CP_SUBJ);
-  var tr = Number(this.value) || 0;
-  setSubjectColor(CP_SUBJ, sc ? sc.c : '#0b57d0', 1 - tr / 100);
+  var op = Number(this.value);
+  if (!isFinite(op)) op = Math.round(CP_DEF_A * 100);
+  setSubjectColor(CP_SUBJ, sc ? sc.c : '#0b57d0', op / 100);
   cpRefresh();
 });
 buildSwatches();
@@ -4210,6 +5173,38 @@ function setupChart(id){
     dragDots(id, e);
   });
 }
+/* Clic derecho sobre un tramo del anillo o sobre el nombre central: el menú
+   nativo se cancela siempre y se abre el selector de color de esa asignatura
+   en la posición exacta del ratón (pageX / pageY). */
+function bindSubjectColorMenu(id){
+  var ch = CHARTS[id];
+  if (!ch) return;
+  var el = document.getElementById(ch.el);
+  if (!el || el.__cpMenuBound) return;
+  el.__cpMenuBound = true;
+  el.addEventListener('contextmenu', function(e){
+    if (!e.target || !e.target.closest) return;
+    var seg = e.target.closest('[data-seg]');
+    var name = e.target.closest('.dn-name') || e.target.closest('.dn-val') || e.target.closest('.dn-sub');
+    if (!seg && !name) return;
+    /* Cancelación estricta: sobre el diagrama nunca sale el menú del navegador. */
+    e.preventDefault();
+    e.stopPropagation();
+    var key = null;
+    if (seg){
+      var i = Number(seg.getAttribute('data-seg'));
+      if (ch.items[i]) key = ch.items[i].key;
+    } else {
+      var act = ch.items[chartActiveIndex(ch)];
+      if (act) key = act.key;
+    }
+    if (!key) return;
+    try { closeCtxMenu(); } catch(er){}
+    try { closeDayMenu(); } catch(er){}
+    hideCalTip();
+    openCPalette(key, e.pageX, e.pageY);
+  });
+}
 /* ---------- llevar a la asignatura (clic en el diagrama) ---------- */
 var FLASH_TIMER = null;
 function revealSubject(key){
@@ -4306,7 +5301,7 @@ function drawCharts(){
 /* ---------- orden de los modulos del panel lateral (arrastrar y soltar) ---------- */
 var CHART_KEYS = ['tasks', 'grades'];
 var SIDE_ORDER_KEY = 'av-side-order';
-var PREFERRED_SIDE_ORDER = ['calendar', 'agendas', 'chart-tasks', 'chart-grades'];
+var PREFERRED_SIDE_ORDER = ['calendar', 'chart-tasks'];
 
 /* Inserta módulos que no estaban en el orden guardado (p. ej. «agendas»)
    en su posición preferida en lugar de dejarlos al final. */
@@ -5440,6 +6435,7 @@ function refreshViews(){
   try { renderAjustes(); } catch(e){}
   try { renderDayDetail(); } catch(e){}
   try { renderCalLegend(); } catch(e){}
+  try { renderPlanner(); } catch(e){}
 }
 
 /* Los datos cambiados en cualquier punto refrescan también las vistas nuevas. */
@@ -5452,6 +6448,8 @@ tick = function(){ try { _origTick(); } catch(e){} try { renderInicio(); } catch
 
 setupChart('tasks');
 setupChart('grades');
+bindSubjectColorMenu('tasks');
+bindSubjectColorMenu('grades');
 var gtext = document.getElementById('gtext');
 if (gtext){
   gtext.value = DATA.global;
@@ -5480,10 +6478,13 @@ window.addEventListener('load', function(){
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) { try { load(); } catch(e){} } });
   try {
     if (typeof initAgendaUI === 'function') initAgendaUI();
+    if (typeof initPlanner === 'function') initPlanner();
+    if (typeof initPlannerUI === 'function') initPlannerUI();
     if (typeof initSideOrder === 'function') initSideOrder();
     if (typeof applyChartOrder === 'function') applyChartOrder();
     if (typeof bindCalendarHover === 'function') bindCalendarHover();
     if (typeof renderMiniCalendar === 'function') renderMiniCalendar();
+    if (typeof renderPlanner === 'function') renderPlanner();
   } catch(e){}
 
   /* Descarga del calendario del mes visible. */

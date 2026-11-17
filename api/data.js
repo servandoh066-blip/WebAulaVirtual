@@ -7,7 +7,7 @@ try {
 
 const KEY = 'userdata.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '' };
+const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', customAgenda: [] };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 const CHART_KEYS = ['tasks', 'grades'];
@@ -49,7 +49,7 @@ function str(v, max) {
 }
 
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {}, modules: {}, accent: '' };
+  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {}, modules: {}, accent: '', customAgenda: [] };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -117,9 +117,10 @@ function sanitize(input) {
       if (!v || typeof v !== 'object') return;
       const c = str(v.c, 20).trim();
       if (!/^#[0-9a-fA-F]{6}$/.test(c)) return;
+      // Opacidad de la asignatura: del 0 % al 80 % (la interfaz lo expone así).
       let a = Number(v.a);
-      if (!isFinite(a)) a = 1;
-      a = Math.min(1, Math.max(0.05, a));
+      if (!isFinite(a)) a = 0.8;
+      a = Math.min(0.8, Math.max(0, a));
       out.subjectColors[key] = { c: c.toLowerCase(), a: a };
     });
   }
@@ -172,6 +173,28 @@ function sanitize(input) {
         date: date,
         color: HEX_RE.test(color) ? color.toLowerCase() : '',
         agenda: str(ev.agenda, 60)
+      });
+    });
+  }
+  /* Actividades del planificador personal de la pestaña Agenda.
+     Independiente de las asignaturas: título, descripción, fecha, horario,
+     categoría y color propio. */
+  if (Array.isArray(input.customAgenda)) {
+    input.customAgenda.slice(0, 400).forEach(function (act, i) {
+      if (!act || typeof act !== 'object') return;
+      const title = str(act.title, 160).trim();
+      const date = str(act.date, 40).trim();
+      if (!title || !date) return;
+      const color = str(act.color, 7).trim();
+      out.customAgenda.push({
+        id: str(act.id, 60) || 'pl' + i,
+        title: title,
+        desc: str(act.desc, 2000),
+        date: date,
+        start: str(act.start, 8),
+        end: str(act.end, 8),
+        category: str(act.category, 60).trim() || 'Personal',
+        color: HEX_RE.test(color) ? color.toLowerCase() : ''
       });
     });
   }
