@@ -8,19 +8,22 @@
 <style>
 :root{
   color-scheme: dark;
-  /* Tema oscuro: fondo profundo, tarjetas y barra lateral, bordes suaves. */
-  --bg:#0d0e14; --fg:#e6e8f0; --muted:#8b93a7; --card:#13151f; --line:#232636;
-  --head:#eef0f7;
+  /* Tema unico y predeterminado: negro profundo, superficies translucidas
+     con desenfoque, bordes muy sutiles y texto claro. */
+  --bg:#07080c; --fg:#f3f4f6; --muted:#8b93a7; --card:#0f1118; --line:#1c1f2e;
+  --head:#f3f4f6;
+  --glass:rgba(15,17,24,.86); --blur:12px;
   /* Acento indigo (personalizable desde Ajustes) y sus variantes. */
   --accent:#818cf8; --accent-solid:#4f46e5; --accent-soft:rgba(129,140,248,.15);
   --accent-ring:rgba(129,140,248,.35); --link:#a5b4fc;
   --red:rgba(255,82,82,.14); --yellow:rgba(255,190,40,.14); --green:rgba(60,200,120,.14);
   --redb:rgba(255,90,90,.5); --yellowb:rgba(255,190,40,.45); --greenb:rgba(60,200,120,.42);
   --ok:#5ad69a; --warn:#ffce55; --bad:#ff8a80;
-  --shadow:0 10px 30px rgba(0,0,0,.35);
-  --ease:cubic-bezier(.22,.61,.36,1); --fast:.38s;
+  --shadow:0 12px 34px rgba(0,0,0,.45);
+  --ease:cubic-bezier(.16,1,.3,1); --fast:.25s;
 }
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
 .content{min-width:0}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px;font-size:13px;color:var(--muted)}
@@ -116,10 +119,10 @@ body.dragging{user-select:none;-webkit-user-select:none}
 .card.k-pink{background:rgba(255,90,170,.13);border-color:rgba(255,90,170,.45)}.cd.k-pink{color:#ff8ac2}
 .card.k-gray{background:rgba(150,160,172,.14);border-color:rgba(150,160,172,.5)}.cd.k-gray{color:#9aa4b0}
 /* iconos SVG (sustituyen a los emoticonos) */
-.ic{width:1.05em;height:1.05em;display:inline-block;vertical-align:-.16em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.ic{width:1.05em;height:1.05em;display:inline-block;vertical-align:-.16em;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
 button .ic{margin-right:5px}
 button.del .ic{margin-right:0}
-.cd .ic{stroke-width:2.2}
+.cd .ic{stroke-width:1.5}
 .ctitle .ic, #gnotes summary .ic{margin-right:6px;color:var(--muted)}
 .prof{font-size:12px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 .sw.n{background:rgba(128,138,150,.2);border-color:rgba(128,138,150,.5)}
@@ -549,64 +552,99 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .mdrag:active { cursor: grabbing; }
 .mdrag .ic { width: 15px; height: 15px; margin: 0; }
 
-/* ==================== PANTALLA DE ACCESO ==================== */
-#login{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:90}
+/* ==================== PANTALLA DE ACCESO: PANEL HORIZONTAL ==================== */
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+#login{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto;background:radial-gradient(1100px 560px at 50% -12%,rgba(79,70,229,.18),transparent 62%),var(--bg)}
 #login.hide{display:none}
-#login form{width:100%;max-width:384px;background:#161822;border:1px solid var(--line);border-radius:18px;padding:28px 26px;box-shadow:var(--shadow)}
-.lmark{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;background:var(--accent-soft);border:1px solid var(--accent-ring);display:flex;align-items:center;justify-content:center;color:var(--accent)}
-.lmark .ic{width:26px;height:26px}
-.lt{font-size:20px;font-weight:650;color:var(--head);text-align:center}
-.ls{margin:7px 0 18px;color:var(--muted);font-size:13px;line-height:1.5;text-align:center}
-.lfield{display:block;margin-bottom:12px;text-align:left}
-.lfield span{display:block;margin-bottom:5px;font-size:12px;color:var(--muted)}
-.lfield input{width:100%;font:inherit;font-size:13.5px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
-.lfield input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.lhelp{margin:0 0 14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--muted);font-size:11.5px;line-height:1.55}
-.lrow{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;color:var(--fg);cursor:pointer}
+#login form{width:100%;max-width:680px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);animation:fadeIn .35s var(--ease)}
+.lside{padding:26px 24px;border-right:1px solid var(--line);background:linear-gradient(165deg,rgba(79,70,229,.16),transparent 72%)}
+.rside{padding:26px 24px}
+.lmark{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-bottom:14px;border-radius:13px;background:var(--accent-soft);border:1px solid var(--accent-ring);color:var(--accent)}
+.lmark .ic{width:22px;height:22px}
+.lt{font-size:19px;font-weight:650;color:var(--head);line-height:1.25}
+.ls{margin:6px 0 14px;color:var(--muted);font-size:12.5px;line-height:1.55}
+.lstatus{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(7,8,12,.6);font-size:11.5px;color:var(--muted)}
+.lstatus i{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulseDot 1.8s ease-in-out infinite}
+.lstatus.busy i{background:var(--warn)}
+.lsteps{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lsteps li{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:var(--muted);line-height:1.45}
+.lsteps li b{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--accent-ring);background:var(--accent-soft);color:var(--accent);font-size:10.5px;font-weight:700}
+.lsteps li span{min-width:0}
+.lsteps li em{font-style:normal;color:var(--fg)}
+.lfield{display:block;margin-bottom:13px;text-align:left}
+.lfield > span{display:block;margin-bottom:5px;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.lin{display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid var(--line);border-radius:11px;background:var(--bg);transition:border-color var(--fast) var(--ease),box-shadow var(--fast) var(--ease)}
+.lin:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lin > .ic{flex:0 0 auto;width:16px;height:16px;color:var(--muted)}
+.lin:focus-within > .ic{color:var(--accent)}
+.lin input{flex:1 1 auto;min-width:0;padding:10px 0;border:0;background:transparent;color:var(--fg);font:inherit;font-size:13.5px;outline:none}
+.lin input::placeholder{color:rgba(139,147,167,.75)}
+.leye{flex:0 0 auto;padding:3px;border:0;border-radius:8px;background:transparent;color:var(--muted);line-height:0}
+.leye:hover{color:var(--accent);background:transparent;border-color:transparent}
+.leye .ic{width:16px;height:16px;margin:0}
+.lhelp{margin:2px 0 12px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(7,8,12,.55);color:var(--muted);font-size:11.5px;line-height:1.55}
+.lrow{display:flex;align-items:center;gap:8px;margin-bottom:13px;font-size:13px;color:var(--fg);cursor:pointer}
 .lrow input{accent-color:var(--accent);width:15px;height:15px}
-#login button[type=submit]{width:100%;padding:10px;font-size:14px;font-weight:600;background:var(--accent-solid);border-color:var(--accent-solid);color:#fff}
+#login button[type=submit]{width:100%;padding:11px;font-size:14px;font-weight:650;letter-spacing:.02em;background:var(--accent-solid);border-color:var(--accent-solid);color:#fff}
 #login button[type=submit]:hover{background:#5b63f4;border-color:#5b63f4;color:#fff}
 #login button[type=submit]:disabled{opacity:.6;cursor:progress}
 #login-msg{min-height:16px;margin-top:10px;color:var(--bad);font-size:12.5px;text-align:center}
 #login-msg.info{color:var(--muted)}
+@media (max-width:640px){
+  #login form{grid-template-columns:minmax(0,1fr)}
+  .lside{border-right:0;border-bottom:1px solid var(--line)}
+}
 
 /* ==================== CONTENEDOR PRINCIPAL Y BARRA LATERAL ==================== */
 #app{display:none;min-height:100vh}
-#app.on{display:grid;grid-template-columns:240px minmax(0,1fr);align-items:start}
-#sidebar{position:sticky;top:0;display:flex;flex-direction:column;height:100vh;gap:4px;padding:18px 14px 14px;background:var(--card);border-right:1px solid var(--line);overflow:auto}
-.brand{display:flex;align-items:center;gap:10px;padding:2px 6px 12px}
-.brand-mark{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--accent-solid);color:#fff}
-.brand-mark .ic{width:18px;height:18px;margin:0}
-.brand-name{display:block;font-size:14.5px;font-weight:650;color:var(--head);line-height:1.2}
-.brand-sub{display:block;font-size:11px;color:var(--muted)}
-.nav-cat{margin:13px 8px 4px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--fg);font-size:13.5px;text-align:left;cursor:pointer}
-.nav-item .ic{flex:0 0 auto;width:16px;height:16px;margin:0;color:var(--muted)}
+#app.on{display:block}
+
+/* Contenedor maestro: centrado y con ancho máximo en cualquier monitor. */
+.content{min-width:0;width:100%;max-width:1320px;margin:0 auto;padding:16px 24px 64px;box-sizing:border-box}
+
+/* ==================== NAVBAR SUPERIOR EN CÁPSULA FLotante ==================== */
+.navbar{position:sticky;top:12px;z-index:60;display:flex;justify-content:center;margin:2px 0 18px}
+.nav-capsule{display:flex;align-items:center;gap:12px;width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:9999px;background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));box-shadow:0 12px 34px rgba(0,0,0,.4);transition:all .25s cubic-bezier(.16,1,.3,1)}
+.nav-capsule:hover{border-color:#282c40}
+.brand-mini{display:flex;align-items:center;gap:9px;flex:0 0 auto;padding-right:2px}
+.brand-mark{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:var(--accent-solid);color:#fff}
+.brand-mark .ic{width:17px;height:17px;margin:0}
+.brand-name{font-size:13.5px;font-weight:650;color:var(--head);white-space:nowrap}
+.nav-links{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-item{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;padding:7px 12px;border:1px solid transparent;border-radius:9999px;background:transparent;color:var(--muted);font-size:13px;white-space:nowrap;cursor:pointer;transition:all .25s cubic-bezier(.16,1,.3,1)}
+.nav-item .ic{flex:0 0 auto;width:15px;height:15px;margin:0;color:inherit}
 .nav-item:hover{background:rgba(150,160,172,.1);color:var(--fg)}
-.nav-item:hover .ic{color:var(--accent)}
 .nav-item.on{background:var(--accent-soft);border-color:var(--accent-ring);color:var(--accent);font-weight:600}
 .nav-item.on .ic{color:var(--accent)}
-.nav-badge{margin-left:auto;min-width:20px;padding:1px 6px;border-radius:999px;background:var(--accent-solid);color:#fff;font-size:11px;font-weight:700;text-align:center}
+.nav-badge{min-width:18px;padding:1px 6px;border-radius:9999px;background:var(--accent-solid);color:#fff;font-size:10.5px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
 .nav-badge:empty{display:none}
-.nav-user{display:flex;align-items:center;gap:10px;margin-top:auto;padding:14px 4px 0;border-top:1px solid var(--line)}
-.avatar{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--accent-ring);color:var(--accent);font-size:12.5px;font-weight:700}
-.nu{flex:1 1 auto;min-width:0}
+.nav-user{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding-left:11px;border-left:1px solid var(--line)}
+.avatar{display:flex;flex:0 0 auto;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--accent-soft);border:1px solid var(--accent-ring);color:var(--accent);font-size:12px;font-weight:700}
+.nu{flex:0 1 auto;min-width:0;max-width:170px}
 .nu-name{display:block;font-size:12.5px;font-weight:600;color:var(--head);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nu-user{display:block;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#logout{flex:0 0 auto;padding:4px 8px;font-size:12px}
+#logout{padding:7px;line-height:0;border-radius:9999px}
+#logout .ic{width:16px;height:16px;margin:0}
+.nav-gear{padding:7px;line-height:0;border-radius:9999px}
+.nav-gear .ic{width:16px;height:16px;margin:0}
+@media (max-width:1080px){ .brand-name{display:none} .nu{display:none} }
+@media (max-width:760px){ .nav-user{padding-left:8px} }
 
 /* Barra superior de la vista */
-.content{min-width:0;max-width:1560px;padding:20px 26px 60px}
 .topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .topbar h1{font-size:21px;font-weight:650;margin:0;color:var(--head)}
 .tb-sub{font-size:12.5px;color:var(--muted)}
 .tb-right{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
 .view{display:none}
-.view.on{display:block}
-.sec-title{display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.view.on{display:block;animation:fadeIn .28s cubic-bezier(.16,1,.3,1)}
+.sec-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sec-acts{display:flex;gap:6px;flex:0 0 auto}
+.sec-acts button{font-size:11.5px;padding:3px 9px;border-radius:9999px;text-transform:none;letter-spacing:0}
 
 /* ==================== INICIO (RESUMEN Y CUENTA ATRÁS) ==================== */
-.dash-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);gap:18px;align-items:start}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
 .stat .sh{display:flex;align-items:center;gap:7px;margin-bottom:7px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -710,6 +748,17 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .msg-meta{font-size:12px;color:var(--muted)}
 .msg-body{margin-top:14px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
 .msg-acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.msg-item .mi-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+.msg-item.unread .mi-title{color:var(--accent)}
+.msg-item.read{opacity:.72}
+.mi-head{display:flex;align-items:center;gap:8px;min-width:0}
+.m-tag{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border:1px solid var(--line);border-radius:7px;background:var(--bg);font-size:10.5px;font-weight:700;letter-spacing:.03em;flex:0 0 auto}
+.m-tag i{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.m-src{font-size:11px;color:var(--muted)}
+.quick-row{display:flex;flex-wrap:wrap;gap:8px}
+.quick-row button{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9999px;background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur))}
+.quick-row button .ic{width:15px;height:15px;margin:0;color:var(--muted)}
+.quick-row button:hover .ic{color:var(--accent)}
 
 /* ==================== LISTAS Y AJUSTES ==================== */
 .rows{display:flex;flex-direction:column;gap:10px}
@@ -746,18 +795,36 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .agenda-grid.month-view .cal-chip:hover,
 .agenda-grid.month-view .cal-chip:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
 
+/* ==================== SUPERFICIES CON DESENFOQUE Y MOVIMIENTO SUAVE ==================== */
+.card,.stat,.cbox,.mod-card,.msg-list,.msg-pane,.q-card,.row-card,.bars,.set-block,.bd-card,.agenda-col,.chart-card,.grp{
+  background:var(--glass);
+  backdrop-filter:blur(var(--blur));
+  -webkit-backdrop-filter:blur(var(--blur));
+}
+button,input,select,textarea,.card,.stat,.cbox,.mod-card,.up-item,.dd-item,.row-card,.q-card,.msg-item,.mleg,.agenda-chip,.nav-item{
+  transition:all .25s cubic-bezier(.16,1,.3,1)
+}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0) scale(.98)}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width:1180px){
-  .dash-grid{grid-template-columns:1fr}
-  .cal-layout{grid-template-columns:1fr}
+  .dash-grid{grid-template-columns:minmax(0,1fr)}
+  .cal-layout{grid-template-columns:minmax(0,1fr)}
   .cal-right{position:static}
 }
 @media (max-width:900px){
-  #app.on{grid-template-columns:1fr}
-  #sidebar{position:static;height:auto;flex-direction:column;border-right:0;border-bottom:1px solid var(--line)}
-  .content{padding:16px 14px 56px}
-  .split{grid-template-columns:1fr}
+  .content{padding:14px 16px 56px}
+  .navbar{top:8px}
+  .nav-capsule{border-radius:22px;flex-wrap:wrap;gap:8px}
+  .nav-links{order:3;flex:1 1 100%;padding-top:6px;border-top:1px solid var(--line)}
+  .split{grid-template-columns:minmax(0,1fr)}
   .bar-row{grid-template-columns:110px minmax(0,1fr) 48px}
+}
+@media (max-width:640px){
+  .content{padding:12px 14px 48px}
+  .nav-capsule{padding:8px 10px}
+  .stat .sv{font-size:22px}
 }
 </style>
 </head>
@@ -781,53 +848,65 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 </div>
 <div id="login">
   <form id="login-form" autocomplete="off">
-    <div class="lmark"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
-    <div class="lt">Mi Aula Virtual</div>
-    <div class="ls">Tareas, notas, calendario y materiales de Moodle en un solo sitio.</div>
-    <label class="lfield" for="login-base"><span>Dirección del aula virtual</span>
-      <input id="login-base" type="url" value="https://centros.edu.xunta.gal/iesteis/aulavirtual" spellcheck="false" autocomplete="off">
-    </label>
-    <label class="lfield" for="login-token"><span>Token de Moodle</span>
-      <input id="login-token" type="password" placeholder="32 caracteres" spellcheck="false" autocomplete="off">
-    </label>
-    <p class="lhelp">Moodle -&gt; Preferencias -&gt; Claves de seguridad. Solo se guarda en este navegador.</p>
-    <label class="lrow" for="login-remember"><input id="login-remember" type="checkbox" checked> Recordar en este navegador</label>
-    <button type="submit">Entrar</button>
-    <div id="login-msg"></div>
+    <div class="lside">
+      <div class="lmark"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <div class="lt">WebAulaVirtual</div>
+      <div class="ls">Sincronización Académica: tareas, notas, calendario y materiales de Moodle en un solo sitio.</div>
+      <div class="lstatus" id="login-status"><i></i><span>Sistema listo para vincular</span></div>
+      <ol class="lsteps">
+        <li><b>1</b><span>Entra en tu aula virtual y abre <em>Preferencias</em> &gt; <em>Claves de seguridad</em>.</span></li>
+        <li><b>2</b><span>Pulsa <em>Crear nueva clave</em>, ponle el nombre <em>WebAulaVirtual</em> y guarda el servicio.</span></li>
+        <li><b>3</b><span>Copia los 32 caracteres que muestra Moodle y pégalo en el campo de la derecha.</span></li>
+      </ol>
+    </div>
+    <div class="rside">
+      <label class="lfield" for="login-base"><span>Dirección del aula virtual</span>
+        <span class="lin">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"></use></svg>
+          <input id="login-base" type="url" value="https://centros.edu.xunta.gal/iesteis/aulavirtual" spellcheck="false" autocomplete="off">
+        </span>
+      </label>
+      <label class="lfield" for="login-token"><span>Token de seguridad</span>
+        <span class="lin">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-key"></use></svg>
+          <input id="login-token" type="password" placeholder="32 caracteres" spellcheck="false" autocomplete="off">
+          <button type="button" class="leye" id="login-eye" title="Mostrar u ocultar el token" aria-label="Mostrar u ocultar el token">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-eye"></use></svg>
+          </button>
+        </span>
+      </label>
+      <p class="lhelp">Solo se guarda en este navegador; nunca se envía a otro sitio que no sea tu servidor.</p>
+      <label class="lrow" for="login-remember"><input id="login-remember" type="checkbox" checked> Recordar en este navegador</label>
+      <button type="submit">Entrar</button>
+      <div id="login-msg"></div>
+    </div>
   </form>
 </div>
 
 <div class="app on" id="app">
-  <aside id="sidebar">
-    <div class="brand">
-      <span class="brand-mark"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
-      <span><span class="brand-name">Mi Aula Virtual</span><span class="brand-sub">IES de Teis</span></span>
-    </div>
-    <nav id="nav" aria-label="Secciones">
-      <div class="nav-cat">Estudio</div>
-      <button type="button" class="nav-item on" data-nav="inicio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-home"></use></svg>Inicio</button>
-      <button type="button" class="nav-item" data-nav="calendario"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Calendario</button>
-      <button type="button" class="nav-item" data-nav="tareas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-list"></use></svg>Tareas<span class="nav-badge" id="nav-pend"></span></button>
-      <button type="button" class="nav-item" data-nav="cuestionarios"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-quiz"></use></svg>Cuestionarios</button>
-      <button type="button" class="nav-item" data-nav="notas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"></use></svg>Notas</button>
-      <div class="nav-cat">Contenido</div>
-      <button type="button" class="nav-item" data-nav="modulos"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"></use></svg>Módulos</button>
-      <button type="button" class="nav-item" data-nav="materiales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-folder"></use></svg>Materiales</button>
-      <button type="button" class="nav-item" data-nav="anuncios"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-meg"></use></svg>Anuncios</button>
-      <div class="nav-cat">Comunicación</div>
-      <button type="button" class="nav-item" data-nav="mensajes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chat"></use></svg>Mensajes<span class="nav-badge" id="nav-msgs"></span></button>
-      <button type="button" class="nav-item" data-nav="avisos"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bell"></use></svg>Avisos</button>
-      <div class="nav-cat">Personal</div>
-      <button type="button" class="nav-item" data-nav="lista"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"></use></svg>Mi lista</button>
-      <button type="button" class="nav-item" data-nav="ajustes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-gear"></use></svg>Ajustes</button>
-    </nav>
-    <div class="nav-user">
-      <span class="avatar" id="user-avatar">?</span>
-      <span class="nu"><span class="nu-name" id="user-name">Sin conectar</span><span class="nu-user" id="user-login">—</span></span>
-      <button type="button" id="logout" title="Cerrar sesión"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-out"></use></svg></button>
-    </div>
-  </aside>
   <div class="content">
+    <header class="navbar">
+      <div class="nav-capsule">
+        <span class="brand-mini">
+          <span class="brand-mark"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span class="brand-name">WebAulaVirtual</span>
+        </span>
+        <nav class="nav-links" aria-label="Secciones">
+          <button type="button" class="nav-item on" data-nav="inicio"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-home"></use></svg>Inicio</button>
+          <button type="button" class="nav-item" data-nav="modulos"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"></use></svg>Módulos</button>
+          <button type="button" class="nav-item" data-nav="calendario"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>Calendario</button>
+          <button type="button" class="nav-item" data-nav="tareas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-list"></use></svg>Tareas<span class="nav-badge" id="nav-pend"></span></button>
+          <button type="button" class="nav-item" data-nav="notas"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chart"></use></svg>Notas</button>
+          <button type="button" class="nav-item" data-nav="mensajes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chat"></use></svg>Mensajes y Avisos<span class="nav-badge" id="nav-msgs"></span></button>
+        </nav>
+        <div class="nav-user">
+          <span class="avatar" id="user-avatar">?</span>
+          <span class="nu"><span class="nu-name" id="user-name">Sin conectar</span><span class="nu-user" id="user-login">—</span></span>
+          <button type="button" class="nav-item nav-gear" data-nav="ajustes" title="Ajustes" aria-label="Ajustes"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-gear"></use></svg></button>
+          <button type="button" id="logout" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-out"></use></svg></button>
+        </div>
+      </div>
+    </header>
     <header class="topbar">
       <div>
         <h1 id="view-title">Inicio</h1>
@@ -848,6 +927,16 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
           <div id="inicio-next"></div>
           <div class="sec-title">Próximas entregas <span id="inicio-up-n"></span></div>
           <div class="up-list" id="inicio-up"></div>
+          <div class="sec-title">Actividad reciente <span id="inicio-act-n"></span></div>
+          <div class="rows" id="inicio-act"></div>
+          <div class="sec-title">Accesos rápidos</div>
+          <div class="quick-row">
+            <button type="button" data-nav="cuestionarios"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-quiz"></use></svg>Cuestionarios</button>
+            <button type="button" data-nav="materiales"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-folder"></use></svg>Materiales</button>
+            <button type="button" data-nav="anuncios"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-meg"></use></svg>Anuncios</button>
+            <button type="button" data-nav="avisos"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bell"></use></svg>Avisos</button>
+            <button type="button" data-nav="lista"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"></use></svg>Mi lista</button>
+          </div>
         </div>
         <aside id="side">
     <section class="cbox" data-mod="calendar">
@@ -904,9 +993,6 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
       <option value="title">Título A-Z</option>
       <option value="clear">Quitar orden manual</option>
     </select>
-    <span id="next"></span>
-    <span id="mailst"></span>
-    <span id="savest"></span>
   </div>
   <div id="err"></div>
   <form id="addform" autocomplete="off">
@@ -931,7 +1017,7 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
   </details>
 
   <main id="list"></main>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b>, <b>Añadir anotación</b> y <b>Cambiar color</b> (una nota propia por tarea que se muestra en la tarjeta y al pasar el cursor). En <b>Agenda</b>, las celdas de los días son cuadradas y más amplias: el <b>clic derecho</b> sobre el espacio libre de un día abre un menú con <b>Crear tarea</b> para ese día, y las tareas aparecen como pequeños indicadores que se despliegan completos al pasar el cursor. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) sin depender de las asignaturas, y el conmutador situado bajo la barra de herramientas alterna visualmente entre ellas; el módulo <b>Agendas</b> del panel izquierdo también permite crearlas y activar o desactivar cuáles se superponen en el calendario, con un color por agenda. Los módulos del panel izquierdo se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En el panel de la izquierda tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b>, <b>Añadir anotación</b> y <b>Cambiar color</b> (una nota propia por tarea que se muestra en la tarjeta y al pasar el cursor). En <b>Agenda</b>, las celdas de los días son cuadradas y más amplias: el <b>clic derecho</b> sobre el espacio libre de un día abre un menú con <b>Crear tarea</b> para ese día, y las tareas aparecen como pequeños indicadores que se despliegan completos al pasar el cursor. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) sin depender de las asignaturas, y el conmutador situado bajo la barra de herramientas alterna visualmente entre ellas; el módulo <b>Agendas</b> de la columna de Inicio también permite crearlas y activar o desactivar cuáles se superponen en el calendario, con un color por agenda. Los módulos de esa columna se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En la columna derecha de Inicio tienes el reparto de tareas por asignatura y el diagrama de las notas de examen: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> en el nombre de una asignatura puedes elegir su color y su transparencia en los dos diagramas.</div>
     </section>
 
     <section class="view" id="view-calendario">
@@ -999,10 +1085,18 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
     </section>
 
     <section class="view" id="view-mensajes">
+      <div class="sec-title">Conversaciones <span id="msg-n"></span></div>
       <div class="split">
         <div class="msg-list" id="msg-list"></div>
         <div class="msg-pane" id="msg-pane"></div>
       </div>
+      <div class="sec-title" style="margin-top:22px">Avisos y anuncios <span id="msg-av-n"></span>
+        <span class="sec-acts">
+          <button type="button" data-nav="avisos">Ver avisos</button>
+          <button type="button" data-nav="anuncios">Ver anuncios</button>
+        </span>
+      </div>
+      <div class="rows" id="msg-av-rows"></div>
     </section>
 
     <section class="view" id="view-avisos">
@@ -1063,6 +1157,10 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
     <g id="i-star"><path d="M12 4.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/></g>
     <g id="i-gear"><path d="M4 7h9"/><path d="M18.5 7H20"/><circle cx="15.8" cy="7" r="2.2"/><path d="M4 17h5.2"/><path d="M14.5 17H20"/><circle cx="11.8" cy="17" r="2.2"/></g>
     <g id="i-out"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M9 8l-4 4 4 4"/><path d="M5 12h10"/></g>
+    <g id="i-link"><path d="M10 13.5a4 4 0 0 0 5.7.3l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.5 1.5"/><path d="M14 10.5a4 4 0 0 0-5.7-.3l-2.6 2.6a4 4 0 0 0 5.7 5.7l1.5-1.5"/></g>
+    <g id="i-key"><circle cx="8" cy="14" r="4"/><path d="M11 11.5 20 3"/><path d="M17 6l2.5 2.5"/><path d="M15 8l2 2"/></g>
+    <g id="i-eye"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></g>
+    <g id="i-eye-off"><path d="M4 5l16 14"/><path d="M9.6 6.4A8.6 8.6 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.3 3.9"/><path d="M6.3 8.1A16.7 16.7 0 0 0 2.5 12S6 18 12 18a8.9 8.9 0 0 0 3.4-.7"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></g>
   </defs></svg>
   <div id="cpalette">
     <div class="ptitle" id="cp-title"></div>
@@ -1192,7 +1290,7 @@ var SEED = [
 var SUBJECT_TEACHERS = {
   'Dixitalización': 'Marcos Alonso'
 };
-var TASKS = [], EMAILS = [], TEACHERS = {},
+var TASKS = [], EMAILS = [], MESSAGES = [], TEACHERS = {},
   DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: ''},
   NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false,
   CP_SUBJ = null, CP_OPEN = false;
@@ -1574,17 +1672,27 @@ function showErr(m){
 }
 /* ---------- ACCESO: URL del aula virtual + token de Moodle ---------- */
 var DEFAULT_BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+function loginStatus(text, busy){
+  var st = document.getElementById('login-status');
+  if (!st) return;
+  st.classList.toggle('busy', !!busy);
+  var s = st.querySelector('span');
+  if (s && text) s.textContent = text;
+}
 function loginShow(msg, info){
   var el = document.getElementById('login');
   if (el) el.classList.remove('hide');
   var m = document.getElementById('login-msg');
   if (m){ m.textContent = msg || ''; m.classList.toggle('info', !!info); }
+  if (info) loginStatus(msg || 'Sistema listo para vincular', true);
+  else loginStatus(msg ? 'Enlace pendiente de revisión' : 'Sistema listo para vincular', !!msg);
 }
 function loginHide(){
   var el = document.getElementById('login');
   if (el) el.classList.add('hide');
   var m = document.getElementById('login-msg');
   if (m){ m.textContent = ''; m.classList.remove('info'); }
+  loginStatus('Sistema listo para vincular', false);
 }
 function getBase(){
   return localStorage.getItem('av-base') || sessionStorage.getItem('av-base') || DEFAULT_BASE;
@@ -1654,6 +1762,11 @@ function loadData(){
     })
     .then(function(j){
       if (j && typeof j === 'object' && !j.error){
+        /* Conversaciones directas de Moodle si el servidor las incluye. */
+        try {
+          var msj = parseMoodleMessages(j);
+          if (msj.length) MESSAGES = msj;
+        } catch(e){}
         DATA = {
           tasks: Array.isArray(j.tasks) ? j.tasks : [],
           notes: (j.notes && typeof j.notes === 'object') ? j.notes : {},
@@ -1694,14 +1807,214 @@ function loadData(){
       return null;
     });
 }
+/* ---------- Lectura de mensajes, avisos y anuncios de Moodle ---------- */
+/* Quita las etiquetas HTML que deja Moodle y devuelve texto plano legible. */
+function stripMoodleHtml(html){
+  if (!html) return '';
+  var s = String(html)
+    .replace(/<(br|\/p|\/div|\/li|\/tr|\/h[1-6])\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ');
+  var ta = document.createElement('textarea');
+  ta.innerHTML = s;
+  s = ta.value;
+  return s.replace(/[ \t ]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/* Convierte fechas de Moodle (segundos, milisegundos o texto) en ISO. */
+function moodleTs(v){
+  if (v === null || v === undefined || v === '') return '';
+  if (typeof v === 'number'){
+    var msN = v < 1e12 ? v * 1000 : v;
+    return isFinite(msN) ? new Date(msN).toISOString() : '';
+  }
+  var s = String(v).trim();
+  if (/^\d+$/.test(s)){
+    var n = Number(s);
+    var ms = n < 1e12 ? n * 1000 : n;
+    return isFinite(ms) ? new Date(ms).toISOString() : '';
+  }
+  var p = Date.parse(s);
+  return isNaN(p) ? '' : new Date(p).toISOString();
+}
+
+/* Normaliza conversaciones de Moodle (core_message_get_conversations /
+   core_message_get_conversation_messages) o listas ya preparadas por el
+   servidor. Acepta varias formas para no depender de una versión concreta. */
+function parseMoodleMessages(payload){
+  if (!payload || typeof payload !== 'object') return [];
+  var raw = payload.messages || payload.conversations || payload.threads || payload.dm;
+  if (!Array.isArray(raw)) return [];
+  var out = [];
+  raw.forEach(function(m, i){
+    if (!m || typeof m !== 'object') return;
+    var hilos = Array.isArray(m.messages) ? m.messages : [];
+    var ultimo = hilos.length ? hilos[hilos.length - 1] : null;
+    var body = m.body || m.message || m.text || m.snippet ||
+      (m.preview && (m.preview.body || m.preview.text)) ||
+      (ultimo && (ultimo.body || ultimo.message || ultimo.text)) || '';
+    var from = m.from || m.sender || m.sendername || m.fullname || m.name ||
+      m.userfromfullname || m.usersendfullname || '';
+    if (from && typeof from === 'object') from = from.fullname || from.name || '';
+    var title = m.subject || m.title || m.name ||
+      (from ? 'Conversación con ' + from : 'Conversación');
+    var ts = moodleTs(m.timecreated || m.ts || m.date || m.timestamp ||
+      (m.lastmessage && m.lastmessage.timecreated) ||
+      (ultimo && ultimo.timecreated));
+    out.push({
+      id: String(m.id || m.conversationid || m.messageid || ('m' + i)),
+      kind: 'mensaje',
+      from: String(from || 'Moodle'),
+      title: String(title),
+      body: stripMoodleHtml(body),
+      ts: ts,
+      url: String(m.url || m.viewurl || ''),
+      subject: String(m.course || m.coursename || ''),
+      unread: m.isread === false || m.unread === true || Number(m.unreadcount || 0) > 0
+    });
+  });
+  return out;
+}
+
+/* Estado de lectura guardado en este navegador. */
+function readMap(){
+  try { return JSON.parse(localStorage.getItem('av-read') || '{}') || {}; } catch(e){ return {}; }
+}
+function isRead(id){
+  var m = readMap();
+  return m[String(id)] === 1;
+}
+function setRead(id, val){
+  var m = readMap();
+  if (val) m[String(id)] = 1; else delete m[String(id)];
+  try { localStorage.setItem('av-read', JSON.stringify(m)); } catch(e){}
+}
+function isUnread(item){
+  if (!item) return false;
+  var m = readMap();
+  var v = m[String(item.id)];
+  return v === undefined || v === 0;
+}
+function markRead(id){
+  if (isRead(id)) return;
+  setRead(id, true);
+  try { updateNavBadges(); } catch(e){}
+}
+
+/* Enlace directo a una página del aula virtual del usuario. */
+function moodleUrl(path){
+  var b = getBase();
+  if (!/^https?:\/\//i.test(b)) b = BASE;
+  return b.replace(/\/+$/, '') + '/' + String(path).replace(/^\/+/, '');
+}
+
+/* Mezcla avisos de correo, mensajes directos y anuncios del aula, ordenados
+   del más reciente al más antiguo. Es la fuente de "Actividad reciente" y de
+   la pestaña "Mensajes y Avisos". */
+function comunicados(){
+  var out = [];
+  var limite = Date.now() - 86400000;
+  EMAILS.forEach(function(m){
+    if (!m) return;
+    out.push({
+      id: 'correo:' + (m.id || m.url || m.title || ''),
+      kind: 'correo',
+      title: m.title || '(sin asunto)',
+      from: m.hint || 'Instituto',
+      body: m.snippet || '',
+      ts: m.ts || '',
+      url: m.url || '',
+      subject: ''
+    });
+  });
+  MESSAGES.forEach(function(m){
+    if (!m) return;
+    out.push({
+      id: 'msg:' + m.id,
+      kind: 'mensaje',
+      title: m.title || '(sin asunto)',
+      from: m.from || 'Moodle',
+      body: m.body || '',
+      ts: m.ts || '',
+      url: m.url || '',
+      subject: m.subject || '',
+      unread: !!m.unread
+    });
+  });
+  TASKS.forEach(function(t){
+    if (!t || !t.id || String(t.id).charAt(0) !== 'e') return;
+    var ms = dueMs(t);
+    if (ms === null || ms < limite) return;
+    out.push({
+      id: 'ev:' + t.id,
+      kind: 'anuncio',
+      title: t.t || '(sin título)',
+      from: t.s || 'Aula virtual',
+      body: '',
+      ts: new Date(ms).toISOString(),
+      url: t.u || '',
+      subject: t.s || ''
+    });
+  });
+  out.sort(function(a, b){
+    return (Date.parse(b.ts || '') || 0) - (Date.parse(a.ts || '') || 0);
+  });
+  return out;
+}
+
+var KIND_LABEL = { correo: 'Aviso de correo', mensaje: 'Mensaje directo', anuncio: 'Anuncio del aula' };
+
+/* Fila común para las listas de actividad y de avisos. */
+function comunicadoRow(item){
+  var d = item.ts ? Date.parse(item.ts) : 0;
+  var subj = item.subject || '';
+  var abbr = subj ? abbrFor(subj) : (item.kind === 'anuncio' ? 'Aula' : (item.kind === 'mensaje' ? 'Moodle' : 'Aviso'));
+  var color = subj ? colorFor(subj) : (item.kind === 'mensaje' ? '#818cf8' : '#8b93a7');
+  var abierto = !isUnread(item);
+  var cuerpo = item.body ? shortTxt(stripMoodleHtml(item.body), 220) : '';
+  return '<div class="row-card">' +
+    '<div class="row-main">' +
+      '<div class="mi-head">' +
+        (abierto ? '' : '<span class="mi-dot"></span>') +
+        '<span class="m-tag"><i style="background:' + escapeAttr(color) + '"></i>' + esc(abbr) + '</span>' +
+        '<span class="row-t">' + esc(item.title || '(sin asunto)') + '</span>' +
+      '</div>' +
+      '<div class="row-m"><span>' + esc(KIND_LABEL[item.kind] || 'Aviso') + '</span>' +
+        '<span>' + esc(item.from || '') + '</span>' +
+        (d ? '<span>' + new Date(d).toLocaleDateString('es-ES', {day: 'numeric', month: 'short', year: 'numeric'}) + '</span>' : '') +
+      '</div>' +
+      (cuerpo ? '<div class="row-m">' + esc(cuerpo) + '</div>' : '') +
+    '</div>' +
+    '<div class="row-side">' +
+      '<button type="button" data-read="' + escapeAttr(String(item.id)) + '">' +
+        (abierto ? 'Marcar como no leído' : 'Marcar como leído') + '</button>' +
+      (item.url ? '<a href="' + escapeAttr(eventHref(item.url)) + '" target="_blank" rel="noopener">Abrir</a>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+/* Widget "Actividad reciente" de la vista de Inicio. */
+function renderActividad(){
+  var box = document.getElementById('inicio-act');
+  if (!box) return;
+  var items = comunicados().slice(0, 6);
+  var n = document.getElementById('inicio-act-n');
+  if (n) n.textContent = items.length ? (items.length + (items.length === 1 ? ' novedad' : ' novedades')) : '';
+  if (!items.length){
+    box.innerHTML = '<div class="empty">Sin actividad reciente: aquí aparecerán los avisos, los anuncios y los mensajes en cuanto Moodle responda.</div>';
+    return;
+  }
+  box.innerHTML = items.map(comunicadoRow).join('');
+}
+
 function setMailStatus(err){
   var el = document.getElementById('mailst');
   if (!el) return;
   if (err){ el.textContent = '· correo no disponible'; return; }
-  el.textContent = EMAILS.length ? '· ' + EMAILS.length + ' avisos de correo' : '';
+  var n = EMAILS.length + MESSAGES.length;
+  el.textContent = n ? '· ' + n + ' avisos y mensajes' : '';
 }
 function loadEmails(){
-  if (!isAuthed()){ EMAILS = []; setMailStatus(); return Promise.resolve(); }
+  if (!isAuthed()){ EMAILS = []; MESSAGES = []; setMailStatus(); return Promise.resolve(); }
   return fetch('/api/emails', {credentials: 'same-origin', headers: authHeader()})
     .then(function(r){
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1709,10 +2022,12 @@ function loadEmails(){
     })
     .then(function(j){
       EMAILS = (j && Array.isArray(j.annots)) ? j.annots : [];
+      try { MESSAGES = parseMoodleMessages(j); } catch(e){ MESSAGES = []; }
       setMailStatus();
     })
     .catch(function(){
       EMAILS = [];
+      MESSAGES = [];
       setMailStatus(true);
     });
 }
@@ -1986,12 +2301,23 @@ var VIEW_TITLES = {
   modulos: ['Módulos', 'Materias matriculadas en Moodle'],
   materiales: ['Materiales', 'Enlaces de cada módulo'],
   anuncios: ['Anuncios', 'Eventos publicados en el aula virtual'],
-  mensajes: ['Mensajes', 'Avisos de correo del centro'],
+  mensajes: ['Mensajes y Avisos', 'Conversaciones, avisos de correo y anuncios del centro'],
   avisos: ['Avisos', 'Tablón de avisos'],
   lista: ['Mi lista', 'Tareas creadas por ti'],
   ajustes: ['Ajustes', 'Personalización']
 };
 var CURRENT_VIEW = 'inicio';
+
+/* Cada vista se señala en el enlace de la navbar que la agrupa. */
+var NAV_OF = {
+  inicio: 'inicio',
+  tareas: 'tareas', lista: 'tareas',
+  calendario: 'calendario',
+  notas: 'notas',
+  modulos: 'modulos', materiales: 'modulos', cuestionarios: 'modulos',
+  mensajes: 'mensajes', avisos: 'mensajes', anuncios: 'mensajes',
+  ajustes: 'ajustes'
+};
 
 function navigate(view){
   if (!VIEW_TITLES[view]) view = 'inicio';
@@ -2001,8 +2327,9 @@ function navigate(view){
   document.querySelectorAll('.view').forEach(function(sec){
     sec.classList.toggle('on', sec.id === 'view-' + view);
   });
+  var navKey = NAV_OF[view] || view;
   document.querySelectorAll('.nav-item').forEach(function(btn){
-    var on = btn.getAttribute('data-nav') === view;
+    var on = btn.getAttribute('data-nav') === navKey;
     btn.classList.toggle('on', on);
     if (on) btn.setAttribute('aria-current', 'page');
     else btn.removeAttribute('aria-current');
@@ -2616,8 +2943,21 @@ function initAgendaUI(){
     });
   }
 
-  document.querySelectorAll('.nav-item').forEach(function(btn){
-    btn.addEventListener('click', function(){ navigate(btn.getAttribute('data-nav')); });
+  /* Navegación y acciones por delegación: navbar, accesos rápidos, botones de
+     las vistas y las filas generadas con datos. */
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('[data-nav]') : null;
+    if (!t) return;
+    var v = t.getAttribute('data-nav');
+    if (v) navigate(v);
+  });
+  document.addEventListener('click', function(e){
+    var r = e.target && e.target.closest ? e.target.closest('[data-read]') : null;
+    if (!r) return;
+    var id = r.getAttribute('data-read');
+    if (!id) return;
+    setRead(id, !isRead(id));
+    try { refreshViews(); } catch(err){}
   });
 
   var agNew = document.getElementById('agenda-new');
@@ -2792,11 +3132,28 @@ var _logout = document.getElementById('logout');
 if (_logout) _logout.addEventListener('click', function(){
   clearCredentials();
   loginShow('Sesión cerrada. Vuelve a entrar con tu token.', true);
+  loginStatus('Sistema listo para vincular', false);
 });
 var _setLogout = document.getElementById('set-logout');
 if (_setLogout) _setLogout.addEventListener('click', function(){
   clearCredentials();
   loginShow('Sesión cerrada. Vuelve a entrar con tu token.', true);
+  loginStatus('Sistema listo para vincular', false);
+});
+
+/* Mostrar u ocultar los caracteres del token. */
+var _eye = document.getElementById('login-eye');
+if (_eye) _eye.addEventListener('click', function(e){
+  e.preventDefault();
+  var inp = document.getElementById('login-token');
+  if (!inp) return;
+  var visible = inp.type === 'password';
+  inp.type = visible ? 'text' : 'password';
+  _eye.setAttribute('title', visible ? 'Ocultar el token' : 'Mostrar u ocultar el token');
+  _eye.setAttribute('aria-label', visible ? 'Ocultar el token' : 'Mostrar u ocultar el token');
+  var use = _eye.querySelector('use');
+  if (use) use.setAttribute('href', visible ? '#i-eye-off' : '#i-eye');
+  try { inp.focus(); } catch(err){}
 });
 
 /* ---------- selector de asignatura con el profesor que la imparte ---------- */
@@ -4357,7 +4714,7 @@ function applyAccent(){
   root.style.setProperty('--link', hex);
 }
 
-/* ---------- usuario en la barra lateral y en Ajustes ---------- */
+/* ---------- usuario en la navbar y en Ajustes ---------- */
 function renderUser(){
   var name = USER_NAME || '';
   var el = document.getElementById('user-name');
@@ -4812,48 +5169,114 @@ function renderAnuncios(){
   }).join('');
 }
 
-/* ---------- Mensajes: vista dividida de conversaciones ---------- */
+/* ---------- Mensajes y Avisos: conversaciones + tablón unificado ---------- */
 var MSG_SEL = null;
+
+/* Las claves de lectura se guardan siempre con el mismo prefijo, tanto en el
+   tablón como en la lista de conversaciones. */
+function readIdOf(item){
+  var id = String((item && item.id) || '');
+  if (!id) return '';
+  if (item.kind === 'mensaje' && id.indexOf('msg:') !== 0) return 'msg:' + id;
+  if (item.kind === 'correo' && id.indexOf('correo:') !== 0) return 'correo:' + id;
+  if (item.kind === 'anuncio' && id.indexOf('ev:') !== 0) return 'ev:' + id;
+  return id;
+}
+
+/* Si Moodle no envía conversaciones, la lista se apoya en los avisos de
+   correo para que la vista siga siendo útil. */
+function hilosConversacion(){
+  if (MESSAGES.length) return MESSAGES;
+  return EMAILS.map(function(m){
+    return {
+      id: 'correo:' + (m.id || m.url || m.title || ''),
+      kind: 'correo',
+      from: m.hint || 'Instituto',
+      title: m.title || '(sin asunto)',
+      body: m.snippet || '',
+      ts: m.ts || '',
+      url: m.url || '',
+      subject: ''
+    };
+  });
+}
+
 function renderMensajes(){
   var list = document.getElementById('msg-list');
   var pane = document.getElementById('msg-pane');
   if (!list || !pane) return;
-  var items = EMAILS.slice().sort(function(a, b){
+
+  var items = hilosConversacion().slice().sort(function(a, b){
     return (Date.parse(b.ts || '') || 0) - (Date.parse(a.ts || '') || 0);
   });
+  var n = document.getElementById('msg-n');
+  if (n) n.textContent = items.length ? (items.length + (items.length === 1 ? ' hilo' : ' hilos')) : '';
+
   if (!items.length){
     list.innerHTML = '';
-    pane.innerHTML = '<div class="empty">No hay mensajes. Los avisos de correo del centro aparecen aquí.</div>';
-    return;
-  }
-  if (!MSG_SEL || !items.some(function(m){ return String(m.id) === String(MSG_SEL); })) MSG_SEL = items[0].id;
-  list.innerHTML = items.map(function(m){
-    var d = m.ts ? Date.parse(m.ts) : 0;
-    return '<button type="button" class="msg-item' + (String(m.id) === String(MSG_SEL) ? ' on' : '') +
-      '" data-msg="' + escapeAttr(String(m.id)) + '">' +
-      '<span class="mi-title">' + esc(m.title || '(sin asunto)') + '</span>' +
-      '<span class="mi-meta"><span>' + esc(m.hint || 'instituto') + '</span><span>' +
-      (d ? new Date(d).toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}) : '') + '</span></span>' +
-    '</button>';
-  }).join('');
-  var sel = null;
-  items.forEach(function(m){ if (String(m.id) === String(MSG_SEL)) sel = m; });
-  if (sel){
-    var d = sel.ts ? Date.parse(sel.ts) : 0;
-    pane.innerHTML = '<h3>' + esc(sel.title || '(sin asunto)') + '</h3>' +
-      '<div class="msg-meta">' + esc(sel.hint || 'instituto') +
-      (d ? ' · ' + new Date(d).toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}) : '') +
-      '</div>' +
-      '<div class="msg-body">' + esc(sel.snippet || 'Sin contenido disponible.') + '</div>' +
-      '<div class="msg-acts">' +
-      (sel.url ? '<a href="' + escapeAttr(eventHref(sel.url)) + '" target="_blank" rel="noopener">Abrir mensaje</a>' : '') +
-      '</div>';
+    pane.innerHTML = '<div class="empty">No hay conversaciones abiertas. Los avisos de correo y los anuncios del centro aparecen más abajo.</div>';
   } else {
-    pane.innerHTML = '<div class="empty">Selecciona un mensaje de la izquierda.</div>';
+    if (!MSG_SEL || !items.some(function(m){ return readIdOf(m) === MSG_SEL; })) MSG_SEL = readIdOf(items[0]);
+    list.innerHTML = items.map(function(m){
+      var rid = readIdOf(m);
+      var d = m.ts ? Date.parse(m.ts) : 0;
+      var visto = !isUnread({id: rid, kind: m.kind});
+      return '<button type="button" class="msg-item' + (rid === MSG_SEL ? ' on' : '') + (visto ? ' read' : '') +
+        '" data-msg="' + escapeAttr(rid) + '">' +
+        '<span class="mi-head">' + (visto ? '' : '<span class="mi-dot"></span>') +
+          '<span class="mi-title">' + esc(m.title || '(sin asunto)') + '</span></span>' +
+        '<span class="mi-meta"><span>' + esc(m.from || 'instituto') + '</span><span>' +
+        (d ? new Date(d).toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}) : '') + '</span></span>' +
+      '</button>';
+    }).join('');
+
+    var sel = null;
+    items.forEach(function(m){ if (readIdOf(m) === MSG_SEL) sel = m; });
+    if (sel){
+      var ds = sel.ts ? Date.parse(sel.ts) : 0;
+      var subj = sel.subject || '';
+      var vistoSel = !isUnread({id: MSG_SEL, kind: sel.kind});
+      var cuerpo = stripMoodleHtml(sel.body || '');
+      var responder = sel.url ? eventHref(sel.url) : moodleUrl('message/index.php');
+      pane.innerHTML =
+        '<div class="mi-head">' +
+          (vistoSel ? '' : '<span class="mi-dot"></span>') +
+          (subj ? '<span class="m-tag"><i style="background:' + escapeAttr(colorFor(subj)) + '"></i>' + esc(abbrFor(subj)) + '</span>' : '') +
+          '<span class="m-src">' + esc(KIND_LABEL[sel.kind] || 'Mensaje directo') + '</span>' +
+        '</div>' +
+        '<h3>' + esc(sel.title || '(sin asunto)') + '</h3>' +
+        '<div class="msg-meta">' + esc(sel.from || 'instituto') +
+          (ds ? ' · ' + new Date(ds).toLocaleDateString('es-ES', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}) : '') +
+        '</div>' +
+        '<div class="msg-body">' + esc(cuerpo || 'Sin contenido disponible.') + '</div>' +
+        '<div class="msg-acts">' +
+          '<a href="' + escapeAttr(responder) + '" target="_blank" rel="noopener">Responder</a>' +
+          '<button type="button" data-read="' + escapeAttr(MSG_SEL) + '">' +
+            (vistoSel ? 'Marcar como no leído' : 'Marcar como leído') + '</button>' +
+        '</div>';
+    } else {
+      pane.innerHTML = '<div class="empty">Selecciona un mensaje de la lista.</div>';
+    }
+
+    list.querySelectorAll('[data-msg]').forEach(function(b){
+      b.addEventListener('click', function(){
+        MSG_SEL = b.getAttribute('data-msg');
+        markRead(MSG_SEL);
+        renderMensajes();
+      });
+    });
   }
-  list.querySelectorAll('[data-msg]').forEach(function(b){
-    b.addEventListener('click', function(){ MSG_SEL = b.getAttribute('data-msg'); renderMensajes(); });
-  });
+
+  /* Tablón unificado: avisos de correo, mensajes directos y anuncios. */
+  var av = document.getElementById('msg-av-rows');
+  if (av){
+    var feed = comunicados();
+    var navN = document.getElementById('msg-av-n');
+    if (navN) navN.textContent = feed.length ? (feed.length + (feed.length === 1 ? ' entrada' : ' entradas')) : '';
+    av.innerHTML = feed.length
+      ? feed.map(comunicadoRow).join('')
+      : '<div class="empty">Todavía no hay avisos ni anuncios.</div>';
+  }
 }
 
 /* ---------- Avisos: tablón con los correos del centro ---------- */
@@ -4993,12 +5416,19 @@ function updateNavBadges(){
   var b = document.getElementById('nav-pend');
   if (b) b.textContent = pend ? String(pend) : '';
   var m = document.getElementById('nav-msgs');
-  if (m) m.textContent = EMAILS.length ? String(EMAILS.length) : '';
+  if (m){
+    var sinLeer = 0;
+    try {
+      comunicados().forEach(function(it){ if (isUnread(it)) sinLeer++; });
+    } catch(e){ sinLeer = 0; }
+    m.textContent = sinLeer ? String(sinLeer) : '';
+  }
 }
 function refreshViews(){
   try { renderUser(); } catch(e){}
   try { updateNavBadges(); } catch(e){}
   try { renderInicio(); } catch(e){}
+  try { renderActividad(); } catch(e){}
   try { renderQuiz(); } catch(e){}
   try { renderNotas(); } catch(e){}
   try { renderModulos(); } catch(e){}

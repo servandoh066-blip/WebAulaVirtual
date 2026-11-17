@@ -2,6 +2,9 @@ const EXEC = 'https://backend.composio.dev/api/v3.1/tools/execute/';
 const QUERY = 'newer_than:14d {from:edu.xunta.gal from:xunta.gal}';
 const MAX_LIST = 60;
 const MAX_DEEP = 4;
+const DEFAULT_BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+const MAX_CONVS = 6;
+const MAX_MSGS = 8;
 
 function unauthorized(res) {
   // Sin cabecera 'WWW-Authenticate' a propósito (ver api/data.js): el reto
@@ -66,6 +69,184 @@ function findProp(obj, prop, depth) {
 }
 
 function hasMessages(j) { return !!findProp(j, 'messages', 0); }
+
+/* ---------------- conversaciones de Moodle ---------------- */
+
+function headerValue(req, name) {
+  const h = req.headers || {};
+  const v = h[name] !== undefined ? h[name] : h[name.toUpperCase()];
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+// Token del cliente (cabecera) o, si no viene, el del servidor.
+function moodleToken(req) {
+  const own = headerValue(req, 'x-moodle-token');
+  if (own) return own;
+  return String(process.env.MOODLE_TOKEN || '').trim();
+}
+
+// URL base del aula virtual: la que introduce el usuario o la del entorno.
+function moodleBase(req) {
+  let base = headerValue(req, 'x-moodle-base') ||
+    String(process.env.MOODLE_BASE || '').trim() ||
+    DEFAULT_BASE;
+  if (!/^https?:\/\//i.test(base)) return DEFAULT_BASE;
+  return base.replace(/\/+$/, '') + '/';
+}
+
+function appendParams(body, prefix, v) {
+  if (v === undefined || v === null) return;
+  if (Array.isArray(v)) {
+    v.forEach(function (x, i) { appendParams(body, prefix + '[' + i + ']', x); });
+  } else if (typeof v === 'object') {
+    Object.keys(v).forEach(function (k) { appendParams(body, prefix + '[' + k + ']', v[k]); });
+  } else {
+    body.set(prefix, String(v));
+  }
+}
+
+async function ws(base, token, fn, params) {
+  const body = new URLSearchParams();
+  body.set('wstoken', token);
+  body.set('wsfunction', fn);
+  body.set('moodlewsrestformat', 'json');
+  Object.keys(params || {}).forEach(function (k) {
+    appendParams(body, k, params[k]);
+  });
+  const url = base + 'webservice/rest/server.php';
+  const r = await fetch(url, { method: 'POST', body, signal: AbortSignal.timeout(10000) });
+  if (!r.ok) throw new Error('WS HTTP ' + r.status);
+  const j = await r.json();
+  if (j && j.exception) throw new Error((j.errorcode || 'error') + ': ' + (j.message || ''));
+  return j;
+}
+
+// Nombre e identificador del usuario dueño del token: sirve para pedir las
+// conversaciones (Moodle exige el userid) y para no listarle a él mismo como
+// remitente. Si la llamada falla, la conversación se muestra tal cual.
+const SELF_CACHE = new Map();
+async function moodleSelf(base, token) {
+  if (SELF_CACHE.has(token)) return SELF_CACHE.get(token);
+  const empty = { id: 0, name: '' };
+  let info = empty;
+  try {
+    info = await ws(base, token, 'core_webservice_get_site_info', {});
+  } catch (e) { /* sin usuario */ }
+  const self = { id: Number(info.userid || 0), name: String(info.fullname || '') };
+  SELF_CACHE.set(token, self);
+  return self;
+}
+
+function stripTags(s) {
+  return String(s || '')
+    .replace(/<(br|\/p|\/div|\/li|\/tr|\/h[1-6])\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&gt;/gi, '>').replace(/&lt;/gi, '<')
+    .replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#039;/gi, "'")
+    .replace(/[ \t]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+// Primera línea con contenido suficiente para usarla de asunto en la lista.
+function firstLine(s, max) {
+  const lines = String(s || '').split('\n').map(function (x) { return x.trim(); })
+    .filter(Boolean);
+  let line = '';
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].length >= 16) { line = lines[i]; break; }
+  }
+  if (!line) line = lines[0] || '';
+  return line.length > max ? line.slice(0, max - 1) + '…' : line;
+}
+
+// Una conversación de Moodle en el formato que consume la vista Mensajes.
+function normalizeConversation(conv, msgs, self) {
+  const list = (Array.isArray(msgs) ? msgs : []).slice().sort(function (a, b) {
+    return Number(a.timecreated || 0) - Number(b.timecreated || 0);
+  }).slice(-MAX_MSGS);
+
+  // Quién escribe cada mensaje: los miembros de la conversación traen nombre.
+  const byId = {};
+  (Array.isArray(conv.members) ? conv.members : []).forEach(function (m) {
+    if (m && m.id) byId[m.id] = m.fullname || '';
+  });
+  if (self && self.id) byId[self.id] = self.name;
+  function senderOf(m) {
+    if (!m) return '';
+    const id = Number(m.useridfrom || m.userid || 0);
+    if (id && byId[id]) return byId[id];
+    const from = m.usersfrom || m.userfrom || m.usersend || [];
+    const arr = Array.isArray(from) ? from : [from];
+    for (let i = 0; i < arr.length; i++) {
+      const n = arr[i] && (arr[i].fullname || arr[i].name || arr[i].username);
+      if (n) return n;
+    }
+    return '';
+  }
+
+  const cuerpo = list.map(function (m) {
+    const txt = stripTags(m.text || m.body || m.message || '');
+    if (!txt) return '';
+    const who = senderOf(m);
+    return (who ? who + ': ' : '') + txt;
+  }).filter(Boolean).join('\n\n');
+
+  const others = [];
+  list.forEach(function (m) {
+    const n = senderOf(m);
+    if (n && n !== (self && self.name) && others.indexOf(n) < 0) others.push(n);
+  });
+  const remitente = others.length ? others.join(', ')
+    : ((self && self.name) || 'Moodle');
+  const last = list.length ? list[list.length - 1] : {};
+  const texto = stripTags(last.text || last.body || last.message || '');
+
+  return {
+    id: 'c' + String(conv.id || ''),
+    title: firstLine(texto, 90) || (others.length ? 'Conversación con ' + others[0] : 'Conversación'),
+    from: remitente,
+    body: cuerpo,
+    timecreated: Number(last.timecreated || conv.timecreated || 0),
+    subject: String(conv.name || ''),
+    url: '',
+    unread: Number(conv.unreadcount || 0) > 0 || conv.isread === false
+  };
+}
+
+// Conversaciones directas del aula virtual. Todo el bloque va envuelto en
+// try/catch en el llamante: si Moodle no responde, la vista sigue funcionando
+// con los avisos de correo. Moodle 4.5 exige el userid del dueño del token y
+// rechaza cualquier parámetro extra, así que se pide solo lo necesario.
+async function moodleConversations(req) {
+  const token = moodleToken(req);
+  if (!/^[A-Za-z0-9]{16,128}$/.test(token)) return [];
+  const base = moodleBase(req);
+  const self = await moodleSelf(base, token);
+  if (!self.id) return [];
+  const attempts = [
+    { userid: self.id, limitnum: 20 },
+    { userid: self.id, limitfrom: 0, limitnum: 20 },
+    { userid: self.id }
+  ];
+  let convs = [];
+  for (let i = 0; i < attempts.length && !convs.length; i++) {
+    try {
+      const j = await ws(base, token, 'core_message_get_conversations', attempts[i]);
+      convs = (j && j.conversations) || [];
+    } catch (e) {
+      convs = [];
+    }
+  }
+  if (!Array.isArray(convs)) return [];
+  return convs
+    .filter(function (c) { return c && c.id; })
+    .slice(0, MAX_CONVS)
+    .map(function (c) { return normalizeConversation(c, c.messages, self); })
+    .filter(function (c) { return !!c.body; });
+}
 
 /* ---------------- filtro ---------------- */
 
@@ -300,6 +481,9 @@ module.exports = async function (req, res) {
   }
 
   try {
+    // Conversaciones directas de Moodle: no bloquean el correo si fallan.
+    const mensajes = moodleConversations(req).catch(function () { return []; });
+
     const j = await execTool('GMAIL_FETCH_EMAILS', {
       query: QUERY,
       max_results: MAX_LIST,
@@ -326,8 +510,15 @@ module.exports = async function (req, res) {
       await Promise.all(missing.map(hydrateDate));
     }
 
+    let messages = [];
+    try { messages = await mensajes; } catch (e) { messages = []; }
+
     res.statusCode = 200;
-    return res.json({ annots: items, fetchedAt: Math.floor(Date.now() / 1000) });
+    return res.json({
+      annots: items,
+      messages: Array.isArray(messages) ? messages : [],
+      fetchedAt: Math.floor(Date.now() / 1000)
+    });
   } catch (err) {
     res.statusCode = 502;
     return res.json({ error: String(err && err.message ? err.message : err) });
