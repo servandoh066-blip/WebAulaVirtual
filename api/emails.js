@@ -133,6 +133,8 @@ async function moodleSelf(base, token) {
     info = await ws(base, token, 'core_webservice_get_site_info', {});
   } catch (e) { /* sin usuario */ }
   const self = { id: Number(info.userid || 0), name: String(info.fullname || '') };
+  // Caché acotada: una entrada por token, nunca indefinida.
+  if (SELF_CACHE.size > 64) SELF_CACHE.delete(SELF_CACHE.keys().next().value);
   SELF_CACHE.set(token, self);
   return self;
 }

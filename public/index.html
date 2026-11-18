@@ -9,9 +9,25 @@
 :root{
   color-scheme: dark;
   /* Tema unico y predeterminado: negro profundo, superficies translucidas
-     con desenfoque, bordes muy sutiles y texto claro. */
-  --bg:#07080c; --fg:#f3f4f6; --muted:#8b93a7; --card:#0f1118; --line:#1c1f2e;
-  --head:#f3f4f6;
+     con desenfoque, bordes muy sutiles y texto claro.
+
+     Los seis tokens de fondo se calculan en HSL desde el color que elija el
+     usuario en Ajustes (ver applyBgTheme) y se guardan aqui. Los nombres de
+     siempre (--bg, --card, --line, --fg, --muted, --head) son alias de esos
+     tokens: todo el CSS existente sigue funcionando igual y con una sola
+     transicion suave al cambiar el color. */
+  --bg-main:#07080c;
+  --bg-surface:#0f1118;
+  --bg-surface-hover:#171a24;
+  --border-subtle:#1c1f2e;
+  --text-primary:#f3f4f6;
+  --text-secondary:#8b93a7;
+  --bg:var(--bg-main);
+  --card:var(--bg-surface);
+  --line:var(--border-subtle);
+  --fg:var(--text-primary);
+  --head:var(--text-primary);
+  --muted:var(--text-secondary);
   --glass:rgba(15,17,24,.86); --blur:12px;
   /* Acento indigo (personalizable desde Ajustes) y sus variantes. */
   --accent:#818cf8; --accent-solid:#4f46e5; --accent-soft:rgba(129,140,248,.15);
@@ -24,7 +40,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
 .content{min-width:0}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -155,6 +171,15 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 #savest{font-size:12px;color:var(--muted)}
 #side{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
 .cbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+/* Tarjeta "Anotación general" de Inicio: textarea limpio con autoguardado. */
+.note-card{margin-bottom:16px}
+.note-card .ctitle{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.note-card #gnote-state{font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);opacity:0;transition:opacity .2s ease}
+.note-card #gnote-state.on{opacity:1}
+.note-card #gnote-state.ok{color:var(--ok)}
+.note-card textarea{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font:inherit;font-size:13.5px;line-height:1.5;resize:vertical;min-height:96px;transition:background-color .3s ease,border-color .3s ease}
+.note-card textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.note-card textarea::placeholder{color:var(--muted)}
 .ctitle{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .csub{font-size:12px;text-transform:none;letter-spacing:0;color:var(--fg);font-weight:600;white-space:nowrap}
 .chart{max-width:240px;margin:0 auto}
@@ -251,7 +276,7 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .minical-dot { width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 1px var(--card); }
 .minical-clear { align-self: flex-start; font-size: 11.5px; padding: 2px 8px; border-radius: 9px; }
 
-#agenda-view { display: none; flex-direction: column; gap: 16px; }
+#agenda-view { display: none; flex-direction: column; gap: 12px; }
 #agenda-view.on { display: flex; }
 #agenda-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .agenda-title-group { display: flex; align-items: baseline; gap: 10px; }
@@ -334,20 +359,30 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .agenda-field textarea:focus, .agenda-field input:focus { outline: none; border-color: var(--accent); }
 .pl-modal-del { margin-right: auto; color: var(--muted); }
 
-/* ---------- calendario mensual: celdas cuadradas e indicadores ---------- */
-.agenda-grid.month-view { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+/* ---------- calendario mensual: celdas compactas sin scroll vertical ----------
+   Las 5-6 semanas del mes caben en pantalla: la rejilla reparte el alto
+   disponible entre las filas (grid-auto-rows: 1fr) en lugar de forzar celdas
+   cuadradas, y cada celda muestra en reposo solo el numero y los indicadores.
+   El detalle completo salta en la tarjeta flotante al pasar el cursor. */
+.agenda-grid.month-view {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  height: calc(100vh - 390px);
+  min-height: 210px;
+}
 .agenda-grid.month-view .agenda-col {
-  aspect-ratio: 1 / 1;
   min-height: 0;
-  padding: 11px 12px;
-  gap: 5px;
+  padding: 7px 9px;
+  gap: 4px;
   overflow: hidden;
 }
-.agenda-grid.month-view .agenda-col-head { flex: 0 0 auto; }
-.agenda-grid.month-view .agenda-col-day { font-size: 13.5px; }
-.agenda-grid.month-view .agenda-col-date { font-size: 12.5px; }
+.agenda-grid.month-view .agenda-col-head { flex: 0 0 auto; gap: 4px; }
+.agenda-grid.month-view .agenda-col-day { font-size: 12.5px; }
+.agenda-grid.month-view .agenda-col-date { font-size: 11.5px; }
 .agenda-grid.month-view .agenda-col-count { display: none; }
-.agenda-grid.month-view .agenda-list { flex: 1 1 auto; gap: 3px; overflow: hidden; }
+.agenda-grid.month-view .agenda-list { flex: 1 1 auto; gap: 2px; overflow: hidden; }
 .agenda-grid.month-view .agenda-empty { display: none; }
 
 .cal-chip {
@@ -384,9 +419,9 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 
 /* Indicador estatico: en el mes solo se ve el punto; la tarea completa se
    despliega en el panel flotante al pasar el raton (ver #cal-tip). */
-.agenda-grid.month-view .cal-chip { padding: 3px 5px; gap: 5px; }
+.agenda-grid.month-view .cal-chip { padding: 2px 4px; gap: 4px; }
 .agenda-grid.month-view .cal-chip-t { display: none; }
-.agenda-grid.month-view .cal-dot { width: 8px; height: 8px; }
+.agenda-grid.month-view .cal-dot { width: 7px; height: 7px; }
 
 @media (max-width: 720px) {
   .agenda-grid.month-view { gap: 4px; }
@@ -687,7 +722,9 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 /* ==================== CALENDARIO 70 / 30 ==================== */
 .cal-layout{display:grid;grid-template-columns:minmax(0,7fr) minmax(250px,3fr);gap:18px;align-items:start}
 .cal-left{min-width:0}
-.cal-right{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px}
+/* La columna derecha nunca empuja la página: si no cabe, hace su propio
+   scroll en lugar de provocar scroll vertical en toda la vista. */
+.cal-right{position:sticky;top:16px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 250px);overflow-y:auto;scrollbar-width:thin}
 .dd-date{font-size:14.5px;font-weight:650;color:var(--head)}
 .dd-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .dd-item{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);text-decoration:none;color:inherit}
@@ -701,8 +738,8 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .badge.late{color:var(--bad);background:rgba(255,82,82,.14);border:1px solid rgba(255,82,82,.4)}
 .dd-add{width:100%;margin-top:10px}
 .dd-empty{margin-top:10px;padding:12px 6px;color:var(--muted);font-size:12.5px;text-align:center;border:1px dashed var(--line);border-radius:12px}
-.mod-legend{display:flex;flex-direction:column;gap:6px}
-.mleg{display:flex;align-items:center;gap:9px;width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:inherit;font-size:13px;text-align:left;cursor:pointer}
+.mod-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.mleg{display:flex;align-items:center;gap:7px;width:100%;min-width:0;padding:5px 7px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:inherit;font-size:13px;text-align:left;cursor:pointer}
 .mleg:hover{border-color:var(--accent);color:var(--fg)}
 .mleg i{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
 .mleg .abbr{flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.03em}
@@ -802,7 +839,7 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 .set-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 0;border-top:1px dashed var(--line);font-size:13px}
 .set-row:first-of-type{border-top:0}
 .set-row .sr-name{flex:1 1 160px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.set-row input[type=text]{flex:1 1 150px;min-width:110px;font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg)}
+.set-row input[type=text]{flex:1 1 150px;min-width:110px;font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);transition:background-color .3s ease,border-color .3s ease}
 .set-row input[type=text]:focus{outline:none;border-color:var(--accent)}
 .set-row input[type=color]{width:38px;height:28px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer}
 .set-row input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
@@ -983,7 +1020,9 @@ button:active{transform:translateY(0) scale(.98)}
 }
 @media (max-width:1180px){
   .cal-layout{grid-template-columns:minmax(0,1fr)}
-  .cal-right{position:static}
+  /* Sin columna lateral: las tres tarjetas pasan a fila para que el mes
+     siga cabiendo en pantalla sin scroll vertical. */
+  .cal-right{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;max-height:none;overflow:visible;align-items:start}
 }
 @media (max-width:1040px){
   .pl-body{grid-template-columns:minmax(0,1fr)}
@@ -1119,6 +1158,10 @@ button:active{transform:translateY(0) scale(.98)}
         <div class="dash-main">
           <div class="stat-grid" id="inicio-stats"></div>
           <div id="inicio-next"></div>
+          <section class="cbox note-card">
+            <h3 class="ctitle">Anotación general <span class="csub" id="gnote-state"></span></h3>
+            <textarea id="gnote" rows="4" placeholder="Escribe aquí tu anotación general… se guarda automáticamente en tu cuenta."></textarea>
+          </section>
           <div class="sec-title">Próximas entregas <span id="inicio-up-n"></span></div>
           <div class="up-list" id="inicio-up"></div>
           <div class="sec-title">Actividad reciente <span id="inicio-act-n"></span></div>
@@ -1350,6 +1393,13 @@ button:active{transform:translateY(0) scale(.98)}
           <input type="color" id="set-accent" value="#818cf8">
           <button type="button" id="set-accent-reset">Restablecer</button>
         </div>
+        <p>Color de fondo de la interfaz: de él se derivan las superficies, los bordes y el texto para mantener el contraste.</p>
+        <div class="set-row">
+          <span class="sr-name">Color de fondo</span>
+          <input type="color" id="set-bg" value="#07080c" aria-label="Selector de color de fondo">
+          <input type="text" id="set-bg-hex" value="#07080c" spellcheck="false" maxlength="7" aria-label="Color de fondo en hexadecimal">
+          <button type="button" id="set-bg-reset">Restablecer negro predeterminado</button>
+        </div>
       </div>
       <div class="set-block">
         <h3>Módulos</h3>
@@ -1567,7 +1617,8 @@ var SUBJECT_TEACHERS = {
   'Dixitalización': 'Marcos Alonso'
 };
 var TASKS = [], EMAILS = [], MESSAGES = [], TEACHERS = {},
-  DATA = {tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', customAgenda: []},
+  DATA_READY = false, /* true cuando la primera carga de /api/data ha terminado */
+  DATA = {tasks: [], notes: {}, global: '', generalNote: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', bgColor: '', customAgenda: []},
   NOTE_OPEN = {}, EXAM_OPEN = {}, saveTimer = null, nextTimer = null, SHOW_DONE = false,
   CP_SUBJ = null, CP_OPEN = false;
 
@@ -1978,12 +2029,16 @@ function getToken(){
 }
 /* «Recordar en este navegador»: localStorage; sin la casilla, solo la sesión. */
 function setCredentials(base, token, remember){
+  var anterior = getToken();
+  /* Cambio de cuenta (otro token u otra URL): se purga antes el estado. */
+  if (anterior && (anterior !== token || getBase() !== base)) resetAccountState();
   clearCredentials();
   try {
     var store = remember ? localStorage : sessionStorage;
     store.setItem('av-base', base);
     store.setItem('av-token', token);
   } catch(e){}
+  migrateAccountKeys();
 }
 function clearCredentials(){
   ['av-base', 'av-token'].forEach(function(k){
@@ -1992,6 +2047,113 @@ function clearCredentials(){
   });
 }
 function isAuthed(){ return getToken().length >= 16; }
+
+/* ---------- Aislamiento de cuentas en el navegador ----------
+   Cada token de Moodle tiene su propio espacio en localStorage: las claves
+   se indexan con un hash corto del token para que dos alumnos que usen el
+   mismo navegador no se pisen datos ni configuraciones (estado de lectura,
+   planificador, orden del panel, anotación general).
+   Además, al entrar con otro token o al cerrar sesión se vacía el estado en
+   memoria (DATA, tareas, notas, mensajes) para que nada del usuario anterior
+   llegue a la pantalla siguiente. */
+var NS_PREFIX = 'av~';
+var NS_MIGRATE = 'av-ns-migrated';
+var NS_LOCAL_KEYS = ['av-read', 'av-planner', 'av-planner-mode', 'av-side-order', 'av-general-note'];
+
+/* Hash corto (FNV-1a de 32 bits, 8 hex) del token: solo nombra las claves,
+   la autenticación real la hace el servidor con la cabecera X-Moodle-Token. */
+function hashToken(s){
+  var h = 0x811c9dc5;
+  s = String(s || '');
+  for (var i = 0; i < s.length; i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return ('00000000' + h.toString(16)).slice(-8);
+}
+function accountTag(){ return hashToken(getToken()); }
+function nsKey(name){ return NS_PREFIX + accountTag() + '~' + name; }
+function lsGet(name){
+  try { return localStorage.getItem(nsKey(name)); } catch(e){ return null; }
+}
+function lsSet(name, value){
+  try { localStorage.setItem(nsKey(name), value); } catch(e){}
+}
+function lsDel(name){
+  try { localStorage.removeItem(nsKey(name)); } catch(e){}
+}
+/* Migra las claves heredadas (sin namespace) a la cuenta que entra la primera
+   vez tras la actualización y las elimina, para que no las reclame otra. */
+function migrateAccountKeys(){
+  var tag = accountTag();
+  if (!tag) return;
+  try {
+    if (localStorage.getItem(NS_MIGRATE)) return;
+    NS_LOCAL_KEYS.forEach(function(k){
+      var v = null;
+      try { v = localStorage.getItem(k); } catch(e){}
+      if (v === null || v === undefined) return;
+      try {
+        if (localStorage.getItem(NS_PREFIX + tag + '~' + k) === null) {
+          localStorage.setItem(NS_PREFIX + tag + '~' + k, v);
+        }
+      } catch(e){}
+      try { localStorage.removeItem(k); } catch(e){}
+    });
+    localStorage.setItem(NS_MIGRATE, tag);
+  } catch(e){}
+}
+/* Borra del navegador las cachés (localStorage y sessionStorage) que
+   pertenecen a la cuenta que se va: nada de lo anterior queda a mano. */
+function purgeAccountKeys(){
+  var tag = accountTag();
+  if (tag){
+    NS_LOCAL_KEYS.forEach(function(k){ lsDel(k); });
+    /* Cualquier otra clave con el namespace de esta cuenta también. */
+    try {
+      var doomed = [];
+      for (var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if (k && k.indexOf(NS_PREFIX + tag + '~') === 0) doomed.push(k);
+      }
+      doomed.forEach(function(k){ try { localStorage.removeItem(k); } catch(e){} });
+    } catch(e){}
+  }
+  /* Claves heredadas sin namespace (incluye `av-pass`, residual de una
+     versión antigua que guardaba la contraseña): nunca entre cuentas. */
+  NS_LOCAL_KEYS.forEach(function(k){ try { localStorage.removeItem(k); } catch(e){} });
+  try { localStorage.removeItem('av-pass'); } catch(e){}
+  try {
+    var sdoomed = [];
+    for (var j = 0; j < sessionStorage.length; j++){
+      var sk = sessionStorage.key(j);
+      if (sk && sk !== 'av-base' && sk !== 'av-token') sdoomed.push(sk);
+    }
+    sdoomed.forEach(function(k){ try { sessionStorage.removeItem(k); } catch(e){} });
+  } catch(e){}
+}
+/* Vacía todo el estado en memoria de la cuenta anterior. */
+function resetAccountState(){
+  if (saveTimer){ clearTimeout(saveTimer); saveTimer = null; }
+  if (nextTimer){ clearTimeout(nextTimer); nextTimer = null; }
+  DATA = {tasks: [], notes: {}, global: '', generalNote: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', bgColor: '', customAgenda: []};
+  TASKS = []; EMAILS = []; MESSAGES = []; TEACHERS = {}; MODULES = [];
+  USER_NAME = ''; USERNAME = 'tareas';
+  NOTE_OPEN = {}; EXAM_OPEN = {}; SHOW_DONE = false;
+  DATA_READY = false; /* la siguiente cuenta vuelve a cargar antes de guardar */
+  PL = { mode: 'day', cursor: null, filters: {}, editId: null, color: '' };
+  try { purgeAccountKeys(); } catch(e){}
+  try { applyAccent(); } catch(e){}
+  try { applyBgTheme(); } catch(e){}
+  var gn = document.getElementById('gnote');
+  if (gn) gn.value = '';
+  var gs = document.getElementById('gnote-state');
+  if (gs){ gs.textContent = ''; gs.classList.remove('on', 'ok'); }
+  var gt = document.getElementById('gtext');
+  if (gt) gt.value = '';
+  setSaveState('');
+}
+
 /* El cliente solo envía URL y token: los endpoints los leen de estas cabeceras. */
 function authHeader(){
   return {'X-Moodle-Base': getBase(), 'X-Moodle-Token': getToken()};
@@ -2008,6 +2170,12 @@ function saveData(){
   clearTimeout(saveTimer);
   saveTimer = null;
   if (!isAuthed()) return Promise.resolve();
+  /* La primera carga aún no ha traído los datos de la cuenta: guardar ahora
+     sobrescribiría lo que el servidor acaba de migrar. Se pospone. */
+  if (!DATA_READY){
+    saveTimer = setTimeout(saveData, 400);
+    return Promise.resolve();
+  }
   return fetch('/api/data', {
     method: 'POST',
     credentials: 'same-origin',
@@ -2020,6 +2188,7 @@ function saveData(){
     setTimeout(function(){ if (!saveTimer) setSaveState(''); }, 2500);
   }).catch(function(err){
     if (err.message === 'auth'){
+      resetAccountState();
       clearCredentials();
       loginShow('El token no es válido o ha caducado. Inténtalo de nuevo.');
     } else {
@@ -2037,6 +2206,7 @@ function loadData(){
       return r.json();
     })
     .then(function(j){
+      DATA_READY = true;
       if (j && typeof j === 'object' && !j.error){
         /* Conversaciones directas de Moodle si el servidor las incluye. */
         try {
@@ -2063,6 +2233,8 @@ function loadData(){
           taskNotes: (j.taskNotes && typeof j.taskNotes === 'object' && !Array.isArray(j.taskNotes)) ? j.taskNotes : {},
           modules: (j.modules && typeof j.modules === 'object' && !Array.isArray(j.modules)) ? j.modules : {},
           accent: typeof j.accent === 'string' ? j.accent : '',
+          bgColor: typeof j.bgColor === 'string' ? j.bgColor : '',
+          generalNote: typeof j.generalNote === 'string' ? j.generalNote : '',
           customAgenda: Array.isArray(j.customAgenda) ? j.customAgenda : []
         };
         /* Si el servidor aún no conoce la Agenda, se recupera la copia local
@@ -2074,10 +2246,15 @@ function loadData(){
         try { writePlannerBackup(); } catch(e){}
         SHOW_DONE = !!DATA.showdone;
         try { applyAccent(); } catch(e){}
+        try { applyBgTheme(); } catch(e){}
         var db = document.getElementById('donetoggle');
         if (db) db.classList.toggle('on', SHOW_DONE);
         var g = document.getElementById('gtext');
         if (g && document.activeElement !== g) g.value = DATA.global;
+        var gn2 = document.getElementById('gnote');
+        if (gn2 && document.activeElement !== gn2){
+          gn2.value = DATA.generalNote || lsGet('av-general-note') || '';
+        }
         /* el orden guardado y los puntos del calendario se aplican en cuanto llegan los datos,
            aunque la consulta a Moodle falle después */
         try { applyChartOrder(); } catch(e){}
@@ -2088,6 +2265,7 @@ function loadData(){
     })
     .catch(function(err){
       if (err.message === 'auth') return Promise.reject(err);
+      DATA_READY = true; /* sin datos en la nube se trabaja con la copia local */
       return null;
     });
 }
@@ -2159,9 +2337,9 @@ function parseMoodleMessages(payload){
   return out;
 }
 
-/* Estado de lectura guardado en este navegador. */
+/* Estado de lectura guardado en este navegador (por cuenta). */
 function readMap(){
-  try { return JSON.parse(localStorage.getItem('av-read') || '{}') || {}; } catch(e){ return {}; }
+  try { return JSON.parse(lsGet('av-read') || '{}') || {}; } catch(e){ return {}; }
 }
 function isRead(id){
   var m = readMap();
@@ -2170,7 +2348,7 @@ function isRead(id){
 function setRead(id, val){
   var m = readMap();
   if (val) m[String(id)] = 1; else delete m[String(id)];
-  try { localStorage.setItem('av-read', JSON.stringify(m)); } catch(e){}
+  lsSet('av-read', JSON.stringify(m));
 }
 function isUnread(item){
   if (!item) return false;
@@ -3404,13 +3582,13 @@ function plannerActs(){
 }
 function readPlannerBackup(){
   try {
-    var raw = localStorage.getItem(PLANNER_LS);
+    var raw = lsGet(PLANNER_LS);
     var arr = raw ? JSON.parse(raw) : null;
     return Array.isArray(arr) ? arr : [];
   } catch(e){ return []; }
 }
 function writePlannerBackup(){
-  try { localStorage.setItem(PLANNER_LS, JSON.stringify(plannerActs())); } catch(e){}
+  lsSet(PLANNER_LS, JSON.stringify(plannerActs()));
 }
 function plannerSave(){
   writePlannerBackup();
@@ -3424,7 +3602,7 @@ function initPlanner(){
   }
   var m = 'day';
   try {
-    var st = localStorage.getItem(PLANNER_MODE_LS);
+    var st = lsGet(PLANNER_MODE_LS);
     if (st && PLANNER_MODES.indexOf(st) >= 0) m = st;
   } catch(e){}
   PL.mode = m;
@@ -3929,7 +4107,7 @@ function initPlannerUI(){
     var m = b.getAttribute('data-pl-mode');
     if (PLANNER_MODES.indexOf(m) === -1 || m === PL.mode) return;
     PL.mode = m;
-    try { localStorage.setItem(PLANNER_MODE_LS, m); } catch(err){}
+    try { lsSet(PLANNER_MODE_LS, m); } catch(err){}
     renderPlanner();
   });
 
@@ -3943,7 +4121,7 @@ function initPlannerUI(){
     if (t.classList.contains('pl-ym-head')){
       PL.cursor = new Date(PL.cursor.getFullYear(), Number(t.getAttribute('data-pl-month')) || 0, 1);
       PL.mode = 'month';
-      try { localStorage.setItem(PLANNER_MODE_LS, 'month'); } catch(err){}
+      try { lsSet(PLANNER_MODE_LS, 'month'); } catch(err){}
       renderPlanner();
       return;
     }
@@ -4040,6 +4218,7 @@ function load(){
     .catch(function(err){
       if (document.getElementById('next')) document.getElementById('next').textContent = '';
       if (err.message === 'auth'){
+        resetAccountState();
         clearCredentials();
         EMAILS = [];
         setMailStatus();
@@ -4088,12 +4267,14 @@ if (_loginForm) _loginForm.addEventListener('submit', function(e){
 });
 var _logout = document.getElementById('logout');
 if (_logout) _logout.addEventListener('click', function(){
+  resetAccountState();
   clearCredentials();
   loginShow('Sesión cerrada. Vuelve a entrar con tu token.', true);
   loginStatus('Sistema listo para vincular', false);
 });
 var _setLogout = document.getElementById('set-logout');
 if (_setLogout) _setLogout.addEventListener('click', function(){
+  resetAccountState();
   clearCredentials();
   loginShow('Sesión cerrada. Vuelve a entrar con tu token.', true);
   loginStatus('Sistema listo para vincular', false);
@@ -5351,14 +5532,14 @@ function moduleKey(box){
 }
 function readSideOrder(){
   try {
-    var raw = localStorage.getItem(SIDE_ORDER_KEY);
+    var raw = lsGet(SIDE_ORDER_KEY);
     var arr = raw ? JSON.parse(raw) : null;
     return Array.isArray(arr) ? arr : null;
   } catch(e){ return null; }
 }
 function writeSideOrder(){
   var keys = sideBoxes().map(moduleKey).filter(Boolean);
-  try { localStorage.setItem(SIDE_ORDER_KEY, JSON.stringify(keys)); } catch(e){}
+  try { lsSet(SIDE_ORDER_KEY, JSON.stringify(keys)); } catch(e){}
   DATA.chartOrder = normalizeChartOrder(chartOrderFromDOM());
   try { scheduleSave(); } catch(e){}
 }
@@ -5402,7 +5583,7 @@ function applySideOrder(){
 
   var finalKeys = sideBoxes().map(moduleKey).filter(Boolean);
   if (!saved || finalKeys.join('|') !== saved.join('|')){
-    try { localStorage.setItem(SIDE_ORDER_KEY, JSON.stringify(finalKeys)); } catch(e){}
+    try { lsSet(SIDE_ORDER_KEY, JSON.stringify(finalKeys)); } catch(e){}
   }
 }
 
@@ -5707,6 +5888,94 @@ function applyAccent(){
   root.style.setProperty('--accent-soft', hexToRgba(hex, 0.15));
   root.style.setProperty('--accent-ring', hexToRgba(hex, 0.4));
   root.style.setProperty('--link', hex);
+}
+
+/* ---------- Color de fondo: paleta armónica derivada en HSL ----------
+   A partir de un unico hex se calculan seis variables y se asignan a :root:
+     --bg-main           base (fondo de la pagina)
+     --bg-surface        +5 % de luminosidad (tarjetas, modales, navbar)
+     --bg-surface-hover  +8 % (hover e inputs)
+     --border-subtle     +12 % de luminosidad y saturacion ajustada
+     --text-primary      contraste optimo sobre la base
+     --text-secondary    un punto mas suave sobre la base
+   No se pinta todo del mismo color plano: cada superficie recibe su nivel. */
+function hexToHsl(hex){
+  var h = String(hex || '').replace('#', '').trim();
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  var n = parseInt(h, 16);
+  if (!isFinite(n)) return null;
+  var r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  var max = Math.max(r, g, b), min = Math.min(r, g, b);
+  var l = (max + min) / 2, s = 0, hu = 0;
+  if (max !== min){
+    var d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) hu = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) hu = (b - r) / d + 2;
+    else hu = (r - g) / d + 4;
+    hu /= 6;
+  }
+  return { h: hu * 360, s: s * 100, l: l * 100 };
+}
+function hslCss(h, s, l){
+  return 'hsl(' + (Math.round(h * 10) / 10) + ' ' + (Math.round(s * 10) / 10) + '% ' + (Math.round(l * 10) / 10) + '%)';
+}
+function clampPct(v){ return Math.max(0, Math.min(100, v)); }
+/* Luminosidad percibida del color HSL: sirve para elegir el texto con mejor
+   contraste sin tener que recorrer la paleta a mano. */
+function hslLum(h, s, l){
+  /* Aproximacion del canal CIE Lab L* a partir de HSL. */
+  var c = (1 - Math.abs(2 * l / 100 - 1)) * s / 100;
+  var hp = h / 60;
+  var x = c * (1 - Math.abs(hp % 2 - 1));
+  var m = l / 100 - c / 2;
+  var rp = 0, gp = 0, bp = 0;
+  if (hp < 1){ rp = c; gp = x; }
+  else if (hp < 2){ rp = x; gp = c; }
+  else if (hp < 3){ gp = c; bp = x; }
+  else if (hp < 4){ gp = x; bp = c; }
+  else if (hp < 5){ rp = x; bp = c; }
+  else { rp = c; bp = x; }
+  rp += m; gp += m; bp += m;
+  function lum(c2){ return c2 <= 0.03928 ? c2 / 12.92 : Math.pow((c2 + 0.055) / 1.055, 2.4); }
+  return 0.2126 * lum(rp) + 0.7152 * lum(gp) + 0.0722 * lum(bp);
+}
+function applyBgTheme(){
+  var root = document.documentElement;
+  var keys = ['--bg-main', '--bg-surface', '--bg-surface-hover', '--border-subtle', '--text-primary', '--text-secondary', '--glass', '--shadow'];
+  var hex = /^#[0-9a-fA-F]{6}$/.test(DATA.bgColor || '') ? DATA.bgColor : '';
+  if (!hex){
+    keys.forEach(function(k){ root.style.removeProperty(k); });
+    return;
+  }
+  var c = hexToHsl(hex);
+  if (!c){
+    keys.forEach(function(k){ root.style.removeProperty(k); });
+    return;
+  }
+  var h = c.h, s = c.s, l = c.l;
+  var surfL = clampPct(l + 5);          /* superficies: tarjetas, modales, navbar */
+  var hoverL = clampPct(l + 8);         /* hover e inputs */
+  var lineL = clampPct(l + 12);         /* bordes sutiles */
+  var lineS = Math.max(s, Math.min(100, s + 6));  /* saturacion ligeramente mas viva */
+  /* Texto: se elige el que mas contraste da con la base (blanco o negro). */
+  var lumBase = hslLum(h, s, l);
+  var darkText = lumBase > 0.17;        /* fondo claro -> texto oscuro */
+  var primL = darkText ? clampPct(l - 62) : clampPct(l + 78);
+  var primS = darkText ? Math.min(s, 34) : Math.min(s + 8, 46);
+  var secL = darkText ? clampPct(l - 38) : clampPct(l + 52);
+  var secS = Math.min(primS, 30);
+
+  root.style.setProperty('--bg-main', hslCss(h, s, l));
+  root.style.setProperty('--bg-surface', hslCss(h, s, surfL));
+  root.style.setProperty('--bg-surface-hover', hslCss(h, s, hoverL));
+  root.style.setProperty('--border-subtle', hslCss(h, lineS, lineL));
+  root.style.setProperty('--text-primary', hslCss(h, primS, primL));
+  root.style.setProperty('--text-secondary', hslCss(h, secS, secL));
+  /* Navbar y superficies translucidas siguen el nivel de superficie (con
+     la misma transparencia de 0.86 del tema por defecto). */
+  root.style.setProperty('--glass', hslCss(h, s, surfL).replace(')', ' / .86)'));
+  root.style.setProperty('--shadow', '0 12px 34px rgba(0,0,0,' + (l > 55 ? '.22' : '.45') + ')');
 }
 
 /* ---------- usuario en la navbar y en Ajustes ---------- */
@@ -6366,6 +6635,49 @@ function renderAjustes(){
     try { scheduleSave(); } catch(e){}
     try { refreshViews(); } catch(e){}
   };
+  /* Color de fondo: selector, campo hex editable y restablecer. */
+  var bgEl = document.getElementById('set-bg');
+  var bgHex = document.getElementById('set-bg-hex');
+  var bgActual = /^#[0-9a-fA-F]{6}$/.test(DATA.bgColor || '') ? DATA.bgColor.toLowerCase() : '#07080c';
+  function applyBg(hex, guardar){
+    DATA.bgColor = hex;
+    try { applyBgTheme(); } catch(e){}
+    if (guardar !== false) { try { scheduleSave(); } catch(e){} }
+  }
+  if (bgEl){
+    bgEl.value = bgActual;
+    bgEl.oninput = function(){
+      var v = (bgEl.value || '').toLowerCase();
+      if (bgHex) bgHex.value = v;
+      applyBg(v);
+    };
+  }
+  if (bgHex){
+    if (document.activeElement !== bgHex) bgHex.value = bgActual;
+    bgHex.oninput = function(){
+      var v = (bgHex.value || '').trim();
+      if (v && v[0] !== '#') v = '#' + v;
+      if (/^#[0-9a-fA-F]{6}$/.test(v)){
+        if (bgEl) bgEl.value = v.toLowerCase();
+        applyBg(v.toLowerCase());
+      }
+    };
+    bgHex.onblur = function(){
+      var v = (bgHex.value || '').trim();
+      if (v && v[0] !== '#') v = '#' + v;
+      if (!/^#[0-9a-fA-F]{6}$/.test(v)){
+        /* valor inválido: se devuelve al último color aplicado */
+        bgHex.value = /^#[0-9a-fA-F]{6}$/.test(DATA.bgColor || '') ? DATA.bgColor : '#07080c';
+      }
+    };
+  }
+  var bgReset = document.getElementById('set-bg-reset');
+  if (bgReset) bgReset.onclick = function(){
+    if (bgEl) bgEl.value = '#07080c';
+    if (bgHex) bgHex.value = '#07080c';
+    applyBg('');
+    try { refreshViews(); } catch(e){}
+  };
   var box = document.getElementById('set-modules');
   if (!box) return;
   var names = moduleNames();
@@ -6458,12 +6770,39 @@ if (gtext){
     try { scheduleSave(); } catch(e){}
   });
 }
+
+/* ---------- Anotación general de Inicio: autoguardado con debounce ---------- */
+var gnote = document.getElementById('gnote');
+var gnoteTimer = null;
+function gnoteState(msg, ok){
+  var el = document.getElementById('gnote-state');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('on', !!msg);
+  el.classList.toggle('ok', ok === true);
+}
+if (gnote){
+  /* Arranque: primero lo de la nube y, si aún no llegó, la copia local. */
+  gnote.value = DATA.generalNote || lsGet('av-general-note') || '';
+  gnote.addEventListener('input', function(){
+    gnoteState('Guardando…', false);
+    if (gnoteTimer) clearTimeout(gnoteTimer);
+    gnoteTimer = setTimeout(function(){
+      gnoteTimer = null;
+      DATA.generalNote = gnote.value;
+      lsSet('av-general-note', gnote.value);
+      try { scheduleSave(); } catch(e){}
+      gnoteState('Guardado', true);
+      setTimeout(function(){ if (!gnoteTimer) gnoteState(''); }, 2200);
+    }, 500);
+  });
+}
 window.addEventListener('beforeunload', function(){ if (saveTimer){ clearTimeout(saveTimer); saveTimer = null; flushDrafts(); } saveData(); });
 
 window.addEventListener('load', function(){
   /* Estado inicial del acceso: si no hay token guardado, se pide el acceso. */
   try {
-    if (isAuthed()) loginHide();
+    if (isAuthed()){ migrateAccountKeys(); loginHide(); }
     else loginShow('');
   } catch(e){}
   var tokenEl = document.getElementById('login-token');

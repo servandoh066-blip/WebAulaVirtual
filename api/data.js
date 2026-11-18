@@ -6,8 +6,10 @@ try {
 }
 
 const KEY = 'userdata.json';
+// Marca de "la cuenta heredada ya fue reclamada" (aislamiento de cuentas).
+const MARCA_MIGRACION = 'userdata.migrado.json';
 const MAX_BODY = 400000;
-const EMPTY = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', customAgenda: [] };
+const EMPTY = { tasks: [], notes: {}, global: '', generalNote: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', bgColor: '', customAgenda: [] };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
 const SORT_MODES = ['date', 'date-desc', 'title'];
 const CHART_KEYS = ['tasks', 'grades'];
@@ -48,8 +50,50 @@ function str(v, max) {
   return String(v).slice(0, max);
 }
 
+// ---------- Aislamiento de cuentas ----------
+// Cada token de Moodle guarda sus datos en su propia clave. Dos alumnos que
+// entren desde el mismo navegador (o desde el mismo despliegue) no se pisan
+// nunca: ni tareas, ni notas, ni anotaciones, ni colores.
+// FNV-1a combinada en dos pasadas -> 16 caracteres hexadecimales. No es
+// criptografica: solo nombra el almacen, la autenticacion la hace checkAuth.
+function hashCuenta(texto) {
+  const s = String(texto || '');
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
+    h2 = (Math.imul(h2 + c + i, 0x85ebca6b) + ((h1 << 7) | (h1 >>> 25))) >>> 0;
+  }
+  const a = h1.toString(16).padStart(8, '0');
+  const b = h2.toString(16).padStart(8, '0');
+  return (a + b).slice(0, 16);
+}
+
+// Clave de almacen para la cuenta que hace la peticion.
+//   - Token del entorno (MOODLE_TOKEN) o acceso heredado con Basic -> la
+//     clave original: asi los datos existentes no se pierden al activar el
+//     aislamiento.
+//   - Cualquier otro token -> su propia clave derivada del hash.
+function claveCuenta(req) {
+  const token = String((req && req.headers) ? (req.headers['x-moodle-token'] || '') : '').trim();
+  if (!/^[A-Za-z0-9]{16,128}$/.test(token)) return KEY;
+  const propio = String(process.env.MOODLE_TOKEN || '').trim();
+  if (propio && propio === token) return KEY;
+  return 'userdata.' + hashCuenta(token) + '.json';
+}
+
+// Fichero local equivalente para una cuenta concreta (desarrollo).
+function archivoLocalCuenta(clave) {
+  const base = archivoLocal();
+  if (!base || clave === KEY) return base;
+  const sufijo = String(clave).replace(/^userdata\./, '').replace(/\.json$/i, '');
+  if (!sufijo) return base;
+  return /\.json$/i.test(base) ? base.replace(/\.json$/i, '.' + sufijo + '.json') : base + '.' + sufijo;
+}
+
 function sanitize(input) {
-  const out = { tasks: [], notes: {}, global: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {}, modules: {}, accent: '', customAgenda: [] };
+  const out = { tasks: [], notes: {}, global: '', generalNote: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: CHART_KEYS.slice(), agendas: [], taskNotes: {}, modules: {}, accent: '', bgColor: '', customAgenda: [] };
   if (!input || typeof input !== 'object') return out;
   if (Array.isArray(input.tasks)) {
     input.tasks.slice(0, 300).forEach(function (t, i) {
@@ -253,7 +297,12 @@ function sanitize(input) {
   /* Color de acento del tema (personalizable desde Ajustes). */
   const accent = str(input.accent, 7).trim();
   if (HEX_RE.test(accent)) out.accent = accent.toLowerCase();
+  /* Color de fondo elegido por el usuario: de el derivan las superficies. */
+  const bgColor = str(input.bgColor, 7).trim();
+  if (HEX_RE.test(bgColor)) out.bgColor = bgColor.toLowerCase();
   out.global = str(input.global, 8000);
+  /* Bloc rapido de Inicio, vinculado a la cuenta activa. */
+  out.generalNote = str(input.generalNote, 8000);
   out.showdone = input.showdone === true;
   return out;
 }
@@ -391,55 +440,57 @@ async function hayAlmacen() {
   }
 }
 
-async function almacenLeer() {
+async function almacenLeer(clave) {
+  const k = clave || KEY;
   const kv = getKv();
   if (kv && typeof kv.get === 'function') {
-    const raw = await kv.get(KEY);
+    const raw = await kv.get(k);
     return raw == null ? null : raw;
   }
   if (archivoLocal()) {
     try {
-      return await fs.readFile(archivoLocal(), 'utf8');
+      return await fs.readFile(archivoLocalCuenta(k), 'utf8');
     } catch (err) {
       if (err && err.code === 'ENOENT') return null;
       throw err;
     }
   }
   if (upstashConfigurado()) {
-    const r = await upstash(['GET', KEY]);
+    const r = await upstash(['GET', k]);
     if (!r.ok) throw new Error('upstash get ' + r.status);
     const j = await r.json();
     return j && j.result != null ? j.result : null;
   }
   if (netlifyGetStore || storeInyectado) {
     const store = await blobs();
-    const raw = await store.get(KEY);
+    const raw = await store.get(k);
     return raw == null ? null : raw;
   }
   throw new Error('Sin almacén de datos configurado');
 }
 
-async function almacenEscribir(texto) {
+async function almacenEscribir(clave, texto) {
+  const k = clave || KEY;
   const kv = getKv();
   if (kv && typeof kv.put === 'function') {
-    await kv.put(KEY, texto);
+    await kv.put(k, texto);
     return;
   }
   if (archivoLocal()) {
-    const destino = archivoLocal();
+    const destino = archivoLocalCuenta(k);
     const temporal = destino + '.tmp';
     await fs.writeFile(temporal, texto, 'utf8');
     await fs.rename(temporal, destino);
     return;
   }
   if (upstashConfigurado()) {
-    const r = await upstash(['SET', KEY, texto]);
+    const r = await upstash(['SET', k, texto]);
     if (!r.ok) throw new Error('upstash set ' + r.status);
     return;
   }
   if (netlifyGetStore || storeInyectado) {
     const store = await blobs();
-    await store.set(KEY, texto);
+    await store.set(k, texto);
     return;
   }
   throw new Error('Sin almacén de datos configurado');
@@ -471,18 +522,38 @@ async function readFromBlob() {
   return sanitize(await r.json());
 }
 
-async function readData() {
-  const crudo = await almacenLeer();
+async function readData(clave) {
+  const k = clave || KEY;
+  const crudo = await almacenLeer(k);
   if (crudo == null) {
     // primera vez: intentamos traer los datos del Blob antiguo de Vercel
-    if (tokenBlobValido()) {
+    // (solo para la cuenta propietaria de la clave heredada).
+    if (k === KEY && tokenBlobValido()) {
       try {
         const migrated = await readFromBlob();
         if (migrated) {
-          await writeData(migrated);
+          await writeData(migrated, k);
           return migrated;
         }
       } catch (e) { /* si falla la migración, seguimos con datos vacíos */ }
+    }
+    // Aislamiento de cuentas: quien pida datos por primera vez con su propio
+    // token se lleva el contenido de la clave heredada (los datos que hasta
+    // ahora estaban en `userdata.json` compartido). Un marcador garantiza que
+    // solo lo haga la primera cuenta: las demás empiezan limpias y ya no se
+    // pisan. Sin esto, al activar el aislamiento los datos existentes
+    // quedarían huérfanos para cualquier token distinto de MOODLE_TOKEN.
+    if (k !== KEY && !(await almacenLeer(MARCA_MIGRACION))) {
+      const heredado = await almacenLeer(KEY);
+      if (heredado != null) {
+        try {
+          await almacenEscribir(k, heredado);
+          await almacenEscribir(MARCA_MIGRACION, String(Date.now()));
+          return sanitize(typeof heredado === 'string' ? JSON.parse(heredado) : heredado);
+        } catch (e) { /* sin migración: la cuenta sigue con datos vacíos */ }
+      } else {
+        try { await almacenEscribir(MARCA_MIGRACION, String(Date.now())); } catch (e) {}
+      }
     }
     return EMPTY;
   }
@@ -493,8 +564,8 @@ async function readData() {
   }
 }
 
-async function writeData(data) {
-  await almacenEscribir(JSON.stringify(data));
+async function writeData(data, clave) {
+  await almacenEscribir(clave || KEY, JSON.stringify(data));
 }
 
 module.exports = async function (req, res) {
@@ -512,10 +583,13 @@ module.exports = async function (req, res) {
     }
   }
 
+  // Cada token de Moodle: su propio almacen (ver claveCuenta).
+  const clave = claveCuenta(req);
+
   if (req.method === 'GET') {
     try {
       res.statusCode = 200;
-      return res.json(await readData());
+      return res.json(await readData(clave));
     } catch (err) {
       res.statusCode = 502;
       return res.json({ error: String(err && err.message ? err.message : err) });
@@ -527,7 +601,7 @@ module.exports = async function (req, res) {
       let body = await readBody(req);
       if (typeof body === 'string') body = JSON.parse(body || '{}');
       const data = sanitize(body);
-      await writeData(data);
+      await writeData(data, clave);
       res.statusCode = 200;
       return res.json({ ok: true });
     } catch (err) {
@@ -546,3 +620,6 @@ module.exports = async function (req, res) {
 
 module.exports.sanitize = sanitize;
 module.exports.setStore = setStore;
+// Expuestos para las pruebas locales de aislamiento de cuentas.
+module.exports.claveCuenta = claveCuenta;
+module.exports.hashCuenta = hashCuenta;
