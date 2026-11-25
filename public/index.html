@@ -40,7 +40,7 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+body{margin:0;background-color:var(--bg);background-image:var(--bg-glow,none);background-attachment:fixed;color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
 .content{min-width:0}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 20px;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -464,6 +464,7 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
 
 /* ---------- menu contextual (tareas) y menu de dia (agenda) ---------- */
 #ctx-menu,
+#nt-menu,
 #day-menu {
   display: none;
   position: absolute;
@@ -477,7 +478,27 @@ button.del:hover{border-color:#ff8a80;color:#ff8a80}
   font-size: 13px;
 }
 #ctx-menu.on,
+#nt-menu.on,
 #day-menu.on { display: block; }
+.cm-danger { color: var(--bad); }
+/* Detalle de los eventos de Moodle en la lista de tareas */
+.ev-kind { display: inline-flex; align-items: center; gap: 5px; margin-top: 3px; color: var(--muted); font-size: 11.5px; }
+.ev-kind .ic { width: 12px; height: 12px; margin: 0; }
+.ev-desc { margin-top: 8px; font-size: 13px; }
+.ev-desc summary { cursor: pointer; color: var(--link); font-size: 12px; user-select: none; }
+.ev-desc-t { margin-top: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; max-height: 320px; overflow: auto; }
+.ev-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.ev-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 8px; color: var(--fg); font-size: 12px; text-decoration: none; }
+.ev-btn:hover { border-color: var(--accent); }
+.ev-btn.solid { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
+.ev-btn .ic { width: 12px; height: 12px; margin: 0; }
+.pal-prev { display: inline-flex; gap: 6px; }
+.pal-prev i { width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--line); display: inline-block; }
+.cm-danger:hover, .cm-danger:focus-visible { border-color: var(--bad); }
+.bar-row[data-gk], .bd-row[data-gk], .bd-card h4[data-gk] { cursor: context-menu; }
+.bar-row[data-gk]:hover, .bd-row[data-gk]:hover { background: var(--bg-surface-hover); border-radius: 8px; }
+#grade-edit { display: none; position: fixed; inset: 0; z-index: 142; align-items: center; justify-content: center; padding: 16px; background: rgba(15,17,21,.55); }
+#grade-edit.on { display: flex; }
 .cm-head { padding: 4px 6px 8px; border-bottom: 1px solid var(--line); }
 .cm-title { font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cm-sub { margin-top: 2px; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1055,7 +1076,19 @@ button:active{transform:translateY(0) scale(.98)}
     <div class="cm-sub" id="cm-sub"></div>
   </div>
   <button type="button" class="cm-btn" id="cm-edit" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Editar</button>
-  <button type="button" class="cm-btn" id="cm-note" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"></use></svg>Añadir anotación</button>
+  <button type="button" class="cm-btn" id="cm-note" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-note"></use></svg><span id="cm-note-t">Añadir anotación</span></button>
+  <button type="button" class="cm-btn" id="cm-note-del" role="menuitem" hidden><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"></use></svg>Eliminar anotación</button>
+  <button type="button" class="cm-btn cm-danger" id="cm-del" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"></use></svg><span id="cm-del-t">Eliminar</span></button>
+</div>
+
+<div id="nt-menu" role="menu" aria-label="Acciones de la nota">
+  <div class="cm-head">
+    <div class="cm-title" id="nt-title"></div>
+    <div class="cm-sub" id="nt-sub"></div>
+  </div>
+  <button type="button" class="cm-btn" id="nt-edit" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"></use></svg>Editar nota</button>
+  <button type="button" class="cm-btn" id="nt-add" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus"></use></svg>Añadir nota</button>
+  <button type="button" class="cm-btn cm-danger" id="nt-del" role="menuitem"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"></use></svg>Eliminar nota</button>
 </div>
 
 <div id="day-menu" role="menu" aria-label="Acciones del día">
@@ -1095,7 +1128,7 @@ button:active{transform:translateY(0) scale(.98)}
       <label class="lfield" for="login-base"><span>Dirección del aula virtual</span>
         <span class="lin">
           <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"></use></svg>
-          <input id="login-base" type="url" value="https://centros.edu.xunta.gal/iesteis/aulavirtual" spellcheck="false" autocomplete="off">
+          <input id="login-base" type="url" value="" placeholder="https://aulavirtual.tu-centro.es" spellcheck="false" autocomplete="off" required>
         </span>
       </label>
       <label class="lfield" for="login-token"><span>Token de seguridad</span>
@@ -1240,7 +1273,7 @@ button:active{transform:translateY(0) scale(.98)}
   </details>
 
   <main id="list"></main>
-  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos de correo del instituto. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b> y <b>Añadir anotación</b>. La pestaña <b>Agenda</b> es tu planificador personal, independiente de las asignaturas: con los modos <b>Día</b> (de 00:00 a 23:00), <b>Semana</b>, <b>Mes</b> y <b>Año</b>, pulsa <b>Nueva actividad</b> o haz <b>clic directo</b> en cualquier franja horaria o día para crear, editar o eliminar actividades con título, descripción, fecha, horas de inicio y fin, categoría y color; el panel lateral filtra por categorías y resume el día seleccionado, y todo se guarda en la nube con copia local. En <b>Calendario</b>, las celdas de los días son cuadradas y uniformes: en reposo muestran solo el número y los indicadores de color, y al pasar el cursor la celda se amplía y una tarjeta anclada despliega el listado completo con título, asignatura y hora límite, sin empujar a las celdas vecinas; el <b>clic derecho</b> sobre el espacio libre de un día sigue abriendo el menú con <b>Crear tarea</b> para esa fecha. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) que se superponen en Calendario con un color por agenda, y el conmutador de la barra de herramientas alterna entre ellas. Los módulos de la columna de Inicio se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En la columna derecha de Inicio tienes el reparto de tareas por asignatura y en la pestaña <b>Notas</b> el diagrama de notas de examen junto a la media por módulo y el desglose: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> sobre un tramo del diagrama de tareas por asignatura o sobre el nombre que aparece en el centro del anillo se abre el selector de color de esa asignatura: paleta predefinida, hexadecimal libre, opacidad del 0 % al 80 % y botón para restablecer el color automático; el cambio se aplica al instante a los diagramas, a los puntos del calendario y al borde de sus tarjetas.</div>
+  <div class="foot">Los datos se refrescan automáticamente cada 5 minutos desde Moodle, incluidos los avisos y anuncios del aula virtual. Las entregas ya realizadas se ocultan; pulsa <b>Entregadas</b> para verlas. El <b>selector de orden</b> de la barra superior ordena la lista por fecha o título, o limpia el orden manual. Para reordenar a mano, mantén pulsado y arrastra una tarea (dentro de su asignatura) o el título de la asignatura para moverla. En la vista de lista, el <b>clic derecho</b> sobre una tarea abre un menú con <b>Editar</b>, <b>Añadir / editar / eliminar anotación</b> y <b>Eliminar</b> (u <b>Ocultar</b> si viene de Moodle). En la pestaña <b>Notas</b>, el <b>clic derecho</b> sobre una nota permite <b>editarla</b> o <b>eliminarla</b>, y sobre el nombre de una asignatura, <b>añadir</b> una nueva. La pestaña <b>Agenda</b> es tu planificador personal, independiente de las asignaturas: con los modos <b>Día</b> (de 00:00 a 23:00), <b>Semana</b>, <b>Mes</b> y <b>Año</b>, pulsa <b>Nueva actividad</b> o haz <b>clic directo</b> en cualquier franja horaria o día para crear, editar o eliminar actividades con título, descripción, fecha, horas de inicio y fin, categoría y color; el panel lateral filtra por categorías y resume el día seleccionado, y todo se guarda en la nube con copia local. En <b>Calendario</b>, las celdas de los días son cuadradas y uniformes: en reposo muestran solo el número y los indicadores de color, y al pasar el cursor la celda se amplía y una tarjeta anclada despliega el listado completo con título, asignatura y hora límite, sin empujar a las celdas vecinas; el <b>clic derecho</b> sobre el espacio libre de un día sigue abriendo el menú con <b>Crear tarea</b> para esa fecha. El botón <b>Crear agenda</b> genera calendarios independientes (Entrenamientos, Citas médicas, etc.) que se superponen en Calendario con un color por agenda, y el conmutador de la barra de herramientas alterna entre ellas. Los módulos de la columna de Inicio se reordenan arrastrando el asa de puntos de su cabecera y el orden queda guardado. En la columna derecha de Inicio tienes el reparto de tareas por asignatura y en la pestaña <b>Notas</b> el diagrama de notas de examen junto a la media por módulo y el desglose: pulsa <b>Exámenes</b> en la cabecera de una asignatura para añadir todas las notas que quieras (con el botón «Añadir examen») y el diagrama muestra la media de cada asignatura al instante (se aprueba con 5 o más). El botón <b>Anotación</b> guarda una nota de texto libre por asignatura. Con <b>clic derecho</b> sobre un tramo del diagrama de tareas por asignatura o sobre el nombre que aparece en el centro del anillo se abre el selector de color de esa asignatura: paleta predefinida, hexadecimal libre, opacidad del 0 % al 80 % y botón para restablecer el color automático; el cambio se aplica al instante a los diagramas, a los puntos del calendario y al borde de sus tarjetas.</div>
     </section>
 
     <section class="view" id="view-calendario">
@@ -1400,6 +1433,7 @@ button:active{transform:translateY(0) scale(.98)}
           <input type="text" id="set-bg-hex" value="#07080c" spellcheck="false" maxlength="7" aria-label="Color de fondo en hexadecimal">
           <button type="button" id="set-bg-reset">Restablecer negro predeterminado</button>
         </div>
+        <div class="set-row"><span class="sr-name">Paleta generada</span><span id="set-bg-prev" class="pal-prev" aria-hidden="true"></span></div>
       </div>
       <div class="set-block">
         <h3>Módulos</h3>
@@ -1570,6 +1604,33 @@ button:active{transform:translateY(0) scale(.98)}
     </div>
   </div>
 
+  <div id="grade-edit">
+    <div class="agenda-modal-card">
+      <div class="agenda-modal-head">
+        <div class="agenda-modal-title" id="grade-edit-heading">Editar nota</div>
+        <button type="button" id="grade-edit-close">Cerrar</button>
+      </div>
+      <div class="agenda-modal-body">
+        <div class="edit-modal-note" id="grade-edit-sub"></div>
+        <div class="agenda-field-row">
+          <label class="agenda-field">
+            <span>Examen</span>
+            <input type="text" id="grade-edit-name" maxlength="120" placeholder="Ej. Examen tema 3" autocomplete="off">
+          </label>
+          <label class="agenda-field">
+            <span>Nota (0-10)</span>
+            <input type="text" id="grade-edit-val" inputmode="decimal" placeholder="7,5" autocomplete="off">
+          </label>
+        </div>
+        <div class="edit-modal-note" id="grade-edit-err" style="color:var(--bad)"></div>
+      </div>
+      <div class="agenda-modal-foot">
+        <button type="button" id="grade-edit-cancel">Cancelar</button>
+        <button type="button" id="grade-edit-save">Guardar nota</button>
+      </div>
+    </div>
+  </div>
+
   <div id="note-edit">
     <div class="agenda-modal-card">
       <div class="agenda-modal-head">
@@ -1590,32 +1651,14 @@ button:active{transform:translateY(0) scale(.98)}
   </div>
 </div>
 <script>
-var BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+var BASE = ''; /* la URL del aula la pone cada usuario al entrar (getBase) */
 var USERNAME = 'tareas';
 var MODULES = []; /* fichas de los módulos: id, nombre, abreviatura, URL, participantes */
 var USER_NAME = ''; /* nombre completo que devuelve Moodle */
-var SEED = [
- {s:'BASES DE DATOS', t:'Ejercicio 7 BBDD', u:'mod/assign/view.php?id=197627', d:'2026-10-01T23:59:00'},
- {s:'Tutoría 2ºDAW', t:'Módulos pendente', u:'mod/assign/view.php?id=197664', d:'2026-10-06T00:00:00'},
- {s:'DWEC', t:'Cuestionario inicial', u:'mod/assign/view.php?id=185752', d:'2026-10-05T00:00:00'},
- {s:'Despregamento de Aplicacións Web', t:'Exame práctico git', u:'course/view.php?id=2417', d:'2026-10-07T08:10:00'},
- {s:'Despregamento de Aplicacións Web', t:'Práctica para entregar git', u:'mod/assign/view.php?id=194841', d:'2026-10-09T23:59:00'},
- {s:'Empregabilidade', t:'CV EUROPASS', u:'mod/assign/view.php?id=164526', d:'2026-10-05T23:00:00'},
- {s:'Empregabilidade', t:'CV modelo-deseño propio', u:'mod/assign/view.php?id=164521', d:'2026-10-10T00:00:00'},
- {s:'Empregabilidade', t:'Nova seman 5–11 oct', u:'course/view.php?id=1973', d:'2026-10-11T20:00:00'},
- {s:'Empregabilidade', t:'Nova seman 19–25 oct', u:'course/view.php?id=1973', d:'2026-10-25T20:00:00'},
- {s:'Desenvolvemento web en contorno servidor', t:'Ejercicios tema 3', u:'course/view.php?id=1947', d:'2026-10-13T08:00:00'},
- {s:'Desenvolvemento web en contorno servidor', t:'Ejercicios tema 4', u:'course/view.php?id=1947', d:'2025-10-20T23:59:00'},
- {s:'Afondamento 2DAW (AWS)', t:'Práctica 2 S3 + Amplify', u:'course/view.php?id=2463', d:null},
- {s:'ENGLISH 2º CS DAW', t:'Actividade 189224', u:'course/view.php?id=2367', d:'2025-10-24T23:00:00'},
- {s:'ENGLISH 2º CS DAW', t:'Actividade 189226', u:'course/view.php?id=2367', d:'2025-11-09T16:15:00'},
- {s:'ENGLISH 2º CS DAW', t:'Actividade 189232', u:'course/view.php?id=2367', d:'2026-02-06T23:59:00'}
-];
-/* Catálogo de asignaturas que no siempre llegan de Moodle (o que aún no tienen tareas).
-   Se muestra junto al profesor que las imparte en el selector de "Añadir tarea". */
-var SUBJECT_TEACHERS = {
-  'Dixitalización': 'Marcos Alonso'
-};
+/* Sin datos de ejemplo: lo que se muestra sale siempre de la cuenta que entra. */
+var SEED = [];
+/* Catálogo opcional asignatura -> profesor (se completa con lo que devuelve Moodle). */
+var SUBJECT_TEACHERS = {};
 var TASKS = [], EMAILS = [], MESSAGES = [], TEACHERS = {},
   DATA_READY = false, /* true cuando la primera carga de /api/data ha terminado */
   DATA = {tasks: [], notes: {}, global: '', generalNote: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', bgColor: '', customAgenda: []},
@@ -1892,8 +1935,17 @@ function render(){
         html += '<div class="card ' + cls + '" data-id="' + esc(t.id || '') + '" data-s="' + esc(t.s || 'Sin asignatura') + '"' + evAttr + '><div class="row"><div><div class="t">' +
           '<a href="' + esc(t.u) + '" target="_blank" rel="noopener">' + esc(t.t) + '</a>' +
           (done ? '<span class="done-tag">entregada</span>' : '') + '</div>' +
-          '<div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div></div>' +
-          '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div>' + tnoteHtml + '</div>';
+          '<div class="d">' + fmtDue(ms) + (t.p ? ' · ' + esc(t.p) : '') + '</div>' +
+          (t.k ? '<div class="ev-kind">' + icon('cal') + esc(t.k) + '</div>' : '') +
+          '</div>' +
+          '<div style="display:flex;gap:8px;align-items:center">' + cd + delhide + '</div></div>' +
+          /* Como la tarjeta de «Próximos eventos» de Moodle: descripción y acción. */
+          (t.ds ? '<details class="ev-desc"><summary>Ver descripción</summary><div class="ev-desc-t">' + esc(t.ds) + '</div></details>' : '') +
+          ((t.a || t.u) ? '<div class="ev-acts">' +
+            (t.a ? '<a class="ev-btn solid" href="' + escapeAttr(eventHref(t.a.u)) + '" target="_blank" rel="noopener">' + esc(t.a.n) + '</a>' : '') +
+            (t.u ? '<a class="ev-btn" href="' + escapeAttr(eventHref(t.u)) + '" target="_blank" rel="noopener">Ir a la actividad' + icon('out') + '</a>' : '') +
+          '</div>' : '') +
+          tnoteHtml + '</div>';
       }
     });
     html += '</section>';
@@ -1998,7 +2050,7 @@ function showErr(m){
   e.textContent = m;
 }
 /* ---------- ACCESO: URL del aula virtual + token de Moodle ---------- */
-var DEFAULT_BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+var DEFAULT_BASE = '';
 function loginStatus(text, busy){
   var st = document.getElementById('login-status');
   if (!st) return;
@@ -2022,7 +2074,11 @@ function loginHide(){
   loginStatus('Sistema listo para vincular', false);
 }
 function getBase(){
-  return localStorage.getItem('av-base') || sessionStorage.getItem('av-base') || DEFAULT_BASE;
+  return localStorage.getItem('av-base') || sessionStorage.getItem('av-base') || '';
+}
+/* Última dirección de aula usada en este navegador (solo la URL, nunca el token). */
+function lastBase(){
+  try { return localStorage.getItem('av-base-last') || ''; } catch(e){ return ''; }
 }
 function getToken(){
   return localStorage.getItem('av-token') || sessionStorage.getItem('av-token') || '';
@@ -2037,6 +2093,7 @@ function setCredentials(base, token, remember){
     var store = remember ? localStorage : sessionStorage;
     store.setItem('av-base', base);
     store.setItem('av-token', token);
+    localStorage.setItem('av-base-last', base);
   } catch(e){}
   migrateAccountKeys();
 }
@@ -2265,7 +2322,7 @@ function loadData(){
     })
     .catch(function(err){
       if (err.message === 'auth') return Promise.reject(err);
-      DATA_READY = true; /* sin datos en la nube se trabaja con la copia local */
+      /* DATA_READY sigue en false: guardar ahora pisaría la nube con datos vacíos. */
       return null;
     });
 }
@@ -2365,7 +2422,7 @@ function markRead(id){
 /* Enlace directo a una página del aula virtual del usuario. */
 function moodleUrl(path){
   var b = getBase();
-  if (!/^https?:\/\//i.test(b)) b = BASE;
+  if (!/^https?:\/\//i.test(b)) b = DEFAULT_BASE;
   return b.replace(/\/+$/, '') + '/' + String(path).replace(/^\/+/, '');
 }
 
@@ -2423,7 +2480,7 @@ function comunicados(){
   return out;
 }
 
-var KIND_LABEL = { correo: 'Aviso de correo', mensaje: 'Mensaje directo', anuncio: 'Anuncio del aula' };
+var KIND_LABEL = { correo: 'Aviso', mensaje: 'Mensaje directo', anuncio: 'Anuncio del aula' };
 
 /* Fila común para las listas de actividad y de avisos. */
 function comunicadoRow(item){
@@ -2468,10 +2525,16 @@ function renderActividad(){
   box.innerHTML = items.map(comunicadoRow).join('');
 }
 
+/* Motivo por el que alguna fuente de avisos no respondió (lo envía /api/emails). */
+var AV_ERR = '';
+function avisosVacios(texto){
+  return '<div class="empty">' + esc(texto) +
+    (AV_ERR ? '<br><small>Motivo: ' + esc(AV_ERR) + '</small>' : '') + '</div>';
+}
 function setMailStatus(err){
   var el = document.getElementById('mailst');
   if (!el) return;
-  if (err){ el.textContent = '· correo no disponible'; return; }
+  if (err){ el.textContent = '· avisos no disponibles'; return; }
   var n = EMAILS.length + MESSAGES.length;
   el.textContent = n ? '· ' + n + ' avisos y mensajes' : '';
 }
@@ -2485,11 +2548,14 @@ function loadEmails(){
     .then(function(j){
       EMAILS = (j && Array.isArray(j.annots)) ? j.annots : [];
       try { MESSAGES = parseMoodleMessages(j); } catch(e){ MESSAGES = []; }
+      var er = (j && j.errors && typeof j.errors === 'object') ? j.errors : {};
+      AV_ERR = Object.keys(er).map(function(k){ return k + ': ' + er[k]; }).join(' · ');
       setMailStatus();
     })
-    .catch(function(){
+    .catch(function(err){
       EMAILS = [];
       MESSAGES = [];
+      AV_ERR = (err && err.message) ? err.message : '';
       setMailStatus(true);
     });
 }
@@ -2764,7 +2830,7 @@ var VIEW_TITLES = {
   modulos: ['Módulos', 'Materias matriculadas en Moodle'],
   materiales: ['Materiales', 'Enlaces de cada módulo'],
   anuncios: ['Anuncios', 'Eventos publicados en el aula virtual'],
-  mensajes: ['Mensajes y Avisos', 'Conversaciones, avisos de correo y anuncios del centro'],
+  mensajes: ['Mensajes y Avisos', 'Conversaciones, avisos y anuncios del aula virtual'],
   avisos: ['Avisos', 'Tablón de avisos'],
   lista: ['Mi lista', 'Tareas creadas por ti'],
   ajustes: ['Ajustes', 'Personalización']
@@ -2826,7 +2892,8 @@ function eventHref(link){
   if (!link) return '';
   var s = String(link);
   if (/^https?:\/\//i.test(s)) return s;
-  return BASE + s.replace(/^\/+/, '');
+  var b = getBase();
+  return (b ? b.replace(/\/+$/, '') + '/' : '') + s.replace(/^\/+/, '');
 }
 
 function agendaItemEl(ev, compact, index){
@@ -3034,6 +3101,14 @@ function openCtxMenu(key, x, y){
   var vh = document.documentElement.clientHeight || window.innerHeight;
   m.style.left = Math.max(window.scrollX + 8, Math.min(x, window.scrollX + vw - w - 8)) + 'px';
   m.style.top = Math.max(window.scrollY + 8, Math.min(y, window.scrollY + vh - h - 8)) + 'px';
+  var tieneNota = !!getTaskNote(ev);
+  document.getElementById('cm-note-t').textContent = tieneNota ? 'Editar anotación' : 'Añadir anotación';
+  document.getElementById('cm-note-del').hidden = !tieneNota;
+  var delBtn = document.getElementById('cm-del');
+  delBtn.hidden = !((ev.type === 'own' || ev.type === 'custom') || !!ev.id);
+  document.getElementById('cm-del-t').textContent =
+    ev.type === 'own' ? 'Eliminar tarea' : (ev.type === 'custom' ? 'Eliminar evento' :
+    (ev.type === 'mail' ? 'Ocultar aviso' : 'Ocultar tarea'));
   var editBtn = document.getElementById('cm-edit');
   if (editBtn) editBtn.focus();
 }
@@ -4212,7 +4287,13 @@ function load(){
       try { applyChartOrder(); } catch(e){}
       try { renderMiniCalendar(); } catch(e){}
       if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
-      stamp('Actualizado');
+      /* De dónde salen las tareas: así se ve si coincide con «Próximos eventos». */
+      var fuente = j.source === 'upcoming' ? 'próximos eventos de Moodle'
+        : (j.source === 'calendar' ? 'calendario de Moodle' : 'todas las entregas (respaldo)');
+      stamp('Actualizado · ' + fuente);
+      if (j.source !== 'upcoming' && j.sourceError){
+        showErr('Moodle no dejó leer «Próximos eventos» (' + j.sourceError + '). Se muestran las tareas desde ' + fuente + '.');
+      }
       if (document.getElementById('next')) document.getElementById('next').textContent = 'Próxima consulta automática en 5 min';
     })
     .catch(function(err){
@@ -4820,7 +4901,7 @@ function dragEnd(){
 
 document.getElementById('list').addEventListener('pointerdown', function(e){
   if (e.pointerType === 'mouse' && e.button !== 0) return;
-  if (e.target.closest('button, input, textarea, select, label') || DRAG) return;
+  if (e.target.closest('button, input, textarea, select, label, a, details') || DRAG) return;
   var card = e.target.closest('.card');
   var head = card ? null : e.target.closest('.grp > h2');
   var sec = head ? head.parentNode : null;
@@ -5881,6 +5962,7 @@ function applyAccent(){
   var keys = ['--accent', '--accent-solid', '--accent-soft', '--accent-ring', '--link'];
   if (!hex){
     keys.forEach(function(k){ root.style.removeProperty(k); });
+    try { applyBgAccent(); } catch(e){}
     return;
   }
   root.style.setProperty('--accent', hex);
@@ -5940,42 +6022,100 @@ function hslLum(h, s, l){
   function lum(c2){ return c2 <= 0.03928 ? c2 / 12.92 : Math.pow((c2 + 0.055) / 1.055, 2.4); }
   return 0.2126 * lum(rp) + 0.7152 * lum(gp) + 0.0722 * lum(bp);
 }
+/* Paleta armónica a partir de UN color: no se pinta todo del mismo tono.
+   - Base (--bg-main): el color elegido, con la saturación contenida.
+   - Superficies, hover y bordes: mismo color con el matiz desplazado unos
+     grados y niveles de luminosidad distintos (profundidad sin planos lisos).
+   - Dos "resplandores" análogos (matiz -30° y +35°) tiñen las esquinas del
+     fondo en degradado.
+   - Acento automático: matiz casi complementario (solo si el usuario no
+     eligió uno en Ajustes).
+   Devuelve null si no hay un color válido. */
+function bgPalette(hex){
+  var c = hexToHsl(hex);
+  if (!c) return null;
+  var h = c.h, l = c.l;
+  var s = Math.min(c.s, 72);                       /* evita fondos estridentes */
+  var light = l > 55;                              /* fondo claro vs oscuro */
+  function hh(d){ return (h + d + 360) % 360; }
+  var P = { h: h, s: s, light: light };
+  P.main = hslCss(h, s * 0.9, l);
+  if (light){
+    P.surface = hslCss(hh(8), s * 0.7, clampPct(l + (100 - l) * 0.6));
+    P.hover = hslCss(hh(14), s * 0.8, clampPct(l - 4));
+    P.line = hslCss(hh(-10), Math.min(100, s + 6), clampPct(l - 14));
+    P.glowA = hslCss(hh(-30), Math.min(100, s + 10), clampPct(l - 4));
+    P.glowB = hslCss(hh(35), Math.min(100, s + 10), clampPct(l - 2));
+  } else {
+    P.surface = hslCss(hh(8), s * 0.82, clampPct(l + 5));
+    P.hover = hslCss(hh(14), s * 0.9, clampPct(l + 9));
+    P.line = hslCss(hh(-10), Math.min(100, s + 8), clampPct(l + 15));
+    P.glowA = hslCss(hh(-30), Math.min(100, s + 14), clampPct(l + 12));
+    P.glowB = hslCss(hh(35), Math.min(100, s + 14), clampPct(l + 9));
+  }
+  var darkText = hslLum(h, s, l) > 0.17;           /* fondo claro -> texto oscuro */
+  var primS = darkText ? Math.min(s, 34) : Math.min(s + 8, 46);
+  P.textMain = hslCss(h, primS, darkText ? clampPct(l - 62) : clampPct(l + 78));
+  P.textSoft = hslCss(h, Math.min(primS, 30), darkText ? clampPct(l - 38) : clampPct(l + 52));
+  P.accent = hslCss(hh(165), 72, light ? 38 : 68);
+  P.accentHex = hslToHex(hh(165), 72, light ? 38 : 68);
+  P.shadow = '0 12px 34px rgba(0,0,0,' + (l > 55 ? '.22' : '.45') + ')';
+  return P;
+}
+function hslToHex(h, s, l){
+  s /= 100; l /= 100;
+  var k = function(n){ return (n + h / 30) % 12; };
+  var a = s * Math.min(l, 1 - l);
+  var f = function(n){ return l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); };
+  function x(v){ var t = Math.round(v * 255).toString(16); return t.length < 2 ? '0' + t : t; }
+  return '#' + x(f(0)) + x(f(8)) + x(f(4));
+}
+/* Acento derivado del fondo: solo cuando no hay un acento elegido a mano. */
+function applyBgAccent(){
+  var root = document.documentElement;
+  if (/^#[0-9a-fA-F]{6}$/.test(DATA.accent || '')) return;
+  var P = /^#[0-9a-fA-F]{6}$/.test(DATA.bgColor || '') ? bgPalette(DATA.bgColor) : null;
+  var keys = ['--accent', '--accent-solid', '--accent-soft', '--accent-ring', '--link'];
+  if (!P){ keys.forEach(function(k){ root.style.removeProperty(k); }); return; }
+  root.style.setProperty('--accent', P.accent);
+  root.style.setProperty('--accent-solid', P.accent);
+  root.style.setProperty('--accent-soft', hexToRgba(P.accentHex, 0.15));
+  root.style.setProperty('--accent-ring', hexToRgba(P.accentHex, 0.4));
+  root.style.setProperty('--link', P.accent);
+}
 function applyBgTheme(){
   var root = document.documentElement;
-  var keys = ['--bg-main', '--bg-surface', '--bg-surface-hover', '--border-subtle', '--text-primary', '--text-secondary', '--glass', '--shadow'];
+  var keys = ['--bg-main', '--bg-surface', '--bg-surface-hover', '--border-subtle', '--text-primary', '--text-secondary', '--glass', '--shadow', '--bg-glow'];
   var hex = /^#[0-9a-fA-F]{6}$/.test(DATA.bgColor || '') ? DATA.bgColor : '';
-  if (!hex){
+  var P = hex ? bgPalette(hex) : null;
+  var prev = document.getElementById('set-bg-prev');
+  if (!P){
     keys.forEach(function(k){ root.style.removeProperty(k); });
+    if (prev) prev.innerHTML = '';
+    applyBgAccent();
     return;
   }
-  var c = hexToHsl(hex);
-  if (!c){
-    keys.forEach(function(k){ root.style.removeProperty(k); });
-    return;
+  root.style.setProperty('--bg-main', P.main);
+  root.style.setProperty('--bg-surface', P.surface);
+  root.style.setProperty('--bg-surface-hover', P.hover);
+  root.style.setProperty('--border-subtle', P.line);
+  root.style.setProperty('--text-primary', P.textMain);
+  root.style.setProperty('--text-secondary', P.textSoft);
+  /* Navbar y superficies translucidas siguen el nivel de superficie. */
+  root.style.setProperty('--glass', P.surface.replace(')', ' / .86)'));
+  root.style.setProperty('--shadow', P.shadow);
+  /* Degradado de fondo: dos esquinas teñidas con tonos análogos. */
+  root.style.setProperty('--bg-glow',
+    'radial-gradient(900px 520px at 8% -8%, ' + P.glowA.replace(')', ' / .55)') + ', transparent 62%),' +
+    'radial-gradient(820px 480px at 100% 4%, ' + P.glowB.replace(')', ' / .45)') + ', transparent 60%)');
+  applyBgAccent();
+  if (prev){
+    var tonos = [['Base', P.main], ['Superficie', P.surface], ['Hover', P.hover], ['Borde', P.line],
+      ['Resplandor A', P.glowA], ['Resplandor B', P.glowB], ['Acento', P.accent]];
+    prev.innerHTML = tonos.map(function(t){
+      return '<i title="' + t[0] + '" style="background:' + t[1] + '"></i>';
+    }).join('');
   }
-  var h = c.h, s = c.s, l = c.l;
-  var surfL = clampPct(l + 5);          /* superficies: tarjetas, modales, navbar */
-  var hoverL = clampPct(l + 8);         /* hover e inputs */
-  var lineL = clampPct(l + 12);         /* bordes sutiles */
-  var lineS = Math.max(s, Math.min(100, s + 6));  /* saturacion ligeramente mas viva */
-  /* Texto: se elige el que mas contraste da con la base (blanco o negro). */
-  var lumBase = hslLum(h, s, l);
-  var darkText = lumBase > 0.17;        /* fondo claro -> texto oscuro */
-  var primL = darkText ? clampPct(l - 62) : clampPct(l + 78);
-  var primS = darkText ? Math.min(s, 34) : Math.min(s + 8, 46);
-  var secL = darkText ? clampPct(l - 38) : clampPct(l + 52);
-  var secS = Math.min(primS, 30);
-
-  root.style.setProperty('--bg-main', hslCss(h, s, l));
-  root.style.setProperty('--bg-surface', hslCss(h, s, surfL));
-  root.style.setProperty('--bg-surface-hover', hslCss(h, s, hoverL));
-  root.style.setProperty('--border-subtle', hslCss(h, lineS, lineL));
-  root.style.setProperty('--text-primary', hslCss(h, primS, primL));
-  root.style.setProperty('--text-secondary', hslCss(h, secS, secL));
-  /* Navbar y superficies translucidas siguen el nivel de superficie (con
-     la misma transparencia de 0.86 del tema por defecto). */
-  root.style.setProperty('--glass', hslCss(h, s, surfL).replace(')', ' / .86)'));
-  root.style.setProperty('--shadow', '0 12px 34px rgba(0,0,0,' + (l > 55 ? '.22' : '.45') + ')');
 }
 
 /* ---------- usuario en la navbar y en Ajustes ---------- */
@@ -6039,8 +6179,8 @@ function renderInicio(){
     '<div class="stat"><div class="sh">' + icon('chart') + 'Media de notas</div>' +
       '<div class="sv">' + (gAvg === null ? '—' : fmtGrade(gAvg)) + '</div><div class="sl">' +
       (gKeys.length ? gKeys.length + (gKeys.length === 1 ? ' módulo con exámenes' : ' módulos con exámenes') : 'sin exámenes registrados') + '</div></div>' +
-    '<div class="stat"><div class="sh">' + icon('chat') + 'Avisos de correo</div>' +
-      '<div class="sv">' + EMAILS.length + '</div><div class="sl">del centro educativo</div></div>';
+    '<div class="stat"><div class="sh">' + icon('chat') + 'Avisos</div>' +
+      '<div class="sv">' + EMAILS.length + '</div><div class="sl">del aula virtual</div></div>';
 
   /* Cuenta atrás de la próxima entrega */
   if (nextBox){
@@ -6274,20 +6414,20 @@ function renderNotas(){
   var keys = Object.keys(DATA.exams || {}).filter(function(k){ return examList(k).length > 0; })
     .sort(function(a, b){ return a.localeCompare(b, 'es'); });
   if (!keys.length){
-    bars.innerHTML = '<div class="empty">Todavía no has registrado ninguna nota de examen.</div>';
+    bars.innerHTML = '<div class="empty">Todavía no has registrado ninguna nota de examen. Añádelas con «Exámenes» en la vista Tareas.</div>';
     brk.innerHTML = '';
     return;
   }
   var rows = [];
   keys.forEach(function(k){
     examList(k).forEach(function(e, i){
-      rows.push({subj: k, name: e.t || ('Examen ' + (i + 1)), n: e.n});
+      rows.push({subj: k, name: e.t || ('Examen ' + (i + 1)), n: e.n, i: i});
     });
   });
   bars.innerHTML = rows.map(function(r){
     var w = Math.max(2, Math.min(100, r.n * 10));
     var title = r.subj + ' · ' + r.name;
-    return '<div class="bar-row">' +
+    return '<div class="bar-row" data-gk="' + escapeAttr(r.subj) + '" data-gi="' + r.i + '" title="Clic derecho: editar o eliminar">' +
       '<span class="bar-name" title="' + escapeAttr(title) + '">' + esc(r.name) + '</span>' +
       '<span class="bar-track"><span class="bar-fill" style="width:' + w + '%;background:' + escapeAttr(colorFor(r.subj)) + '"></span></span>' +
       '<span class="bar-val">' + fmtGrade(r.n) + '<small>' + esc(shortTxt(r.subj, 12)) + '</small></span>' +
@@ -6296,11 +6436,11 @@ function renderNotas(){
   brk.innerHTML = keys.map(function(k){
     var list = examList(k), avg = examAvg(k);
     return '<div class="bd-card">' +
-      '<h4><span><i style="background:' + escapeAttr(colorFor(k)) + '"></i>' + esc(shortTxt(k, 26)) + '</span>' +
+      '<h4 data-gk="' + escapeAttr(k) + '" title="Clic derecho: añadir nota"><span><i style="background:' + escapeAttr(colorFor(k)) + '"></i>' + esc(shortTxt(k, 26)) + '</span>' +
       '<span>' + fmtGrade(avg) + ' · ' + list.length + '</span></h4>' +
       list.map(function(e){
         var ok = passed(e.n);
-        return '<div class="bd-row"><span>' + esc(e.t || 'Examen') + '</span>' +
+        return '<div class="bd-row" data-gk="' + escapeAttr(k) + '" data-gi="' + list.indexOf(e) + '" title="Clic derecho: editar o eliminar"><span>' + esc(e.t || 'Examen') + '</span>' +
           '<b class="' + (ok ? 'ok' : 'bad') + '">' + fmtGrade(e.n) + '</b></div>';
       }).join('') +
     '</div>';
@@ -6539,7 +6679,7 @@ function renderMensajes(){
     if (navN) navN.textContent = feed.length ? (feed.length + (feed.length === 1 ? ' entrada' : ' entradas')) : '';
     av.innerHTML = feed.length
       ? feed.map(comunicadoRow).join('')
-      : '<div class="empty">Todavía no hay avisos ni anuncios.</div>';
+      : avisosVacios('Todavía no hay avisos ni anuncios.');
   }
 }
 
@@ -6548,7 +6688,7 @@ function renderAvisos(){
   var box = document.getElementById('av-rows');
   if (!box) return;
   if (!EMAILS.length){
-    box.innerHTML = '<div class="empty">No hay avisos de correo del centro.</div>';
+    box.innerHTML = avisosVacios('No hay avisos del aula virtual por ahora.');
     return;
   }
   var items = EMAILS.slice().sort(function(a, b){
@@ -6797,6 +6937,173 @@ if (gnote){
     }, 500);
   });
 }
+/* ---------- Clic derecho en Notas: editar, eliminar y añadir ---------- */
+var GM = { subj: null, i: -1 };   /* nota bajo el menú: asignatura e índice (-1 = ninguna) */
+var GE = { subj: null, i: -1 };   /* nota abierta en el editor */
+
+function closeGradeMenu(){
+  GM = { subj: null, i: -1 };
+  var m = document.getElementById('nt-menu');
+  if (m) m.classList.remove('on');
+}
+function openGradeMenu(subj, i, x, y){
+  closeCtxMenu();
+  GM = { subj: subj, i: i };
+  var list = examList(subj);
+  var e = i >= 0 ? list[i] : null;
+  document.getElementById('nt-title').textContent = e ? (e.t || ('Examen ' + (i + 1))) : subj;
+  document.getElementById('nt-sub').textContent = e ? (subj + ' · ' + fmtGrade(e.n)) : 'Asignatura';
+  document.getElementById('nt-edit').hidden = !e;
+  document.getElementById('nt-del').hidden = !e;
+  var m = document.getElementById('nt-menu');
+  m.classList.add('on');
+  var w = m.offsetWidth, h = m.offsetHeight;
+  var vw = document.documentElement.clientWidth || window.innerWidth;
+  var vh = document.documentElement.clientHeight || window.innerHeight;
+  m.style.left = Math.max(window.scrollX + 8, Math.min(x, window.scrollX + vw - w - 8)) + 'px';
+  m.style.top = Math.max(window.scrollY + 8, Math.min(y, window.scrollY + vh - h - 8)) + 'px';
+  var first = e ? document.getElementById('nt-edit') : document.getElementById('nt-add');
+  if (first) first.focus();
+}
+function closeGradeEdit(){
+  GE = { subj: null, i: -1 };
+  var m = document.getElementById('grade-edit');
+  if (m) m.classList.remove('on');
+}
+function openGradeEdit(subj, i){
+  closeGradeMenu();
+  GE = { subj: subj, i: i };
+  var e = i >= 0 ? examList(subj)[i] : null;
+  document.getElementById('grade-edit-heading').textContent = e ? 'Editar nota' : 'Añadir nota';
+  document.getElementById('grade-edit-sub').textContent = subj;
+  document.getElementById('grade-edit-name').value = e ? (e.t || '') : '';
+  document.getElementById('grade-edit-val').value = e ? fmtGrade(e.n) : '';
+  document.getElementById('grade-edit-err').textContent = '';
+  document.getElementById('grade-edit').classList.add('on');
+  setTimeout(function(){ document.getElementById('grade-edit-val').focus(); }, 0);
+}
+function saveGradeEdit(){
+  if (!GE.subj){ closeGradeEdit(); return; }
+  var raw = String(document.getElementById('grade-edit-val').value || '').trim().replace(',', '.');
+  var n = parseFloat(raw);
+  var err = document.getElementById('grade-edit-err');
+  if (raw === '' || !isFinite(n) || n < 0 || n > 10){
+    err.textContent = 'Escribe una nota entre 0 y 10.';
+    document.getElementById('grade-edit-val').focus();
+    return;
+  }
+  var name = String(document.getElementById('grade-edit-name').value || '').trim().slice(0, 120);
+  var list = examList(GE.subj);
+  if (GE.i >= 0 && list[GE.i]){ list[GE.i].t = name; list[GE.i].n = n; }
+  else list.push({ t: name, n: n });
+  setExams(GE.subj, list);
+  closeGradeEdit();
+  try { render(); } catch(e){}
+  try { scheduleSave(); } catch(e){}
+}
+function deleteGrade(subj, i){
+  var list = examList(subj);
+  var e = list[i];
+  if (!e) return;
+  if (!confirm('¿Eliminar la nota «' + (e.t || ('Examen ' + (i + 1))) + '» (' + fmtGrade(e.n) + ') de ' + subj + '?')) return;
+  list.splice(i, 1);
+  setExams(subj, list);
+  try { render(); } catch(er){}
+  try { scheduleSave(); } catch(er){}
+}
+
+(function bindNotasMenu(){
+  var vista = document.getElementById('view-notas');
+  if (vista) vista.addEventListener('contextmenu', function(e){
+    var fila = e.target.closest ? e.target.closest('[data-gk]') : null;
+    if (!fila) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var idx = fila.getAttribute('data-gi');
+    openGradeMenu(fila.getAttribute('data-gk'), idx === null ? -1 : Number(idx), e.pageX, e.pageY);
+  });
+  var menu = document.getElementById('nt-menu');
+  if (menu) menu.addEventListener('click', function(e){
+    var s = GM.subj, i = GM.i;
+    if (e.target.closest('#nt-edit')){ closeGradeMenu(); if (s !== null) openGradeEdit(s, i); }
+    else if (e.target.closest('#nt-add')){ closeGradeMenu(); if (s !== null) openGradeEdit(s, -1); }
+    else if (e.target.closest('#nt-del')){ closeGradeMenu(); if (s !== null) deleteGrade(s, i); }
+  });
+  document.addEventListener('click', function(e){
+    if (GM.subj !== null && !e.target.closest('#nt-menu')) closeGradeMenu();
+  });
+  window.addEventListener('resize', closeGradeMenu);
+  var ed = document.getElementById('grade-edit');
+  if (ed){
+    ed.addEventListener('click', function(e){
+      if (e.target === ed || e.target.closest('#grade-edit-close') || e.target.closest('#grade-edit-cancel')) closeGradeEdit();
+      else if (e.target.closest('#grade-edit-save')) saveGradeEdit();
+    });
+    ed.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && e.target.tagName === 'INPUT'){ e.preventDefault(); saveGradeEdit(); }
+    });
+  }
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return;
+    if (GM.subj !== null) closeGradeMenu();
+    if (GE.subj !== null) closeGradeEdit();
+  });
+})();
+
+/* ---------- Clic derecho en tareas: eliminar / ocultar y gestionar la anotación ---------- */
+function deleteCtxNote(key){
+  var ev = CTX_EVENTS[key];
+  if (!ev) return;
+  var nk = ctxNoteKey(ev);
+  if (!nk || !DATA.taskNotes || !DATA.taskNotes[nk]) return;
+  if (!confirm('¿Eliminar la anotación de «' + ev.title + '»?')) return;
+  delete DATA.taskNotes[nk];
+  try { scheduleSave(); } catch(e){}
+  try { render(); } catch(e){}
+  if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
+}
+/* Tarea propia / evento propio: se borra. Tarea de Moodle o aviso: solo se
+   oculta aquí (Moodle no se toca). */
+function deleteCtxEvent(key){
+  var ev = CTX_EVENTS[key];
+  if (!ev) return;
+  var id = ev.id;
+  if (ev.type === 'own'){
+    if (!confirm('¿Eliminar la tarea «' + ev.title + '»?')) return;
+    DATA.tasks = (DATA.tasks || []).filter(function(t){ return t.id !== id; });
+  } else if (ev.type === 'custom'){
+    if (!confirm('¿Eliminar el evento «' + ev.title + '»?')) return;
+    DATA.customEvents = (DATA.customEvents || []).filter(function(c){ return c.id !== id; });
+  } else {
+    if (!id) return;
+    if (!confirm('¿Ocultar «' + ev.title + '»? No se borra en Moodle, solo deja de mostrarse aquí.')) return;
+    var lista = ev.type === 'mail' ? 'skip' : 'hide';
+    DATA[lista] = DATA[lista] || [];
+    if (DATA[lista].indexOf(id) < 0) DATA[lista].push(id);
+  }
+  if (id){
+    if (DATA.pos) delete DATA.pos[id];
+    if (DATA.colors) delete DATA.colors[id];
+    if (DATA.taskNotes) delete DATA.taskNotes[ctxNoteKey(ev)];
+  }
+  closeCtxMenu();
+  hideCalTip();
+  try { render(); } catch(e){}
+  try { renderMiniCalendar(); } catch(e){}
+  if (VIEW_MODE === 'agenda'){ try { renderAgenda(); } catch(e){} }
+  try { scheduleSave(); } catch(e){}
+}
+(function bindCtxExtra(){
+  var m = document.getElementById('ctx-menu');
+  if (!m) return;
+  m.addEventListener('click', function(e){
+    var key = CTX_MENU_KEY;
+    if (!key) return;
+    if (e.target.closest('#cm-note-del')){ closeCtxMenu(); deleteCtxNote(key); }
+    else if (e.target.closest('#cm-del')){ closeCtxMenu(); deleteCtxEvent(key); }
+  });
+})();
+
 window.addEventListener('beforeunload', function(){ if (saveTimer){ clearTimeout(saveTimer); saveTimer = null; flushDrafts(); } saveData(); });
 
 window.addEventListener('load', function(){
@@ -6805,6 +7112,8 @@ window.addEventListener('load', function(){
     if (isAuthed()){ migrateAccountKeys(); loginHide(); }
     else loginShow('');
   } catch(e){}
+  var baseEl = document.getElementById('login-base');
+  if (baseEl && !baseEl.value) baseEl.value = lastBase();
   var tokenEl = document.getElementById('login-token');
   if (tokenEl && document.getElementById('login') && !document.getElementById('login').classList.contains('hide')) tokenEl.focus();
 

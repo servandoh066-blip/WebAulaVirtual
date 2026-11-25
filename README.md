@@ -52,6 +52,13 @@ Se configuran en *Site configuration > Environment variables* (marcarlas como
 `AUTH_USER` tiene que coincidir con el usuario que pide el login en la
 aplicación (`USERNAME` en `public/index.html`).
 
+### Cuentas y privacidad
+
+- Cada persona entra con la **URL de su aula virtual** (https) y su **token de Moodle**. El servidor valida el token contra esa aula (`core_webservice_get_site_info`); un token inventado da 401.
+- Los datos se guardan por (aula + id de usuario de Moodle): nadie ve ni pisa los datos de otra persona.
+- Solo quien entra con `MOODLE_TOKEN` (o el acceso heredado Basic) es el **propietario**: usa los datos antiguos (`userdata.json`) y es el único al que se le muestran los correos de Gmail/Composio. El resto ve los avisos de su propio Moodle (foro de novedades y notificaciones) y sus mensajes.
+- Si `/api/emails` no puede leer alguna fuente, devuelve el motivo en `errors` y la vista de Avisos lo muestra.
+
 ### Desarrollo local
 
 ```bash

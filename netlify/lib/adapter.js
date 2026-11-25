@@ -15,6 +15,10 @@ function makeReq(request, body) {
   // resuelva siempre: si el body llega vacío, el stream debe emitir 'end'
   // igualmente (si no, la promesa se queda colgada para siempre).
   const listeners = { data: [], end: [], error: [] };
+  // Si el handler se suscribe tarde (p. ej. tras un `await` para validar el
+  // token), los eventos ya emitidos se le entregan igualmente.
+  const chunk = (body !== undefined && body !== null && body !== '') ? Buffer.from(String(body)) : null;
+  const emitido = { data: false, end: false };
   const req = {
     method: request.method,
     url: url.pathname + url.search,
@@ -23,15 +27,16 @@ function makeReq(request, body) {
     query: Object.fromEntries(url.searchParams),
     on: function (evt, cb) {
       (listeners[evt] = listeners[evt] || []).push(cb);
+      if (evt === 'data' && emitido.data && chunk) queueMicrotask(function () { cb(chunk); });
+      if (evt === 'end' && emitido.end) queueMicrotask(function () { cb(); });
       return req;
     },
     destroy: function () {}
   };
   queueMicrotask(function () {
-    if (body !== undefined && body !== null && body !== '') {
-      const chunk = Buffer.from(String(body));
-      listeners.data.forEach(function (cb) { cb(chunk); });
-    }
+    emitido.data = true;
+    if (chunk) listeners.data.forEach(function (cb) { cb(chunk); });
+    emitido.end = true;
     listeners.end.forEach(function (cb) { cb(); });
   });
   return req;

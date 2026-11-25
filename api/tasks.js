@@ -1,62 +1,7 @@
-const DEFAULT_WS = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/webservice/rest/server.php';
-const DEFAULT_BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
-// Token de Moodle: 32 caracteres alfanuméricos. Se acepta por cabecera
-// (X-Moodle-Token, lo introduce el usuario en la pantalla de acceso) con
-// respaldo en MOODLE_TOKEN del entorno.
-const TOKEN_RE = /^[A-Za-z0-9]{16,128}$/;
-
-function unauthorized(res) {
-  // Sin cabecera 'WWW-Authenticate' a propósito (ver api/data.js): el reto
-  // "Basic" hace que el navegador abra su diálogo nativo sobre la app.
-  res.statusCode = 401;
-  res.end('401 Unauthorized');
-}
-
-function headerValue(req, name) {
-  const h = req.headers || {};
-  const v = h[name] !== undefined ? h[name] : h[name.toUpperCase()];
-  return typeof v === 'string' ? v.trim() : '';
-}
-
-// Token del cliente (cabecera) o, si no viene, el del servidor.
-function moodleToken(req) {
-  const own = headerValue(req, 'x-moodle-token');
-  if (own) return own;
-  return String(process.env.MOODLE_TOKEN || '').trim();
-}
-
-// URL base del aula virtual: la que introduce el usuario o la del entorno.
-function moodleBase(req) {
-  let base = headerValue(req, 'x-moodle-base') ||
-    String(process.env.MOODLE_BASE || '').trim() ||
-    DEFAULT_BASE;
-  if (!/^https?:\/\//i.test(base)) return null;
-  return base.replace(/\/+$/, '') + '/';
-}
+const cuentas = require('./_cuenta.js');
 
 function moodleWs(base) {
-  if (!base) return DEFAULT_WS;
   return base + 'webservice/rest/server.php';
-}
-
-// Autenticación: token de Moodle en cabecera (nuevo acceso) o Basic (legacy).
-function checkAuth(req) {
-  const token = headerValue(req, 'x-moodle-token');
-  if (token && TOKEN_RE.test(token)) return true;
-  const user = process.env.AUTH_USER;
-  const pass = process.env.AUTH_PASS;
-  if (!user || !pass) return false;
-  const header = req.headers.authorization || '';
-  if (!header.startsWith('Basic ')) return false;
-  let decoded;
-  try {
-    decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
-  } catch (e) {
-    return false;
-  }
-  const idx = decoded.indexOf(':');
-  if (idx < 0) return false;
-  return decoded.slice(0, idx) === user && decoded.slice(idx + 1) === pass;
 }
 
 function appendParams(body, prefix, v) {
@@ -156,11 +101,61 @@ async function courseInfo(ctx, courseIds, me) {
       /* el profesor y las métricas son opcionales */
     }
   });
+  /* Respaldo: los «contactos del curso» (el profesorado que Moodle enseña en
+     la ficha del curso). Los ve cualquier alumno, aunque no tenga permiso para
+     ver la lista de participantes. */
+  const sinProfe = courseIds.filter(function (cid) { return !teach[cid]; });
+  if (sinProfe.length) {
+    try {
+      const r = await ws(ctx, 'core_course_get_courses_by_field', { field: 'ids', value: sinProfe.join(',') });
+      ((r && r.courses) || []).forEach(function (c) {
+        const names = (c.contacts || [])
+          .map(function (u) { return String((u && u.fullname) || '').trim(); })
+          .filter(Boolean);
+        if (names.length) teach[c.id] = names.slice(0, 3).join(', ');
+      });
+    } catch (e) {
+      /* opcional */
+    }
+  }
   return { teach: teach, size: size, seen: seen };
 }
 
+const TIPO_EVENTO = {
+  user: 'Evento personal',
+  site: 'Evento del sitio',
+  group: 'Evento de grupo',
+  category: 'Evento de categoría'
+};
+
+/* Descripción del evento en texto plano: el HTML del profesor nunca se
+   inserta tal cual en la página (evita inyectar código). Conserva los saltos
+   de línea y las listas para que se lea como en Moodle. */
+function textoPlano(html) {
+  return String(html || '')
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, '')
+    .replace(/<li[^>]*>/gi, '\n• ')
+    .replace(/<(br|\/p|\/div|\/tr|\/h[1-6]|\/ol|\/ul)\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"').replace(/&#0?39;/gi, "'").replace(/&amp;/gi, '&')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/\n+• /g, '\n• ')   // los puntos de una lista van seguidos
+    .trim()
+    .slice(0, 4000);
+}
+
+/* Enlace de un evento sin `url` (el calendario no la trae). `view.php?id=`
+   espera el id de la actividad en el curso (cmid), no el de la instancia:
+   usarlo con `instance` abría otra actividad. Se abre el día en el calendario. */
 function eventUrl(base, e) {
-  if (e.modulename && e.instance) return base + 'mod/' + e.modulename + '/view.php?id=' + e.instance;
+  if (e.timestart > 0) {
+    return base + 'calendar/view.php?view=day&time=' + e.timestart +
+      (e.courseid ? '&course=' + e.courseid : '');
+  }
   if (e.courseid) return base + 'course/view.php?id=' + e.courseid;
   return base;
 }
@@ -186,20 +181,15 @@ module.exports = async function (req, res) {
     res.statusCode = 405;
     return res.end('405');
   }
-  if (!checkAuth(req)) return unauthorized(res);
+  const cuenta = await cuentas.identificar(req);
+  if (!cuenta.ok) return cuentas.rechazar(res, cuenta);
 
-  // Credenciales Moodle: cabeceras del navegador con respaldo en el entorno.
-  const base = moodleBase(req);
-  if (!base) {
-    res.statusCode = 400;
-    return res.json({ error: 'URL del aula virtual no válida' });
-  }
-  const token = moodleToken(req);
-  if (!token) {
+  // Token y aula ya verificados contra Moodle (api/_cuenta.js).
+  if (!cuenta.token) {
     res.statusCode = 500;
     return res.json({ error: 'MOODLE_TOKEN no configurado' });
   }
-  const ctx = { token: token, base: base, ws: moodleWs(base) };
+  const ctx = { token: cuenta.token, base: cuenta.base, ws: moodleWs(cuenta.base) };
 
   try {
     const info = await ws(ctx, 'core_webservice_get_site_info', {});
@@ -231,7 +221,92 @@ module.exports = async function (req, res) {
 
     const tasks = [];
 
-    if (courseIds.length) {
+    /* ---- Fuente 1: la página «Próximos eventos» de Moodle ----
+       calendar/view.php?view=upcoming usa exactamente esta función, con la
+       ventana de días y el máximo de eventos que el alumno tiene en sus
+       preferencias. Es la referencia de lo que hay que mostrar. */
+    let source = '';
+    let sourceError = '';
+    let events = null;
+    try {
+      const up = await ws(ctx, 'core_calendar_get_calendar_upcoming_view', { courseid: 1, categoryid: 0 });
+      if (!up || !Array.isArray(up.events)) throw new Error('respuesta sin eventos');
+      events = up.events;
+      source = 'upcoming';
+    } catch (e) {
+      sourceError = 'próximos eventos: ' + String((e && e.message) || e).slice(0, 160);
+    }
+
+    /* ---- Fuente 2: la misma ventana calculada con el calendario ----
+       Desde el inicio de hoy hasta hoy + «días a mostrar» del alumno. */
+    if (!events) {
+      try {
+        let dias = 21;
+        try {
+          const pr = await ws(ctx, 'core_user_get_user_preferences', { name: 'calendar_lookahead' });
+          const v = Number(((pr && pr.preferences) || [])[0] && pr.preferences[0].value);
+          if (isFinite(v) && v > 0) dias = Math.min(v, 365);
+        } catch (e) { /* preferencia opcional */ }
+        const inicio = nowSec - (nowSec % 86400) - 7200;
+        const params = { options: { userevents: 1, siteevents: 1, timestart: inicio, timeend: inicio + dias * 86400 } };
+        if (courseIds.length) params.events = { courseids: courseIds };
+        const r = await ws(ctx, 'core_calendar_get_calendar_events', params);
+        events = (r && r.events) || [];
+        source = 'calendar';
+      } catch (e) {
+        sourceError += ' | calendario: ' + String((e && e.message) || e).slice(0, 160);
+      }
+    }
+
+    if (events) {
+      const vistos = {};
+      const lista = [];
+      events.forEach(function (e) {
+        if (!e || !e.name) return;
+        // «Fecha límite de calificación» es un evento para el profesorado.
+        if (e.eventtype === 'gradingdue') return;
+        const esEntrega = e.modulename === 'assign' && e.instance;
+        const id = esEntrega ? 'a' + e.instance : 'e' + e.id;
+        if (vistos[id]) return;
+        vistos[id] = true;
+        lista.push({ e: e, id: id, esEntrega: esEntrega });
+      });
+      const entregas = lista.filter(function (x) { return x.esEntrega; });
+      const hechas = await mapLimit(entregas, 6, async function (x) {
+        try {
+          return isDelivered(await ws(ctx, 'mod_assign_get_submission_status', { assignid: x.e.instance, userid: me }));
+        } catch (err) {
+          return false;
+        }
+      });
+      const hecha = {};
+      entregas.forEach(function (x, i) { hecha[x.id] = hechas[i]; });
+      lista.forEach(function (x) {
+        const e = x.e;
+        const cid = (e.course && e.course.id) || e.courseid || 0;
+        const t = {
+          id: x.id,
+          s: (e.course && (e.course.fullname || e.course.shortname)) || courseNames[cid] || '',
+          t: e.name,
+          p: teachBy[cid] || '',
+          u: e.url || eventUrl(ctx.base, e),
+          d: e.timestart > 0 ? new Date(e.timestart * 1000).toISOString() : null
+        };
+        if (x.esEntrega) t.done = hecha[x.id] ? 1 : 0;
+        // Lo mismo que enseña la tarjeta de «Próximos eventos» de Moodle.
+        const ds = textoPlano(e.description);
+        if (ds) t.ds = ds;
+        t.k = TIPO_EVENTO[e.eventtype] || 'Evento de curso';
+        if (e.action && e.action.url && e.action.name) {
+          t.a = { n: String(e.action.name).slice(0, 80), u: String(e.action.url) };
+        }
+        tasks.push(t);
+      });
+    }
+
+    /* ---- Último recurso: el método antiguo (todas las entregas de los cursos) ---- */
+    if (!events && courseIds.length) {
+      source = 'legacy';
       const byCourse = await ws(ctx, 'mod_assign_get_assignments', { courseids: courseIds });
       const assignments = [];
       (byCourse.courses || []).forEach(function (c) {
@@ -271,7 +346,7 @@ module.exports = async function (req, res) {
       });
     }
 
-    try {
+    if (!events) try {
       const events = await calendarEvents(ctx, nowSec, courseIds);
       const seen = {};
       tasks.forEach(function (t) { seen[t.t] = true; });
@@ -306,6 +381,8 @@ module.exports = async function (req, res) {
       teachers: teachers,
       modules: modules,
       fetchedAt: nowSec,
+      source: source || 'legacy',
+      sourceError: sourceError,
       user: info.fullname,
       username: info.username || ''
     });

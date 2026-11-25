@@ -5,9 +5,9 @@ try {
   fs = null;
 }
 
-const KEY = 'userdata.json';
-// Marca de "la cuenta heredada ya fue reclamada" (aislamiento de cuentas).
-const MARCA_MIGRACION = 'userdata.migrado.json';
+const cuentas = require('./_cuenta.js');
+
+const KEY = cuentas.KEY;
 const MAX_BODY = 400000;
 const EMPTY = { tasks: [], notes: {}, global: '', generalNote: '', skip: [], colors: {}, hide: [], sort: '', pos: {}, gord: {}, showdone: false, exams: {}, subjectColors: {}, customEvents: [], chartOrder: ['tasks', 'grades'], agendas: [], taskNotes: {}, modules: {}, accent: '', bgColor: '', customAgenda: [] };
 const COLOR_RE = /^k-(red|orange|yellow|green|blue|purple|pink|gray)$/;
@@ -15,73 +15,15 @@ const SORT_MODES = ['date', 'date-desc', 'title'];
 const CHART_KEYS = ['tasks', 'grades'];
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 
-function unauthorized(res) {
-  // Sin cabecera 'WWW-Authenticate' a propósito: si el 401 lleva un reto
-  // "Basic", Chrome y Edge abren su diálogo nativo de usuario/contraseña
-  // encima de la app, el usuario no puede cerrarlo y nunca llega a ver el
-  // mensaje de error de la pantalla de acceso. La app detecta el 401 por
-  // el código de estado, así que el reto no hace falta.
-  res.statusCode = 401;
-  res.end('401 Unauthorized');
-}
-
-function checkAuth(req) {
-  // Acceso con token de Moodle en cabecera (pantalla de acceso de la app).
-  const own = String((req.headers || {})['x-moodle-token'] || '').trim();
-  if (/^[A-Za-z0-9]{16,128}$/.test(own)) return true;
-  const user = process.env.AUTH_USER;
-  const pass = process.env.AUTH_PASS;
-  if (!user || !pass) return false;
-  const header = req.headers.authorization || '';
-  if (!header.startsWith('Basic ')) return false;
-  let decoded;
-  try {
-    decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
-  } catch (e) {
-    return false;
-  }
-  const idx = decoded.indexOf(':');
-  if (idx < 0) return false;
-  return decoded.slice(0, idx) === user && decoded.slice(idx + 1) === pass;
-}
-
 function str(v, max) {
   if (v === null || v === undefined) return '';
   return String(v).slice(0, max);
 }
 
 // ---------- Aislamiento de cuentas ----------
-// Cada token de Moodle guarda sus datos en su propia clave. Dos alumnos que
-// entren desde el mismo navegador (o desde el mismo despliegue) no se pisan
-// nunca: ni tareas, ni notas, ni anotaciones, ni colores.
-// FNV-1a combinada en dos pasadas -> 16 caracteres hexadecimales. No es
-// criptografica: solo nombra el almacen, la autenticacion la hace checkAuth.
-function hashCuenta(texto) {
-  const s = String(texto || '');
-  let h1 = 0x811c9dc5;
-  let h2 = 0x01000193;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    h1 = Math.imul(h1 ^ c, 0x01000193) >>> 0;
-    h2 = (Math.imul(h2 + c + i, 0x85ebca6b) + ((h1 << 7) | (h1 >>> 25))) >>> 0;
-  }
-  const a = h1.toString(16).padStart(8, '0');
-  const b = h2.toString(16).padStart(8, '0');
-  return (a + b).slice(0, 16);
-}
-
-// Clave de almacen para la cuenta que hace la peticion.
-//   - Token del entorno (MOODLE_TOKEN) o acceso heredado con Basic -> la
-//     clave original: asi los datos existentes no se pierden al activar el
-//     aislamiento.
-//   - Cualquier otro token -> su propia clave derivada del hash.
-function claveCuenta(req) {
-  const token = String((req && req.headers) ? (req.headers['x-moodle-token'] || '') : '').trim();
-  if (!/^[A-Za-z0-9]{16,128}$/.test(token)) return KEY;
-  const propio = String(process.env.MOODLE_TOKEN || '').trim();
-  if (propio && propio === token) return KEY;
-  return 'userdata.' + hashCuenta(token) + '.json';
-}
+// Cada cuenta (aula virtual + id de usuario de Moodle, verificado contra
+// Moodle en api/_cuenta.js) guarda sus datos en su propia clave. Solo el
+// propietario (MOODLE_TOKEN o acceso heredado) usa `userdata.json`.
 
 // Fichero local equivalente para una cuenta concreta (desarrollo).
 function archivoLocalCuenta(clave) {
@@ -537,24 +479,6 @@ async function readData(clave) {
         }
       } catch (e) { /* si falla la migración, seguimos con datos vacíos */ }
     }
-    // Aislamiento de cuentas: quien pida datos por primera vez con su propio
-    // token se lleva el contenido de la clave heredada (los datos que hasta
-    // ahora estaban en `userdata.json` compartido). Un marcador garantiza que
-    // solo lo haga la primera cuenta: las demás empiezan limpias y ya no se
-    // pisan. Sin esto, al activar el aislamiento los datos existentes
-    // quedarían huérfanos para cualquier token distinto de MOODLE_TOKEN.
-    if (k !== KEY && !(await almacenLeer(MARCA_MIGRACION))) {
-      const heredado = await almacenLeer(KEY);
-      if (heredado != null) {
-        try {
-          await almacenEscribir(k, heredado);
-          await almacenEscribir(MARCA_MIGRACION, String(Date.now()));
-          return sanitize(typeof heredado === 'string' ? JSON.parse(heredado) : heredado);
-        } catch (e) { /* sin migración: la cuenta sigue con datos vacíos */ }
-      } else {
-        try { await almacenEscribir(MARCA_MIGRACION, String(Date.now())); } catch (e) {}
-      }
-    }
     return EMPTY;
   }
   try {
@@ -570,7 +494,8 @@ async function writeData(data, clave) {
 
 module.exports = async function (req, res) {
   res.setHeader('Cache-Control', 'no-store');
-  if (!checkAuth(req)) return unauthorized(res);
+  const cuenta = await cuentas.identificar(req);
+  if (!cuenta.ok) return cuentas.rechazar(res, cuenta);
   // Inyectar KV desde _worker.js si viene en env
   if (typeof process !== 'undefined' && process.env) {
     if (process.env.DATA && typeof process.env.DATA.get === 'function') {
@@ -583,8 +508,8 @@ module.exports = async function (req, res) {
     }
   }
 
-  // Cada token de Moodle: su propio almacen (ver claveCuenta).
-  const clave = claveCuenta(req);
+  // Cada cuenta de Moodle verificada: su propio almacen (ver api/_cuenta.js).
+  const clave = cuenta.key;
 
   if (req.method === 'GET') {
     try {
@@ -620,6 +545,3 @@ module.exports = async function (req, res) {
 
 module.exports.sanitize = sanitize;
 module.exports.setStore = setStore;
-// Expuestos para las pruebas locales de aislamiento de cuentas.
-module.exports.claveCuenta = claveCuenta;
-module.exports.hashCuenta = hashCuenta;

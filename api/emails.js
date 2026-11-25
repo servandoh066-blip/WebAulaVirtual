@@ -2,36 +2,9 @@ const EXEC = 'https://backend.composio.dev/api/v3.1/tools/execute/';
 const QUERY = 'newer_than:14d {from:edu.xunta.gal from:xunta.gal}';
 const MAX_LIST = 60;
 const MAX_DEEP = 4;
-const DEFAULT_BASE = 'https://centros.edu.xunta.gal/iesteis/aulavirtual/';
+const cuentas = require('./_cuenta.js');
 const MAX_CONVS = 6;
 const MAX_MSGS = 8;
-
-function unauthorized(res) {
-  // Sin cabecera 'WWW-Authenticate' a propósito (ver api/data.js): el reto
-  // "Basic" hace que el navegador abra su diálogo nativo sobre la app.
-  res.statusCode = 401;
-  res.end('401 Unauthorized');
-}
-
-function checkAuth(req) {
-  // Acceso con token de Moodle en cabecera (pantalla de acceso de la app).
-  const own = String((req.headers || {})['x-moodle-token'] || '').trim();
-  if (/^[A-Za-z0-9]{16,128}$/.test(own)) return true;
-  const user = process.env.AUTH_USER;
-  const pass = process.env.AUTH_PASS;
-  if (!user || !pass) return false;
-  const header = req.headers.authorization || '';
-  if (!header.startsWith('Basic ')) return false;
-  let decoded;
-  try {
-    decoded = Buffer.from(header.slice(6), 'base64').toString('utf8');
-  } catch (e) {
-    return false;
-  }
-  const idx = decoded.indexOf(':');
-  if (idx < 0) return false;
-  return decoded.slice(0, idx) === user && decoded.slice(idx + 1) === pass;
-}
 
 async function execTool(slug, args) {
   const key = process.env.COMPOSIO_API_KEY;
@@ -71,28 +44,6 @@ function findProp(obj, prop, depth) {
 function hasMessages(j) { return !!findProp(j, 'messages', 0); }
 
 /* ---------------- conversaciones de Moodle ---------------- */
-
-function headerValue(req, name) {
-  const h = req.headers || {};
-  const v = h[name] !== undefined ? h[name] : h[name.toUpperCase()];
-  return typeof v === 'string' ? v.trim() : '';
-}
-
-// Token del cliente (cabecera) o, si no viene, el del servidor.
-function moodleToken(req) {
-  const own = headerValue(req, 'x-moodle-token');
-  if (own) return own;
-  return String(process.env.MOODLE_TOKEN || '').trim();
-}
-
-// URL base del aula virtual: la que introduce el usuario o la del entorno.
-function moodleBase(req) {
-  let base = headerValue(req, 'x-moodle-base') ||
-    String(process.env.MOODLE_BASE || '').trim() ||
-    DEFAULT_BASE;
-  if (!/^https?:\/\//i.test(base)) return DEFAULT_BASE;
-  return base.replace(/\/+$/, '') + '/';
-}
 
 function appendParams(body, prefix, v) {
   if (v === undefined || v === null) return;
@@ -222,10 +173,10 @@ function normalizeConversation(conv, msgs, self) {
 // try/catch en el llamante: si Moodle no responde, la vista sigue funcionando
 // con los avisos de correo. Moodle 4.5 exige el userid del dueño del token y
 // rechaza cualquier parámetro extra, así que se pide solo lo necesario.
-async function moodleConversations(req) {
-  const token = moodleToken(req);
-  if (!/^[A-Za-z0-9]{16,128}$/.test(token)) return [];
-  const base = moodleBase(req);
+async function moodleConversations(cuenta) {
+  const token = cuenta.token;
+  const base = cuenta.base;
+  if (!token) return [];
   const self = await moodleSelf(base, token);
   if (!self.id) return [];
   const attempts = [
@@ -248,6 +199,106 @@ async function moodleConversations(req) {
     .slice(0, MAX_CONVS)
     .map(function (c) { return normalizeConversation(c, c.messages, self); })
     .filter(function (c) { return !!c.body; });
+}
+
+
+/* ---------------- avisos del aula virtual (Moodle) ---------------- */
+
+function isoDe(seg) {
+  const n = Number(seg || 0);
+  return n > 0 ? new Date(n * 1000).toISOString() : '';
+}
+
+async function mapLimit(arr, limit, fn) {
+  const out = new Array(arr.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, arr.length) }, async function () {
+    while (next < arr.length) {
+      const i = next++;
+      out[i] = await fn(arr[i], i);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
+// Moodle cambió el nombre de la función de debates entre versiones.
+async function debatesForo(base, token, forumid) {
+  const attempts = [
+    ['mod_forum_get_forum_discussions', { forumid: forumid, sortorder: -1, page: 0, perpage: 6 }],
+    ['mod_forum_get_forum_discussions_paginated', { forumid: forumid, sortby: 'timemodified', sortdirection: 'DESC', page: 0, perpage: 6 }]
+  ];
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      const j = await ws(base, token, attempts[i][0], attempts[i][1]);
+      if (j && Array.isArray(j.discussions)) return j.discussions;
+    } catch (e) { /* se prueba la siguiente función */ }
+  }
+  return [];
+}
+
+/* Novedades de los cursos (foro «Avisos») y notificaciones del usuario, en el
+   mismo formato que los avisos de correo. Funciona para cualquier alumno con
+   su propio token: no depende de ninguna cuenta de correo. */
+async function moodleAvisos(cuenta) {
+  const base = cuenta.base;
+  const token = cuenta.token;
+  if (!token) return { items: [], error: '' };
+  const self = await moodleSelf(base, token);
+  const items = [];
+  const fallos = [];
+
+  if (self.id) {
+    try {
+      const courses = await ws(base, token, 'core_enrol_get_users_courses', { userid: self.id });
+      const names = {};
+      (courses || []).forEach(function (c) { names[c.id] = c.fullname || c.shortname || ''; });
+      const ids = Object.keys(names).map(Number);
+      if (ids.length) {
+        const forums = await ws(base, token, 'mod_forum_get_forums_by_courses', { courseids: ids });
+        const news = (Array.isArray(forums) ? forums : []).filter(function (f) { return f && f.type === 'news'; });
+        const lists = await mapLimit(news, 4, async function (f) {
+          return { f: f, d: await debatesForo(base, token, f.id) };
+        });
+        lists.forEach(function (x) {
+          x.d.forEach(function (d) {
+            const did = d.discussion || d.id;
+            items.push({
+              id: 'foro' + did,
+              title: cleanText(d.name || d.subject || 'Aviso'),
+              hint: stripCourseNoise(names[x.f.course] || ''),
+              d: null,
+              ts: isoDe(d.timemodified || d.created || d.timestart),
+              url: base + 'mod/forum/discuss.php?d=' + did,
+              snippet: cleanText(stripTags(d.message || '')).slice(0, 400)
+            });
+          });
+        });
+      }
+    } catch (e) {
+      fallos.push('anuncios: ' + String((e && e.message) || e).slice(0, 120));
+    }
+
+    try {
+      const j = await ws(base, token, 'message_popup_get_popup_notifications', { useridto: self.id, limit: 20 });
+      ((j && j.notifications) || []).forEach(function (n) {
+        items.push({
+          id: 'n' + n.id,
+          title: cleanText(n.subject || n.shortenedsubject || 'Notificación'),
+          hint: '',
+          d: null,
+          ts: isoDe(n.timecreated),
+          url: n.contexturl || '',
+          snippet: cleanText(stripTags(n.smallmessage || n.fullmessage || '')).slice(0, 400)
+        });
+      });
+    } catch (e) {
+      /* las notificaciones son opcionales (el servicio puede no incluirlas) */
+    }
+  }
+
+  items.sort(function (a, b) { return (Date.parse(b.ts) || 0) - (Date.parse(a.ts) || 0); });
+  return { items: items.slice(0, 40), error: items.length ? '' : fallos.join('; ') };
 }
 
 /* ---------------- filtro ---------------- */
@@ -470,61 +521,73 @@ async function hydrateDate(item) {
 
 /* ---------------- handler ---------------- */
 
+/* Correos del instituto (Gmail vía Composio): es una cuenta personal del
+   propietario del despliegue, así que SOLO se consulta para él. */
+async function correosInstituto() {
+  const j = await execTool('GMAIL_FETCH_EMAILS', {
+    query: QUERY,
+    max_results: MAX_LIST,
+    verbose: false,
+    include_payload: false
+  });
+  const raw = findProp(j, 'messages', 0) || [];
+  const items = [];
+  raw.forEach(function (m) {
+    if (!m) return;
+    if (!isXunta(m.sender)) return;
+    if (excluded(m.subject)) return;
+    if (!m.messageId) return;
+    items.push(parseMessage(m));
+  });
+  items.sort(function (a, b) {
+    const ta = a.ts ? Date.parse(a.ts) : 0;
+    const tb = b.ts ? Date.parse(b.ts) : 0;
+    return tb - ta;
+  });
+  const missing = items.filter(function (i) { return !i.d; }).slice(0, MAX_DEEP);
+  if (missing.length) await Promise.all(missing.map(hydrateDate));
+  return items;
+}
+
+function motivo(e) { return String((e && e.message) || e).slice(0, 160); }
+
 module.exports = async function (req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') {
     res.statusCode = 405;
     return res.end('405');
   }
-  if (!checkAuth(req)) return unauthorized(res);
-  if (!process.env.COMPOSIO_API_KEY) {
-    res.statusCode = 500;
-    return res.json({ error: 'COMPOSIO_API_KEY no configurado' });
-  }
+  const cuenta = await cuentas.identificar(req);
+  if (!cuenta.ok) return cuentas.rechazar(res, cuenta);
 
-  try {
-    // Conversaciones directas de Moodle: no bloquean el correo si fallan.
-    const mensajes = moodleConversations(req).catch(function () { return []; });
+  /* Cada fuente va por separado: que falle una (p. ej. el correo, que solo
+     existe para el propietario) ya no deja vacía toda la vista de avisos. */
+  const errores = {};
+  const quiereCorreo = cuenta.owner && !!process.env.COMPOSIO_API_KEY;
 
-    const j = await execTool('GMAIL_FETCH_EMAILS', {
-      query: QUERY,
-      max_results: MAX_LIST,
-      verbose: false,
-      include_payload: false
-    });
-    const raw = findProp(j, 'messages', 0) || [];
-    const items = [];
-    raw.forEach(function (m) {
-      if (!m) return;
-      if (!isXunta(m.sender)) return;
-      if (excluded(m.subject)) return;
-      if (!m.messageId) return;
-      items.push(parseMessage(m));
-    });
-    items.sort(function (a, b) {
-      const ta = a.ts ? Date.parse(a.ts) : 0;
-      const tb = b.ts ? Date.parse(b.ts) : 0;
-      return tb - ta;
-    });
+  const fuentes = await Promise.all([
+    moodleConversations(cuenta).catch(function (e) { errores.mensajes = motivo(e); return []; }),
+    moodleAvisos(cuenta).catch(function (e) { errores.avisos = motivo(e); return { items: [], error: '' }; }),
+    quiereCorreo
+      ? correosInstituto().catch(function (e) { errores.correo = motivo(e); return []; })
+      : Promise.resolve([])
+  ]);
+  const mensajes = fuentes[0];
+  const avisos = fuentes[1];
+  const correos = fuentes[2];
+  if (avisos.error) errores.avisos = avisos.error;
 
-    const missing = items.filter(function (i) { return !i.d; }).slice(0, MAX_DEEP);
-    if (missing.length) {
-      await Promise.all(missing.map(hydrateDate));
-    }
+  const annots = correos.concat(avisos.items).sort(function (a, b) {
+    return (Date.parse(b.ts || '') || 0) - (Date.parse(a.ts || '') || 0);
+  });
 
-    let messages = [];
-    try { messages = await mensajes; } catch (e) { messages = []; }
-
-    res.statusCode = 200;
-    return res.json({
-      annots: items,
-      messages: Array.isArray(messages) ? messages : [],
-      fetchedAt: Math.floor(Date.now() / 1000)
-    });
-  } catch (err) {
-    res.statusCode = 502;
-    return res.json({ error: String(err && err.message ? err.message : err) });
-  }
+  res.statusCode = 200;
+  return res.json({
+    annots: annots,
+    messages: Array.isArray(mensajes) ? mensajes : [],
+    errors: errores,
+    fetchedAt: Math.floor(Date.now() / 1000)
+  });
 };
 
 module.exports.parseMessage = parseMessage;

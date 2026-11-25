@@ -199,5 +199,171 @@ function ok(name, cond) {
   await fsp.rm(carpeta, { recursive: true, force: true });
 }
 
+// --- cuentas: el token se valida contra Moodle y cada alumno tiene sus datos ---
+{
+  const os = await import('node:os');
+  const fsp = await import('node:fs/promises');
+  const rutaMod = await import('node:path');
+  const carpeta = await fsp.mkdtemp(rutaMod.join(os.tmpdir(), 'aula-cuentas-'));
+  process.env.LOCAL_DATA_FILE = rutaMod.join(carpeta, 'datos.json');
+  delete process.env.UPSTASH_REDIS_REST_URL;
+  delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  delete process.env.AUTH_USER;
+  delete process.env.AUTH_PASS;
+  const TOKEN_DUENO = 'A'.repeat(32);
+  const TOKEN_ALUMNO = 'B'.repeat(32);
+  const TOKEN_FALSO = 'C'.repeat(32);
+  process.env.MOODLE_TOKEN = TOKEN_DUENO;
+  const BASE = 'https://aula.universidad.example/';
+  const usuarios = { [TOKEN_DUENO]: 1, [TOKEN_ALUMNO]: 2 };
+
+  // Moodle falso: solo conoce dos tokens; para el resto responde invalidtoken.
+  const fetchReal = globalThis.fetch;
+  const fetchMoodle = async function (url, opts) {
+    const u = String(url);
+    if (!u.startsWith(BASE)) throw new Error('fetch inesperado: ' + u);
+    const p = new URLSearchParams(String(opts && opts.body));
+    const id = usuarios[p.get('wstoken')];
+    if (!id) return new Response(JSON.stringify({ exception: 'moodle_exception', errorcode: 'invalidtoken', message: 'Invalid token' }), { status: 200 });
+    if (p.get('wsfunction') === 'core_webservice_get_site_info') {
+      return new Response(JSON.stringify({ userid: id, fullname: 'Alumno ' + id, username: 'u' + id }), { status: 200 });
+    }
+    return new Response(JSON.stringify([]), { status: 200 });
+  };
+  globalThis.fetch = fetchMoodle;
+
+  const handlerData = require('./../../api/data.js');
+  const handlerEmails = require('./../../api/emails.js');
+  async function llamar(handler, metodo, token, base, cuerpo) {
+    const headers = { 'content-type': 'application/json' };
+    if (token) headers['x-moodle-token'] = token;
+    if (base) headers['x-moodle-base'] = base;
+    const init = { method: metodo, headers: headers };
+    if (cuerpo !== undefined) init.body = JSON.stringify(cuerpo);
+    const r = new Request('http://x/api/x', init);
+    const res = makeRes();
+    await handler(makeReq(r, cuerpo !== undefined ? await r.clone().text() : undefined), res);
+    const out = toResponse(res);
+    let json = null;
+    try { json = await out.json(); } catch (e) { /* sin cuerpo JSON */ }
+    return { status: out.status, json: json };
+  }
+
+  const falso = await llamar(handlerData, 'GET', TOKEN_FALSO, BASE);
+  ok('token inventado (no existe en Moodle) -> 401', falso.status === 401);
+  const corto = await llamar(handlerData, 'GET', 'abc', BASE);
+  ok('token con formato inválido -> 401', corto.status === 401);
+  const sinBase = await llamar(handlerData, 'GET', TOKEN_ALUMNO, '');
+  ok('sin URL del aula -> 400', sinBase.status === 400);
+  const interna = await llamar(handlerData, 'GET', TOKEN_ALUMNO, 'https://localhost/moodle');
+  ok('URL interna (SSRF) rechazada -> 400', interna.status === 400);
+  const ip = await llamar(handlerData, 'GET', TOKEN_ALUMNO, 'https://169.254.169.254/');
+  ok('IP literal rechazada -> 400', ip.status === 400);
+  const http = await llamar(handlerData, 'GET', TOKEN_ALUMNO, 'http://aula.universidad.example/');
+  ok('http sin cifrar rechazado -> 400', http.status === 400);
+
+  // El propietario guarda datos; el alumno NO los ve y los suyos no pisan los del dueño.
+  const pDueno = await llamar(handlerData, 'POST', TOKEN_DUENO, BASE, { notes: { DWEC: 'privado del dueño' }, tasks: [{ id: 'a1', t: 'Mi tarea', s: 'DWEC' }], generalNote: 'secreto' });
+  ok('propietario guarda -> 200', pDueno.status === 200);
+  const gAlumno = await llamar(handlerData, 'GET', TOKEN_ALUMNO, BASE);
+  ok('alumno nuevo: 200', gAlumno.status === 200);
+  ok('alumno nuevo empieza SIN datos del propietario',
+    gAlumno.json && gAlumno.json.tasks.length === 0 && !gAlumno.json.notes.DWEC && gAlumno.json.generalNote === '');
+  await llamar(handlerData, 'POST', TOKEN_ALUMNO, BASE, { notes: { DWEC: 'mío' }, generalNote: 'nota alumno' });
+  const gDueno = await llamar(handlerData, 'GET', TOKEN_DUENO, BASE);
+  ok('los datos del propietario siguen intactos', gDueno.json.notes.DWEC === 'privado del dueño' && gDueno.json.tasks.length === 1);
+  const gAlumno2 = await llamar(handlerData, 'GET', TOKEN_ALUMNO, BASE);
+  ok('el alumno recupera lo suyo', gAlumno2.json.notes.DWEC === 'mío' && gAlumno2.json.generalNote === 'nota alumno');
+
+  // Avisos: el correo (Composio) es del propietario y no se consulta para el alumno.
+  process.env.COMPOSIO_API_KEY = 'clave-falsa';
+  let composioLlamado = false;
+  globalThis.fetch = async function (url, opts) {
+    if (String(url).indexOf('composio') >= 0) { composioLlamado = true; return new Response(JSON.stringify({ data: { messages: [] } }), { status: 200 }); }
+    return fetchMoodle(url, opts);
+  };
+  const eAlumno = await llamar(handlerEmails, 'GET', TOKEN_ALUMNO, BASE);
+  ok('avisos del alumno: 200 sin depender del correo', eAlumno.status === 200 && Array.isArray(eAlumno.json.annots));
+  ok('avisos del alumno: NO consulta el correo del propietario', composioLlamado === false);
+  const eDueno = await llamar(handlerEmails, 'GET', TOKEN_DUENO, BASE);
+  ok('avisos del propietario: sí consulta el correo', eDueno.status === 200 && composioLlamado === true);
+  delete process.env.COMPOSIO_API_KEY;
+  const eSinClave = await llamar(handlerEmails, 'GET', TOKEN_ALUMNO, BASE);
+  ok('sin COMPOSIO_API_KEY los avisos ya no dan 500', eSinClave.status === 200);
+
+  globalThis.fetch = fetchReal;
+  delete process.env.MOODLE_TOKEN;
+  delete process.env.LOCAL_DATA_FILE;
+  await fsp.rm(carpeta, { recursive: true, force: true });
+}
+
+// --- tareas: salen de «Próximos eventos», no de todas las entregas del curso ---
+{
+  const TOKEN = 'D'.repeat(32);
+  const BASE = 'https://aula2.universidad.example/';
+  const ahora = Math.floor(Date.now() / 1000);
+  let sinUpcoming = false;
+  const llamadas = [];
+  const fetchReal = globalThis.fetch;
+  globalThis.fetch = async function (url, opts) {
+    const p = new URLSearchParams(String(opts && opts.body));
+    const fn = p.get('wsfunction');
+    llamadas.push(fn);
+    const J = function (o) { return new Response(JSON.stringify(o), { status: 200 }); };
+    if (fn === 'core_webservice_get_site_info') return J({ userid: 7, fullname: 'Alumna', username: 'a7' });
+    if (fn === 'core_enrol_get_users_courses') return J([{ id: 10, fullname: 'Bases de datos', shortname: 'BD' }]);
+    if (fn === 'core_enrol_get_enrolled_users') return J([]);
+    if (fn === 'core_course_get_courses_by_field') return J({ courses: [{ id: 10, contacts: [{ id: 3, fullname: 'Profesora Ejemplo' }] }] });
+    if (fn === 'core_calendar_get_calendar_upcoming_view') {
+      if (sinUpcoming) return J({ exception: 'webservice_access_exception', errorcode: 'accessexception', message: 'no permitido' });
+      return J({ events: [
+        { id: 1, name: 'Práctica 3', modulename: 'assign', instance: 55, eventtype: 'due', timestart: ahora + 86400, url: BASE + 'mod/assign/view.php?id=900', course: { id: 10, fullname: 'Bases de datos' },
+          description: '<h3>Pasos</h3><ol><li>Crea la clave</li><li>Firma el &quot;documento&quot;</li></ol><script>alert(1)</script>',
+          action: { name: 'Engadir entrega', url: BASE + 'mod/assign/view.php?id=900&action=editsubmission', actionable: true } },
+        { id: 2, name: 'Calificar práctica 3', modulename: 'assign', instance: 55, eventtype: 'gradingdue', timestart: ahora + 90000, course: { id: 10 } },
+        { id: 3, name: 'Cuestionario tema 2', modulename: 'quiz', instance: 8, eventtype: 'close', timestart: ahora + 172800, url: BASE + 'mod/quiz/view.php?id=901', course: { id: 10, fullname: 'Bases de datos' } }
+      ] });
+    }
+    if (fn === 'core_user_get_user_preferences') return J({ preferences: [{ name: 'calendar_lookahead', value: '14' }] });
+    if (fn === 'core_calendar_get_calendar_events') {
+      return J({ events: [{ id: 4, name: 'Entrega final', modulename: 'assign', instance: 60, eventtype: 'due', timestart: ahora + 3600, courseid: 10 }] });
+    }
+    if (fn === 'mod_assign_get_submission_status') return J({ lastattempt: { submission: { status: p.get('assignid') === '55' ? 'submitted' : 'new' } } });
+    if (fn === 'mod_assign_get_assignments') return J({ courses: [{ id: 10, assignments: [{ id: 99, cmid: 5, name: 'Tarea vieja de hace meses', duedate: ahora - 200 * 86400 }] }] });
+    return J([]);
+  };
+  const handlerTasks = require('./../../api/tasks.js');
+  async function pedir() {
+    const r = new Request('http://x/api/tasks', { headers: { 'x-moodle-token': TOKEN, 'x-moodle-base': BASE } });
+    const res = makeRes();
+    await handlerTasks(makeReq(r, undefined), res);
+    const out = toResponse(res);
+    return { status: out.status, json: await out.json() };
+  }
+
+  const a = await pedir();
+  const nombres = (a.json.tasks || []).map(function (t) { return t.t; });
+  ok('tareas: 200', a.status === 200);
+  ok('tareas: fuente = próximos eventos', a.json.source === 'upcoming');
+  ok('tareas: solo lo que muestra Moodle', nombres.join('|') === 'Práctica 3|Cuestionario tema 2');
+  ok('tareas: sin la entrega vieja de hace meses', nombres.indexOf('Tarea vieja de hace meses') < 0);
+  ok('tareas: sin el evento de calificación (profesorado)', nombres.indexOf('Calificar práctica 3') < 0);
+  ok('tareas: entrega con id estable y estado entregada', a.json.tasks[0].id === 'a55' && a.json.tasks[0].done === 1);
+  ok('tareas: usa el enlace correcto que da Moodle', a.json.tasks[0].u === BASE + 'mod/assign/view.php?id=900');
+  ok('tareas: trae la descripción en texto plano', a.json.tasks[0].ds === 'Pasos\n• Crea la clave\n• Firma el "documento"');
+  ok('tareas: la descripción no lleva HTML ni scripts', !/[<>]|alert/.test(a.json.tasks[0].ds));
+  ok('tareas: tipo de evento', a.json.tasks[0].k === 'Evento de curso');
+  ok('tareas: acción de Moodle (Engadir entrega)', a.json.tasks[0].a && a.json.tasks[0].a.n === 'Engadir entrega');
+  ok('tareas: sin acción si Moodle no la da', !a.json.tasks[1].a);
+  ok('tareas: profesor desde los contactos del curso', a.json.tasks[0].p === 'Profesora Ejemplo' && a.json.teachers['Bases de datos'] === 'Profesora Ejemplo');
+
+  sinUpcoming = true;
+  const b = await pedir();
+  ok('respaldo: fuente = calendario', b.json.source === 'calendar' && /próximos eventos/.test(b.json.sourceError));
+  ok('respaldo: lee la ventana del calendario', b.json.tasks.length === 1 && b.json.tasks[0].t === 'Entrega final' && b.json.tasks[0].done === 0);
+  ok('respaldo: enlace al día del calendario (no view.php?id=instancia)', /calendar\/view\.php\?view=day/.test(b.json.tasks[0].u));
+  globalThis.fetch = fetchReal;
+}
+
 console.log('\n' + pass + ' ok, ' + fail + ' fail');
 process.exit(fail ? 1 : 0);
